@@ -1082,7 +1082,7 @@ public class pubautobot extends SubspaceBot {
 
 	private class DieTask extends TimerTask {
         public void run() {
-            m_botAction.die();
+            m_botAction.die("DieTask initiated");
         }
     }
 

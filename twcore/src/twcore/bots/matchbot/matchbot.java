@@ -301,7 +301,7 @@ public class matchbot extends SubspaceBot {
                         TimerTask d = new TimerTask() {
                             @Override
                             public void run() {
-                                m_botAction.die();
+                                m_botAction.die("IPC DIE received");
                             }
                         };
                         m_botAction.scheduleTask(d, 3000);
@@ -410,7 +410,7 @@ public class matchbot extends SubspaceBot {
                 && (event.getMessage().equals("WARNING: You have been disconnected because server has not been receiving data from you."))) {
             if (m_game != null)
                 m_game.cancel();
-            m_botAction.die();
+            m_botAction.die("Received error: WARNING: You have been disconnected because server has not been receiving data from you.");
         }
 
         if (messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) {
@@ -569,7 +569,7 @@ public class matchbot extends SubspaceBot {
                 if ((command.equals("!die")) && (m_opList.isSmod(name))) {
                     if (m_game != null)
                         m_game.cancel();
-                    m_botAction.die();
+                    m_botAction.die("!die by " + name);
                 }
                 if (command.equals("!getlags"))
                     command_getLag(name);
@@ -609,7 +609,7 @@ public class matchbot extends SubspaceBot {
                         TimerTask d = new TimerTask() {
                             @Override
                             public void run() {
-                                m_botAction.die();
+                                m_botAction.die("!killgame by " + name + " after shutdown mode initiated");
                             }
                         };
                         m_botAction.scheduleTask(d, 1500);
@@ -726,7 +726,7 @@ public class matchbot extends SubspaceBot {
                 TimerTask d = new TimerTask() {
                     @Override
                     public void run() {
-                        m_botAction.die();
+                        m_botAction.die("Teams cancelled game and shutdown mode was initiated");
                     }
                 };
                 m_botAction.scheduleTask(d, 1500);
@@ -1597,7 +1597,7 @@ public class matchbot extends SubspaceBot {
                                 TimerTask d = new TimerTask() {
                                     @Override
                                     public void run() {
-                                        m_botAction.die();
+                                        m_botAction.die("shutdown initiated");
                                     }
                                 };
                                 m_botAction.scheduleTask(d, 2000);

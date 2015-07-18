@@ -153,7 +153,7 @@ public class staffbot extends SubspaceBot {
                 if (message.equals("!die")) {
                     moduleHandler.unloadAllModules();
                     this.handleDisconnect();
-                    m_botAction.die();
+                    m_botAction.die("!die by " + senderName);
                 } else if (message.equals("!energy")) {
                     cmd_energy(senderName);
                 }

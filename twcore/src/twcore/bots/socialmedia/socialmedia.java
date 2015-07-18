@@ -207,7 +207,7 @@ public class socialmedia extends SubspaceBot {
                         listOp();
                     } else if (msg.equalsIgnoreCase("!die")) {
                         m_botAction.sendChatMessage(name + " killed me!");
-                        ba.die();
+                        ba.die("!die by " + name);
                     }
                 }
 

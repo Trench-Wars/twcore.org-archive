@@ -709,7 +709,7 @@ public class pubhub extends SubspaceBot {
             m_botAction.ipcDestroyChannel(IPCCHAT);
             m_botAction.ipcDestroyChannel(IPCSILENCE);
             m_botAction.ipcDestroyChannel(IPCPUBSTATS);
-            m_botAction.die();
+            m_botAction.die("LogOff requested");
         }
 
     }

@@ -976,7 +976,7 @@ public class duelbot extends SubspaceBot {
         if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()) && !m_botAction.getOperatorList().isSmod(name))
             return;
         //Removes the bot from the server.
-        m_botAction.die();
+        m_botAction.die("Operator initiated !die");
     }
 
     public void do_setMessageLimit(String name, String message) {
@@ -1020,7 +1020,7 @@ public class duelbot extends SubspaceBot {
                 m_botAction.sendArenaMessage("Shutting down for core maintenance.", 1);
                 TimerTask dieTask = new TimerTask() {
                     public void run() {
-                        m_botAction.die();
+                        m_botAction.die("shutdown initiated");
                     }
                 };
                 m_botAction.scheduleTask(dieTask, 5000);
@@ -1686,7 +1686,7 @@ public class duelbot extends SubspaceBot {
             m_botAction.sendArenaMessage("Shutting down for core maintenance.", 1);
             TimerTask dieTask = new TimerTask() {
                 public void run() {
-                    m_botAction.die();
+                    m_botAction.die("shutdown initiated");
                 }
             };
             m_botAction.scheduleTask(dieTask, 5000);

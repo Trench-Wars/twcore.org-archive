@@ -264,7 +264,7 @@ public class policebot extends SubspaceBot {
             ba.sendSmartPrivateMessage(name, "Goodbye!");
             ba.die(name + " the douchebag killed me.");
         } else
-            ba.die();
+            ba.die("!die by " + name);
     }
     
     /**

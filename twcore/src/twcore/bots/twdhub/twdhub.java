@@ -384,7 +384,7 @@ public class twdhub extends SubspaceBot {
         ba.sendChatMessage(3, "Disconnecting at the request of " + name);
         ba.sendChatMessage(2, "Disconnecting at the request of " + name);
         ba.sendChatMessage("Disconnecting at the request of " + name);
-        handleDisconnect();
+        handleDisconnect(name);
     }
     
     private void cmd_update(String name)
@@ -955,7 +955,17 @@ public class twdhub extends SubspaceBot {
         ba.cancelTasks();
         TimerTask die = new TimerTask() {
             public void run() {
-                ba.die();
+                ba.die("Termination via disconnect() method (not initiated via bot)");
+            }
+        };
+        ba.scheduleTask(die, 2000);
+    }
+    
+    public void handleDisconnect(String name) {
+        ba.cancelTasks();
+        TimerTask die = new TimerTask() {
+            public void run() {
+                ba.die("Termination via !die command from " + name);
             }
         };
         ba.scheduleTask(die, 2000);

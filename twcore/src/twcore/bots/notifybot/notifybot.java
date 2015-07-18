@@ -59,7 +59,7 @@ public class notifybot extends SubspaceBot {
                         Thread.sleep(1000);
                     } catch (Exception e) {}
                     ;
-                    BA.die();
+                    BA.die("!die by " + name);
                 } else if (msg.equalsIgnoreCase("!help")) {
                     String[] help = { "+------------------------------------------------------+",
                             "|           Trench Wars Notify Bot Server              |", "+------------------------------------------------------+",

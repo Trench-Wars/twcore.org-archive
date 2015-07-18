@@ -1002,7 +1002,7 @@ public class hockeybot extends SubspaceBot {
         if (m_botAction.getOperatorList().isER(name)) {
             if (cmd.equals("!die")) {
                 m_botAction.sendChatMessage("HockeyBot brutally murdered by "+name+" :'(");
-                m_botAction.die();
+                m_botAction.die("!die initiated by " + name);
             } else if (cmd.equals("!go")) {
                 cmd_go(name, args);
             } else if (cmd.equals("!settimeout")) {
@@ -1522,7 +1522,7 @@ public class hockeybot extends SubspaceBot {
             {
             	m_botAction.sendSmartPrivateMessage(name, "Could not load config. Shutting down.");
             	Tools.printLog("HockeyBot: Failure loading config for" + args);
-            	m_botAction.die();
+            	m_botAction.die("Could not load CFG for arena");
             }
             
         } else {

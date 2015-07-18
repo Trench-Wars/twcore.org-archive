@@ -377,7 +377,7 @@ public class pubbot extends SubspaceBot
         public void run()
         {
             if(!connected)
-                m_botAction.die();
+                m_botAction.die("Timeout - no connection to a PubHub");
         }
     }
 

@@ -100,7 +100,7 @@ public class octabot extends SubspaceBot {
 		    else if( message.startsWith ( "!die" ) && running)
 		        m_botAction.sendPrivateMessage(event.getPlayerID(), "The game is still running, !cancel the game first.");
 		    else if( message.startsWith ( "!die" ) && !running)
-		        m_botAction.die();
+		        m_botAction.die("!die by " + name);
 		}
 
 	}

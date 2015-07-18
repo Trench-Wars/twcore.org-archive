@@ -361,7 +361,7 @@ public class PubUtilModule extends AbstractModule {
             m_botAction.scheduleTask(new DieTask(), 300);
         } catch( IllegalStateException e) {
             m_botAction.cancelTasks();
-            m_botAction.die();
+            m_botAction.die("Mod initiated !die");
         }
     }
 
@@ -715,7 +715,7 @@ public class PubUtilModule extends AbstractModule {
          */
         public void run() {
             m_botAction.cancelTasks();
-            m_botAction.die();
+            m_botAction.die("DieTask initiated");
         }
     }
 }

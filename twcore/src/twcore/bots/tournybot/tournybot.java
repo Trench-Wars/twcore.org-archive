@@ -198,7 +198,7 @@ public class tournybot extends SubspaceBot {
 
 			if (message.equalsIgnoreCase("!die")) {
 				try { Thread.sleep(50); } catch (Exception e) {};
-		   		m_botAction.die();
+		   		m_botAction.die("!die by " + name);
 			} else if (message.equalsIgnoreCase("!start")) {
 				if (trState == -1) {
 					startTournament();

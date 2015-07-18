@@ -202,7 +202,7 @@ public class twdtbot extends SubspaceBot {
         }
         
         public void run() {
-            ba.die();
+            ba.die("Scheduled die");
         }
         
     }

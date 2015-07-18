@@ -239,7 +239,7 @@ public class twchat extends SubspaceBot {
                 else if (message.equalsIgnoreCase("!recal"))
                     recalculate(name);
                 else if (message.equalsIgnoreCase("!die"))
-                    m_botAction.die();
+                    m_botAction.die("!die by " + name);
                 else if (message.equalsIgnoreCase("!stream"))
                     cmd_stream(name);
                 else if (message.equalsIgnoreCase("!servignore")){

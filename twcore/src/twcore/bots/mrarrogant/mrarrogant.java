@@ -999,7 +999,7 @@ public class mrarrogant extends SubspaceBot
       {
         logFile.close();
         m_botAction.cancelTasks();
-        m_botAction.die();
+        m_botAction.die("DieTask initiated");
       }
       catch(IOException e)
       {

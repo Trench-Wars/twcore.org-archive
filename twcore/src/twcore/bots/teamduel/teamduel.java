@@ -2404,7 +2404,7 @@ public class teamduel extends SubspaceBot {
         TimerTask die = new TimerTask() {
             @Override
             public void run() {
-                m_botAction.die();                
+                m_botAction.die("!die initiated");                
             }
         };
         m_botAction.scheduleTask(die, 300);
@@ -2445,7 +2445,7 @@ public class teamduel extends SubspaceBot {
                 m_botAction.sendArenaMessage("Shutting down for core maintenance.", 1);
                 TimerTask dieTask = new TimerTask() {
                     public void run() {
-                        m_botAction.die();
+                        m_botAction.die("Shutdown mode initiated");
                     }
                 };
                 m_botAction.scheduleTask(dieTask, 5000);
@@ -3242,7 +3242,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendArenaMessage("Shutting down for core maintenance.", 1);
             TimerTask dieTask = new TimerTask() {
                 public void run() {
-                    m_botAction.die();
+                    m_botAction.die("Shutdown mode initiated");
                 }
             };
             m_botAction.scheduleTask(dieTask, 5000);

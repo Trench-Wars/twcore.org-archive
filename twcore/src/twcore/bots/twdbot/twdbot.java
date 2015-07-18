@@ -259,8 +259,9 @@ public class twdbot extends SubspaceBot {
                     else if (message.startsWith("!listipmid "))
                         cmd_ListIPMID(name, message.substring(11));
                     else if (message.equalsIgnoreCase("!die")) {
-                        this.handleDisconnect();
-                        m_botAction.die();
+                        // Automatically called via Session's disconnect method; should never be called manually
+                        //this.handleDisconnect();
+                        m_botAction.die("!die by " + name);
                     }
                     if (m_opList.isSmod(name)) {
                         if (message.startsWith("!einfo "))

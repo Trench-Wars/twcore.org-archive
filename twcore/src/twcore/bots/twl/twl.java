@@ -305,7 +305,7 @@ public class twl extends SubspaceBot {
                 && (event.getMessage().equals("WARNING: You have been disconnected because server has not been receiving data from you."))) {
             if (m_game != null)
                 m_game.cancel();
-            m_botAction.die();
+            m_botAction.die("Received error: WARNING: You have been disconnected because server has not been receiving data from you.");
         }
 
         if ((event.getMessageType() == Message.ARENA_MESSAGE)
@@ -435,7 +435,7 @@ public class twl extends SubspaceBot {
                         return;
                     } else {
                         m_botAction.sendSmartPrivateMessage(name, "Dying.");
-                        m_botAction.die();
+                        m_botAction.die("!die by " + name);
                         return;
                     }
                 }
