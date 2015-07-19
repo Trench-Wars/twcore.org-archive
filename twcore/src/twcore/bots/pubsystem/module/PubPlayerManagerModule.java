@@ -120,7 +120,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                     }
                     if (vote == 1 || vote == 2) {
                         votes.put(id, vote);
-                        m_botAction.sendPrivateMessage(id, "Your vote has been counted.");
+                        m_botAction.sendPrivateMessage(id, "Your vote to " + (vote == 1?"":"not ") + "shuffle has been counted.");
                     }
             }
         }
@@ -1036,14 +1036,14 @@ public class PubPlayerManagerModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage("WingZero", "Shuffle vote in progress...");
         voting = true;
         votes = new TreeMap<Integer, Integer>();
-        m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
-        m_botAction.sendOpposingTeamMessageByFrequency(0, " 1- Yes");
-        m_botAction.sendOpposingTeamMessageByFrequency(0, " 2- No");
-        m_botAction.sendOpposingTeamMessageByFrequency(0, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub:<number> )");
-        m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE POLL] Teams unbalanced: You have 20 seconds to Vote to shuffle teams! ");
-        m_botAction.sendOpposingTeamMessageByFrequency(1, " 1- Yes");
-        m_botAction.sendOpposingTeamMessageByFrequency(1, " 2- No");
-        m_botAction.sendOpposingTeamMessageByFrequency(1, "PM Your answers to " + m_botAction.getBotName() + " ( :TW-Pub:<number> )");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Teams may be imbalanced. You have 45 seconds to vote to shuffle teams!");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, " 1 = Yes");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, " 2 = No");
+        m_botAction.sendOpposingTeamMessageByFrequency(0, "PM your vote to " + m_botAction.getBotName() + " ( :tw-pub:<number> )");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE POLL] Teams may be unbalanced: You have 45 seconds to vote to shuffle teams!");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, " 1 = Yes");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, " 2 = No");
+        m_botAction.sendOpposingTeamMessageByFrequency(1, "PM your vote to " + m_botAction.getBotName() + " ( :tw-pub:<number> )");
         TimerTask count = new TimerTask() {
             public void run() {
                 voting = false;
@@ -1051,23 +1051,25 @@ public class PubPlayerManagerModule extends AbstractModule {
                 for (Integer v: votes.values())
                     results[v-1]++;
                 int win = 0;
-                m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Results!");
-                m_botAction.sendOpposingTeamMessageByFrequency(0, " 1- " + results[0]);
-                m_botAction.sendOpposingTeamMessageByFrequency(0, " 2- " + results[1]);
-                m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE POLL] Results!");
-                m_botAction.sendOpposingTeamMessageByFrequency(1, " 1- " + results[0]);
-                m_botAction.sendOpposingTeamMessageByFrequency(1, " 2- " + results[1]);
                 if (results[0] == results[1])
                     win = r.nextInt(2);
                 else if (results[0] < results[1])
                     win = 1;
+                
+                m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Results: Teams will " + (win == 0?"be SHUFFLED.":"NOT be shuffled."));
+                m_botAction.sendOpposingTeamMessageByFrequency(0, " YES ... " + results[0] + " votes");
+                m_botAction.sendOpposingTeamMessageByFrequency(0, "  NO ... " + results[1] + " votes");
+                m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE POLL] Results: Teams will " + (win == 0?"be SHUFFLED.":"NOT be shuffled."));
+                m_botAction.sendOpposingTeamMessageByFrequency(1, " YES ... " + results[0] + " votes");
+                m_botAction.sendOpposingTeamMessageByFrequency(1, "  NO ... " + results[1] + " votes");
+                
                 if (win == 0) {
-                    m_botAction.sendArenaMessage("[TEAM SHUFFLE] Shuffling public freqs by popular demand!");
+                    m_botAction.sendArenaMessage("[TEAM SHUFFLE] Shuffling public frequencies by popular demand!");
                     shuffle(); 
                 }
             }
         };
-        m_botAction.scheduleTask(count, 85*Tools.TimeInMillis.SECOND);
+        m_botAction.scheduleTask(count, 45*Tools.TimeInMillis.SECOND);
     }
     
     /**
