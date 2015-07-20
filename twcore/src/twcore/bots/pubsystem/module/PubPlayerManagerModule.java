@@ -71,12 +71,13 @@ public class PubPlayerManagerModule extends AbstractModule {
     private Log logMoneyDBTransaction;
     
     private boolean notify = false;
-    private boolean voting = false;
+    private boolean switchAllowed = false;
+    private boolean shuffleVoting = false;
     private boolean lowPopSpawning = false;
     
     
     private Random r = new Random();
-    private TreeMap<Integer, Integer> votes;
+    private TreeMap<Integer, Integer> votes = new TreeMap<Integer, Integer>();
 
     public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
     {
@@ -97,31 +98,39 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     public void handleEvent(Message event) {
-        if (voting && (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.PUBLIC_MESSAGE)) {
-            int id = event.getPlayerID();
-            Player p = m_botAction.getPlayer(id);
-            if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
-                return;
-            
-            if (MSG_AT_FREQSIZE_DIFF != -1 && event.getMessage().equalsIgnoreCase("!switch")) {
-                if (freqSizeInfo[0] <= 1) {
-                    m_botAction.sendPrivateMessage(id, "Team adjustment not needed.");
-                    voting = false;
-                    return; 
+        if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.PUBLIC_MESSAGE) {
+            if (switchAllowed) {
+                int id = event.getPlayerID();
+                Player p = m_botAction.getPlayer(id);
+                if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
+                    return;
+                
+                if( MSG_AT_FREQSIZE_DIFF != -1 && event.getMessage().equalsIgnoreCase("!switch")) {
+                    if (freqSizeInfo[0] <= 1) {
+                        m_botAction.sendPrivateMessage(id, "Team adjustment not needed.");
+                        switchAllowed = false;
+                        return; 
+                    }
+                    if((freqSizeInfo[1] == 1 && p.getFrequency() == 0) || (freqSizeInfo[1] == 0 && p.getFrequency() == 1)) {
+                        doFrequencySwitch(p.getPlayerID());
+                    }
                 }
-                if((freqSizeInfo[1] == 1 && p.getFrequency() == 0) || (freqSizeInfo[1] == 0 && p.getFrequency() == 1))
-                    doFrequencySwitch(p.getPlayerID());
-            }else if (SHUFFLE_SIZE != -1) { 
+            } else if (shuffleVoting && SHUFFLE_SIZE != -1) { 
+                int id = event.getPlayerID();
+                Player p = m_botAction.getPlayer(id);
+                if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
+                    return;
+                
                 int vote = -1;
-                    try {
-                        vote = Integer.valueOf(event.getMessage());
-                    } catch (NumberFormatException e) {
-                        return;
-                    }
-                    if (vote == 1 || vote == 2) {
-                        votes.put(id, vote);
-                        m_botAction.sendPrivateMessage(id, "Your vote to " + (vote == 1?"":"not ") + "shuffle has been counted.");
-                    }
+                try {
+                    vote = Integer.valueOf(event.getMessage());
+                } catch (NumberFormatException e) {
+                    return;
+                }
+                if (vote == 1 || vote == 2) {
+                    votes.put(id, vote);
+                    m_botAction.sendPrivateMessage(id, "Your vote to " + (vote == 1?"":"not ") + "shuffle has been counted.");
+                }
             }
         }
     }
@@ -907,7 +916,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         freqSizeInfo[0] = diff;
         int neededDiff = (midRoundCheck ? MIDROUND_FREQSIZE_DIFF : MSG_AT_FREQSIZE_DIFF);
         if( freqSizeInfo[0] >= neededDiff ) {
-            voting = true;
+            switchAllowed = true;
             String msg = "TEAMS UNEVEN: " + freq0 + "v" + freq1 + ". Need " + freqSizeInfo[0]/2 + " volunteer" + (freqSizeInfo[0]/2 == 1 ? "" : "s") 
                 + " to switch freqs. Type :tw-p:!switch to accept. Reward: $" + NICEGUY_BOUNTY_AWARD + "!"; 
             if( freq0 > freq1 ) {
@@ -1034,7 +1043,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     public void doShuffleVote() {
         if (notify)
             m_botAction.sendSmartPrivateMessage("WingZero", "Shuffle vote in progress...");
-        voting = true;
+        shuffleVoting = true;
         votes = new TreeMap<Integer, Integer>();
         m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE POLL] Teams may be imbalanced. You have 45 seconds to vote to shuffle teams!");
         m_botAction.sendOpposingTeamMessageByFrequency(0, " 1 = Yes");
@@ -1046,7 +1055,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         m_botAction.sendOpposingTeamMessageByFrequency(1, "PM your vote to " + m_botAction.getBotName() + " ( :tw-pub:<number> )");
         TimerTask count = new TimerTask() {
             public void run() {
-                voting = false;
+                shuffleVoting = false;
                 int[] results = {0, 0};
                 for (Integer v: votes.values())
                     results[v-1]++;
