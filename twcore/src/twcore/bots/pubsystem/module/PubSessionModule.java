@@ -678,7 +678,7 @@ public class PubSessionModule extends AbstractModule {
                     if( landmarkEventCheck( 4, LM_SHIP_ANY, LM_COMP_KILLS_EQUAL, 100 ) ) {
                         bonus = 1000;
                         send( "100 kills in a Leviathan this session!" );
-                        m_botAction.sendArenaMessage(name + " has made 100 kills in Leviathan this session! Sick of it? Pitch in with friends to !buy purepub for 30 minutes.");
+                        m_botAction.sendArenaMessage(name + " has made 100 kills in Leviathan this session!");
                         landmarks[20] = 1;
                     }
                 }
