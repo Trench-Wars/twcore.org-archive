@@ -20,6 +20,7 @@ import twcore.core.events.PlayerDeath;
 import twcore.core.game.Player;
 import twcore.core.util.Point;
 import twcore.core.util.Tools;
+import twcore.core.lvz.Objset;
 
 
 public class PubPlayer implements Comparable<PubPlayer>{
@@ -121,16 +122,16 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public static int EZ_PENALTY = 100;
 
-    public PubPlayer(BotAction m_botAction, String name) {
-        this(m_botAction, name, 0, true, -1);
+    public PubPlayer(BotAction m_botAction, String name, Objset moneyObjs) {
+        this(m_botAction, name, 0, true, -1, moneyObjs);
     }
     
-    public PubPlayer(BotAction m_botAction, String name, int money, boolean warp)
+    public PubPlayer(BotAction m_botAction, String name, int money, boolean warp, Objset moneyObjs)
     {
-    	this(m_botAction, name, money, warp, -1);
+    	this(m_botAction, name, money, warp, -1, moneyObjs);
     }
     
-    public PubPlayer(BotAction m_botAction, String name, int money, boolean warp, long fnid) {
+    public PubPlayer(BotAction m_botAction, String name, int money, boolean warp, long fnid, Objset moneyObjs) {
         this.m_botAction = m_botAction;
         this.name = name;
         this.money = money;
@@ -138,14 +139,16 @@ public class PubPlayer implements Comparable<PubPlayer>{
         this.itemsBought = new LinkedList<PubItemUsed>();
         this.itemsBoughtForOther = new LinkedList<PubItemUsed>();
         this.itemsBoughtThisLife = new LinkedList<PubItem>();
-        this.cashPanel = new LvzMoneyPanel(m_botAction);
         this.ignoreList = new LinkedList<String>();
         this.donated = new TreeMap<String, Long>(String.CASE_INSENSITIVE_ORDER);
         this.playerID = fnid;
         
         try {
             this.lastFreq = m_botAction.getPlayer(name).getFrequency();
-        } catch (Exception e) {}
+            this.cashPanel = new LvzMoneyPanel(m_botAction.getPlayer(name).getPlayerID(), moneyObjs, m_botAction);
+        } catch (Exception e) {
+            this.cashPanel = new LvzMoneyPanel(999999, moneyObjs, m_botAction);
+        }
         
         reloadPanel(false);
     }
@@ -191,10 +194,10 @@ public class PubPlayer implements Comparable<PubPlayer>{
     
     public void reloadPanel(boolean fullReset) {
         if (fullReset) {
-            cashPanel.reset(name);
+            cashPanel.reset();
         } else {
-            cashPanel.reset(name, money);
-            cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(0), String.valueOf(money), true);
+            cashPanel.reset();
+            cashPanel.update(String.valueOf(0), String.valueOf(money), true);
         }
     }
     
@@ -203,8 +206,7 @@ public class PubPlayer implements Comparable<PubPlayer>{
         if (money < 0)
             money = 0;
         this.money = money;
-        boolean gained = before > money ? false : true;
-        cashPanel.update(m_botAction.getPlayerID(name), String.valueOf(before), String.valueOf(money), gained);
+        cashPanel.update(String.valueOf(before), String.valueOf(money), (before > money ? false : true));
         this.lastMoneyUpdate = System.currentTimeMillis();
     }
     

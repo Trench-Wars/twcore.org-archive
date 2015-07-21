@@ -31,6 +31,7 @@ import twcore.core.events.PlayerLeft;
 import twcore.core.events.SQLResultEvent;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
+import twcore.core.lvz.Objset;
 
 public class PubPlayerManagerModule extends AbstractModule {
 
@@ -75,9 +76,9 @@ public class PubPlayerManagerModule extends AbstractModule {
     private boolean shuffleVoting = false;
     private boolean lowPopSpawning = false;
     
-    
     private Random r = new Random();
     private TreeMap<Integer, Integer> votes = new TreeMap<Integer, Integer>();
+    private Objset moneyObjs = new Objset();
 
     public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
     {
@@ -502,7 +503,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 if (rs.next()) {
                     getPlayerByResultSet(rs);
                 } else {
-                    players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName));
+                    players.put(playerName.toLowerCase(), new PubPlayer(m_botAction, playerName, moneyObjs));
                 }
             }
             //12Aug2013 POiD    Commented out the below updates as currently no updates to tblPlayer are needed. Left code in case of future changes.
@@ -543,7 +544,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             if (rs.wasNull())
                 fnID = -1;
             
-            player = new PubPlayer(m_botAction, name, money, warp, fnID);
+            player = new PubPlayer(m_botAction, name, money, warp, fnID, moneyObjs);
             player.setHasStatsDB(hasStats);
             players.put(name.toLowerCase(), player);
             player.reloadPanel(false);
@@ -586,7 +587,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         			+" WHERE p.fcName='"+Tools.addSlashes(playerName)+"'");
         }
         else {
-            player = new PubPlayer(m_botAction, playerName);
+            player = new PubPlayer(m_botAction, playerName, moneyObjs);
             players.put(playerName.toLowerCase(), player);
         }
         
