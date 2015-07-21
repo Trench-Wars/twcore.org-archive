@@ -119,7 +119,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             } else if (shuffleVoting && SHUFFLE_SIZE != -1) { 
                 int id = event.getPlayerID();
                 Player p = m_botAction.getPlayer(id);
-                if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
+                if (p == null || (p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
                     return;
                 
                 int vote = -1;
