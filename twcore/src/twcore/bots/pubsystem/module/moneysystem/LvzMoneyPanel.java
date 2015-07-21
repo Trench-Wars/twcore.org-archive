@@ -36,20 +36,21 @@ public class LvzMoneyPanel {
         	afterMoney = String.format("%1$" + beforeMoney.length() + "s", afterMoney); 
         }
         
+        int length = afterMoney.length();
         for (int i = 0; i < afterMoney.length(); i++) {
         	if (beforeMoney.charAt(i) == afterMoney.charAt(i)) {
         		continue;
         	}
         	else if (afterMoney.charAt(i) == ' ') {
-        	    moneyObjs.hideObject(playerID, Integer.getInteger("502"+(afterMoney.length()-i-1)+beforeMoney.charAt(i)));
+        	    moneyObjs.hideObject(playerID, Integer.valueOf("502"+(length-i-1)+beforeMoney.charAt(i)));
                 //totalObjSent++;
         	}
         	else {
         		if (beforeMoney.charAt(i) != ' ') {
-        		    moneyObjs.hideObject(playerID, Integer.getInteger("502"+(afterMoney.length()-i-1)+beforeMoney.charAt(i)));
+        		    moneyObjs.hideObject(playerID, Integer.valueOf("502"+(length-i-1)+beforeMoney.charAt(i)));
         			//totalObjSent++;
         		}
-        		moneyObjs.showObject(playerID, Integer.getInteger("502"+(afterMoney.length()-i-1)+afterMoney.charAt(i)));
+        		moneyObjs.showObject(playerID, Integer.valueOf(   "502"  +   (length-i-1)   +   afterMoney.charAt(i)   )    );
         	}
         	//totalObjSent++;
 
