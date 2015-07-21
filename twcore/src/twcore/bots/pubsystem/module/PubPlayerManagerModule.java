@@ -78,11 +78,12 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     private Random r = new Random();
     private TreeMap<Integer, Integer> votes = new TreeMap<Integer, Integer>();
-    private Objset moneyObjs = new Objset();
+    private Objset moneyObjs;
 
     public PubPlayerManagerModule(BotAction m_botAction, PubContext context) 
     {
         super(m_botAction, context, "PlayerManager");
+        moneyObjs = new Objset();
 
         logMoneyDBTransaction = new Log(m_botAction, "moneydb.log");
         
@@ -552,7 +553,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             
         } catch (Exception e) {
         	//m_botAction.sendSmartPrivateMessage("poid","broke with "+e.getMessage());
-            Tools.printLog( e.getMessage() );
+            Tools.printStackTrace(e);
         }
         
         return player;
