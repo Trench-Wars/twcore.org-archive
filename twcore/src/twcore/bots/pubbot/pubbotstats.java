@@ -78,6 +78,8 @@ public class pubbotstats extends PubBotModule {
   public void handleEvent( ScoreUpdate event ) {
       // Update the score of the player
       Player p = m_botAction.getPlayer(event.getPlayerID());
+      if (p == null)
+          return;
 
       PubStatsPlayer player = arenaStats.getPlayer(p.getPlayerName());
       if(player != null) {
