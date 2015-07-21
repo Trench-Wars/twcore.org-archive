@@ -140,6 +140,10 @@ public class twdop extends SubspaceBot {
             }
             if (message.startsWith("!addnote ")) {
                 String[] msg = message.substring(9).split(":");
+                if (msg.length < 2) {
+                    m_botAction.sendChatMessage("Usage: !addnote player:msg");
+                    return;
+                }
                 String note = msg[1];
                 String player = msg[0];
 
