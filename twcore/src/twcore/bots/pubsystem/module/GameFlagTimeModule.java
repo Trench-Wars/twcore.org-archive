@@ -1364,8 +1364,10 @@ public class GameFlagTimeModule extends AbstractModule {
             else
                 freq1Score++;
 
-            if (freq0Score >= maxScore || freq1Score >= maxScore)
+            if (freq0Score >= maxScore || freq1Score >= maxScore) {
                 gameOver = true;
+                moneyBonus *= 1.5;
+            }
             
             int roundNumber = freq0Score + freq1Score;
             m_botAction.sendArenaMessage("[FLAG] END OF ROUND " + roundNumber 
