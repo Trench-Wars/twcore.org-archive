@@ -295,7 +295,7 @@ public class pubsystem extends SubspaceBot
 			Tools.printStackTrace(e);
 		}
 		*/
-        m_botAction.changeArena("0");
+        m_botAction.changeArena("2");
         startBot();
     	
     	context.handleEvent(event);
