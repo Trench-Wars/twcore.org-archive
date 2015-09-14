@@ -39,8 +39,8 @@ public class twdhub extends SubspaceBot {
     private static final String TWBD = "9";
     private static final String TWDD = "11";
     private static final String TWFD = "16";
-    private static final String TWJD = "18";
-    private static final String TWSD = "22";
+    private static final String TWJD = "21";
+    private static final String TWSD = "25";
     
     public static final String DATABASE = "website";
     
