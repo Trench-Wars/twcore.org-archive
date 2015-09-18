@@ -414,7 +414,7 @@ public class MatchGame {
         if (!announced) {
             if (m_rules.getInt("matchtype") > MatchTypeID.NONE && m_rules.getInt("matchtype") < MatchTypeID.MAX) {
                 announced = true;				
-                m_botAction.sendZoneMessage("TWL Season 19: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
+                m_botAction.sendZoneMessage("TWL Season 20: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
             } else {
                 m_botAction.sendPrivateMessage(name, "Only TWL games may be !zone'd");
             }
