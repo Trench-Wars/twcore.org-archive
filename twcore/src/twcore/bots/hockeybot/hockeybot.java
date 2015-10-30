@@ -965,8 +965,6 @@ public class hockeybot extends SubspaceBot {
                 cmd_start(name);
             } else if (cmd.equals("!stop")) {
                 cmd_stop(name);
-            } else if (cmd.equals("!zone")) {
-                cmd_zone(name, args);
             } else if (cmd.equals("!off")) {
                 cmd_off(name);
             } else if (cmd.equals("!forcenp")) {
@@ -1582,7 +1580,6 @@ public class hockeybot extends SubspaceBot {
             hStaff.add("!resetball                           Moves the ball to the center (Emergency only)");
             hStaff.add("!decrease <freq>                        Subtracts a goal from <freq> (short: !dec)");
             hStaff.add("!increase <freq>                              Adds a goal for <freq> (short: !inc)");
-            hStaff.add("!zone <message>                  Sends time-restricted advert, message is optional");
             hStaff.add("!forcenp <player>                                     Sets <player> to !notplaying");
             hStaff.add("!setcaptain <# freq>:<player>   Sets <player> as captain for <# freq> (short: !sc)");
             hStaff.add("!remcaptain <# freq>             Removes the captain of freq <# freq> (short: !rc)");
@@ -1598,7 +1595,6 @@ public class hockeybot extends SubspaceBot {
                 hStaff.add("!settimeout <amount>                Sets captain timeouts to <amount> (default: 1)");
             }
             if (opList.isSmod(name)) {
-                hStaff.add("!allowzoner                         Forces the zone timers to reset allowing !zone");
                 hStaff.add("!addhockeyop <name>                                     Adds <name> as a hockey op");
                 hStaff.add("!removehockeyop <name>                       Removes <name> from being a hockey op");
                 hStaff.add("!listhockeyops                                                    Lists hockey ops");
@@ -2730,29 +2726,6 @@ public class hockeybot extends SubspaceBot {
         
     }
     
-    /**
-     * Handles the !zone command (ZH+)
-     *
-     * @param name name of the player that issued the command
-     * @param args message to use for zoner
-     */
-    private void cmd_zone(String name, String args) {
-        if (!allowManualZoner()) {
-            m_botAction.sendPrivateMessage(name, "Zoner not allowed yet.");
-            return;
-        }
-
-        if (!(currentState == HockeyState.GAME_OVER
-                || currentState == HockeyState.WAITING_FOR_CAPS
-                || currentState == HockeyState.ADDING_PLAYERS)) {
-            m_botAction.sendPrivateMessage(name, "Zoner not allowed at this stage of the game.");
-            return;
-        }
-
-        //args can go through regardless if it has a valid value. This is taken care of in the newGameAlert function.
-        newGameAlert(name, args);
-    }
-
     /*
      * Game modes
      */
@@ -3345,32 +3318,8 @@ public class hockeybot extends SubspaceBot {
             }
         }
 
-        //Alert zoner, (max once every ZONER_WAIT_TIME (minutes))
-        if ((allowZoner() && config.getAllowZoner()) || (allowManualZoner() && !config.getAllowAutoCaps())) {
-            m_botAction.sendZoneMessage(message + nameTag, Tools.Sound.BEEP2);
-            zonerTimestamp = System.currentTimeMillis();
-            manualZonerTimestamp = zonerTimestamp;
-        }
     }
-
-    /**
-     * Returns if a zoner can be send or not
-     * @return True if a zoner can be send, else false
-     */
-    private boolean allowZoner() {
-        // If more time has passed than the waiting time, return true.
-        return ((System.currentTimeMillis() - zonerTimestamp) > (ZONER_WAIT_TIME * Tools.TimeInMillis.MINUTE));
-    }
-
-    /**
-     * Returns if a zoner can be send or not
-     * @return True if a zoner can be send, else false
-     */
-    private boolean allowManualZoner() {
-        // If more than 10 minutes has passed since the last manual zoner, return true.
-        return ((System.currentTimeMillis() - manualZonerTimestamp) > (10 * Tools.TimeInMillis.MINUTE));
-    }
-
+    
     /**
      * Returns the score in form of a String
      * @return game score
@@ -3886,7 +3835,6 @@ public class hockeybot extends SubspaceBot {
         private boolean gameModeShootouts;          // Whether or not shootouts are enabled on a tied game.
         private boolean announceShipType;           // Announce the shiptype of a player who has been added.
         private boolean allowAutoCaps;              // Allow players to !cap themselves when true, or need a ZH+ to !setcaptain captains when false.
-        private boolean allowZoner;                 // Whether or not the bot automatically sends out zoners.
         private boolean allowVote;                  // Allows a final goal review period, where ZH+ get to vote the validity of the goal.
         private int penaltyTime;                    // Standard penalty duration time.
         ArrayList<String> allowedArenas;            // Allowed arenas the bot can join.
@@ -3936,9 +3884,6 @@ public class hockeybot extends SubspaceBot {
 
             //Allow final review voting
             allowVote = (botSettings.getInt("AllowVote") == 1);
-            
-            //Allow Zoner
-            allowZoner = (botSettings.getInt("SendZoner") == 1);
 
             //Allow automation of captains
             allowAutoCaps = (botSettings.getInt("AllowAuto") == 1);
@@ -4163,15 +4108,6 @@ public class hockeybot extends SubspaceBot {
          */
         private boolean getAllowAutoCaps() {
             return allowAutoCaps;
-        }
-
-        /**
-         * Returns if a zoner can be send
-         *
-         * @return true if a zoner can be send, else false
-         */
-        private boolean getAllowZoner() {
-            return allowZoner;
         }
 
         /**
