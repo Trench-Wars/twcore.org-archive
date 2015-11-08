@@ -31,12 +31,12 @@ public class GaugeModule extends AbstractModule {
     
     public GaugeModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Gauge");
-        task = new Task();
         database = m_botAction.getBotSettings().getString("database");
     }
     
     @Override
     public void start() {
+        task = new Task();
         m_botAction.scheduleTaskAtFixedRate(task, INITIAL_DELAY, DELAY);
         running = true;
     }
