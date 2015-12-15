@@ -43,6 +43,7 @@ public class PubUtilModule extends AbstractModule {
         SAFE
     }
     
+    // XXX: If you change this enum, you will also have to match the Location to Region manually in getLocation
     public static enum Region {
         MID,
         FLAGROOM,
@@ -56,6 +57,8 @@ public class PubUtilModule extends AbstractModule {
         
         SPACE,
         SAFE,
+        BUYZONE,
+        
         UNKNOWN,
     }
     private MapRegions regions;
@@ -148,7 +151,7 @@ public class PubUtilModule extends AbstractModule {
             } catch (IllegalArgumentException e) {
                 if (region.equals(Region.CRAM) || region.equals(Region.LARGE_FR) || region.equals(Region.MED_FR))
                     location = Location.valueOf("FLAGROOM");
-                else if (region.equals(Region.TUNNELS))
+                else if (region.equals(Region.TUNNELS) || region.equals(Region.BUYZONE))
                     location = Location.valueOf("LOWER");
                 else if (region.equals(Region.SAFE))
                     location = Location.valueOf("SAFE");
@@ -461,6 +464,9 @@ public class PubUtilModule extends AbstractModule {
         }
         if (Region.SAFE.equals(location)) {
             return "in Safe";
+        }
+        if (Region.BUYZONE.equals(location)) {
+            return "in Buyzone";
         }
         if (Region.SPACE.equals(location)) {
             return "in Space";

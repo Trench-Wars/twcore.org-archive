@@ -107,14 +107,12 @@ public class PubMoneySystemModule extends AbstractModule {
     private Point coordNukeBase;
     private Point coordRoofTurret;
     
-    // Arena
-    //private String arenaNumber = "0";
-
-    private ArrayList<Integer> canBuyAnywhere;
-    private boolean canLTBuyAnywhere = false;
+    private ArrayList<Region> buyRegions;          // Designated buy regions (11 is buyzone, 10 is safe)
+    private ArrayList<Integer> canBuyAnywhere;      // Ships allowed to buy outside of designated buy regions
+    private boolean canLTBuyAnywhere = false;       // True if LTs can buy outside buy regions
     private boolean donationEnabled = false;
     private boolean buyBlock = false;
-    private static final int BONUS_FLAG = 10;     // Bux given extra for holding flag  
+    private static final int BONUS_FLAG = 10;       // Bux given extra for holding flag  
 
     private String database;
     private MapRegions regions;
@@ -410,9 +408,8 @@ public class PubMoneySystemModule extends AbstractModule {
             // Only check this global restriction for players that are actually in a ship.
             if(canBuyAnywhere.isEmpty() || !canBuyAnywhere.contains((int) p.getShipType())) {
                 Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                if (r != null && !(Region.SAFE.equals(r))) {
-                    // No buying except in safe!
-                    m_botAction.sendSmartPrivateMessage(buyerName, Tools.shipName(p.getShipType()) + " can only !buy in safe.");
+                if (r != null && !(buyRegions.contains(r))) {
+                    m_botAction.sendSmartPrivateMessage(buyerName, Tools.shipName(p.getShipType()) + " can only !buy in designated buy regions.");
                     return true;
                 }
             }
@@ -422,24 +419,24 @@ public class PubMoneySystemModule extends AbstractModule {
         if(!canLTBuyAnywhere) {
             if (p.isShip(Ship.LEVIATHAN) && p.isAttached()) {
                 Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                if (r != null && !(Region.SAFE.equals(r))) {
+                if (r != null && !(buyRegions.contains(r))) {
                     if (!buyingForOther)
-                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to purchase items.");
+                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region to purchase items.");
                     else
-                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to have an item purchased for them.");
+                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region to have an item purchased for them.");
                     return true;
                 }
             } else if (p.isShip(Ship.TERRIER) && p.hasAttachees()) {
                 Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                if (r != null && !(Region.SAFE.equals(r))) {
+                if (r != null && !(buyRegions.contains(r))) {
                     LinkedList<Integer> playerIDs = p.getTurrets();
                     for (Integer i : playerIDs) {
                         Player a = m_botAction.getPlayer(i);
                         if (a != null && a.isShip(Ship.LEVIATHAN)) {
                             if (!buyingForOther)
-                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to purchase items.");
+                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region to purchase items.");
                             else
-                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a safety zone to have an item purchased for them.");
+                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region to have an item purchased for them.");
                             return true;
                         }
                     }
@@ -3773,15 +3770,21 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         }
         
-        // Which ships are not safezone restricted.
+        // List of regions allow !buy ("buyzone" is defined as 11 in pubmap.cfg, safe as 10)
+        buyRegions = new ArrayList<Region>();
+        for(Integer region : m_botAction.getBotSettings().getIntArray("BuyRegions", ",")) {
+            buyRegions.add(Region.values()[region]);
+        }
+        
+        // Which ships are not buy-region restricted.
         canBuyAnywhere = new ArrayList<Integer>();
-        for(Integer ship : m_botAction.getBotSettings().getIntArray("AllowBuyOutsideSafe", ",")) {
+        for(Integer ship : m_botAction.getBotSettings().getIntArray("AllowBuyOutsideRegion", ",")) {
             canBuyAnywhere.add(ship);
         }
         
-        // Are LTs able to buy outside the safezone?
-        canLTBuyAnywhere = (m_botAction.getBotSettings().getInt("AllowLTOutsideSafe") == 1);
-                
+        // Are LTs able to buy outside the buy region?
+        canLTBuyAnywhere = (m_botAction.getBotSettings().getInt("AllowLTOutsideRegion") == 1);
+        
         database = m_botAction.getBotSettings().getString("database");
         
         loadBans();
