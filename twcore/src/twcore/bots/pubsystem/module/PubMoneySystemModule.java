@@ -269,6 +269,15 @@ public class PubMoneySystemModule extends AbstractModule {
                     return;
                 }
             }
+
+            if (prefetch.isStartRoundBlocked()) {
+                int time = context.getGameFlagTime().getTotalSecs();
+                if (time != -1 && time <= 30) {
+                    m_botAction.sendPrivateMessage(playerName, "Sorry, you can't buy this item in the first 30 seconds of a round.");
+                    return;
+                }
+            }
+        
         }
 
         try {

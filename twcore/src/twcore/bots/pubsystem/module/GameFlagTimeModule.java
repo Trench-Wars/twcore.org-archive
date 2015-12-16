@@ -2365,6 +2365,16 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
+     * Public access to flagTimer time played.
+     * @return Time remaining; -1 if flag timer is not running
+     */
+    public int getTotalSecs() {
+        if (flagTimer != null && flagTimer.isRunning())
+            return flagTimer.getTotalSecs();
+        return -1;
+    }
+
+    /**
      * This private class counts the consecutive flag time an individual team racks up. Upon reaching the time needed to win, it fires the end of the
      * round.
      */

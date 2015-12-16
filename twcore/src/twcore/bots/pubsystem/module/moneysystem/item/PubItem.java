@@ -26,6 +26,7 @@ public abstract class PubItem {
     protected boolean hidden = false;
     protected boolean buyBlockImmune = false;       // True if you can still !buy during buyblock
     protected boolean endRoundBlocked = false;      // True if you can't buy when round is nearly over
+    protected boolean startRoundBlocked = false;      // True if you can't buy when round just started
 
     public PubItem(String name, String displayName, String description, int price) {
         this.name = name;
@@ -96,7 +97,11 @@ public abstract class PubItem {
         this.endRoundBlocked = b;
     }
     
-	public boolean isRestricted() {
+    public void setStartRoundBlocked(boolean b) {
+        this.startRoundBlocked = b;
+    }
+
+    public boolean isRestricted() {
 		return restriction != null;
 	}
 	
@@ -152,5 +157,9 @@ public abstract class PubItem {
 
     public boolean isEndRoundBlocked() {
         return endRoundBlocked;
+    }
+
+    public boolean isStartRoundBlocked() {
+        return startRoundBlocked;
     }
 }

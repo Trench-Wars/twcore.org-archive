@@ -205,6 +205,8 @@ public class PubStore {
                             item.setBuyBlockImmune(true);
                         } else if(option.startsWith("!noendround")) {
                             item.setEndRoundBlocked(true);
+                        } else if(option.startsWith("!noendround")) {
+                            item.setStartRoundBlocked(true);
 	    				} else if(option.startsWith("!prizesec")) {
 	    					int seconds = Integer.parseInt(option.substring(9));
 	    					if (item instanceof PubPrizeItem) {
