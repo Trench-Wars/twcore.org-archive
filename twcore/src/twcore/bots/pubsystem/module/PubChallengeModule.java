@@ -1443,7 +1443,7 @@ public class PubChallengeModule extends AbstractModule {
             watchDuel(sender, command);
         else if (command.startsWith("!beton "))
             placeBet(sender, command.substring(7));
-        else if (command.startsWith("!removechallenge") || command.equalsIgnoreCase("!rm"))
+        else if (command.startsWith("!removechallenge") || command.equalsIgnoreCase("!rc"))
             removePendingChallenge(sender, true, false);
         else if (command.equalsIgnoreCase("!lagout"))
             returnFromLagout(sender);
@@ -1693,7 +1693,7 @@ public class PubChallengeModule extends AbstractModule {
                     pubsystem.getHelpLine("!chspecial <name>:<ship>:<ship2>:<$> -- As above, but in your ship vs their ship2."),
                     pubsystem.getHelpLine("!duel *:<ship>:<$>            -- Duel ANYONE in SHIP for $ (!openduels to list all)" ),
                     //pubsystem.getHelpLine("!watchduel <name>             -- Watch the duel of this player. (!wd)"),
-                    pubsystem.getHelpLine("!removechallenge              -- Cancel all challenges sent. (!rm)"),
+                    pubsystem.getHelpLine("!removechallenge              -- Cancel all challenges sent. (!rc)"),
                     pubsystem.getHelpLine("!duels                        -- Lists the duels currently being played. (!ld)"),
                     pubsystem.getHelpLine("!openduels                    -- Lists all open duels you can accept. (!od)"),
                     pubsystem.getHelpLine("!leverage <$>                 -- Next duel will be <$> vs enemy's <$> you give in !challenge"),                    
