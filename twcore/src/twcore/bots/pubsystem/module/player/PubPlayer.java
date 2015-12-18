@@ -285,11 +285,11 @@ public class PubPlayer implements Comparable<PubPlayer>{
         return warp;
     }
     
-    public boolean isMinesCleared() {
+    public boolean isFRCleared() {
         return minesCleared;
     }
     
-    public void setMinesCleared(boolean minesCleared) {
+    public void setFRCleared(boolean minesCleared) {
         this.minesCleared = minesCleared;
     }
     
