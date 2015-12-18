@@ -373,12 +373,7 @@ public class GameFlagTimeModule extends AbstractModule {
     @Override
     public void handleEvent(FrequencyChange event) {
         if (!enabled ) return;
-        String p = m_botAction.getPlayerName(event.getPlayerID());
-        if (p != null) {
-            PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p);
-            if (pubPlayer != null) 
-                pubPlayer.setLastFreqSwitch(event.getFrequency());
-        }
+
         if (hunterFreqEnabled && event.getFrequency() == hunterFreq)
             m_botAction.sendPrivateMessage(event.getPlayerID(), "[HUNTER]  LT bounties shared; +$15 for all Levi kills; Terrs get bonus.");
         
@@ -2191,7 +2186,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 //or skip the player if he/she's inside a safe, and not there due to a mine clearing warp.
                 if(reg != null
                         && ((!player.getWarp() && !Region.FLAGROOM.equals(reg)) 
-                                || (Region.SAFE.equals(reg) && !player.isMinesCleared())))
+                                || (Region.SAFE.equals(reg) && !player.isFRCleared())))
                     continue;
             }
             
@@ -2262,9 +2257,9 @@ public class GameFlagTimeModule extends AbstractModule {
     }
     
     /**
-     * Clears shark mines just before warping players into FR. For public freqs only.
+     * Clears the FR by warping any inside to safe and then back.For public freqs only.
      */
-    public void clearSharkMines() {
+    public void clearFR() {
         Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
         Player p;
 
@@ -2273,25 +2268,22 @@ public class GameFlagTimeModule extends AbstractModule {
             if (p == null || (p.getFrequency() != 0 && p.getFrequency() != 1))
                 continue;
 
-            // Clear mines by warping into safe
-            if (p.getShipType() == Tools.Ship.SHARK) {
+            Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+
+            // Warp all sharks not in safe and all people in flagroom into safe, then force-warp back in at round start
+            if ((p.getShipType() == Tools.Ship.SHARK && !Region.SAFE.equals(reg)) || Region.FLAGROOM.equals(reg)) {
                 
                 PubPlayer pp = context.getPlayerManager().getPlayer(p.getPlayerName());
                 if (pp == null)
                     return;
-                pp.setMinesCleared(false);
-                
-                // Don't warp those that are already in the safezone.
-                Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
-                if (Region.SAFE.equals(reg))
-                    continue;
+                pp.setFRCleared(false);
                 
                 if (p.getFrequency() % 2 == 0)
                     m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
                 else
                     m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
                 
-                pp.setMinesCleared(true);
+                pp.setFRCleared(true);
             }
         }
     }
@@ -2914,7 +2906,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 preTimeCount++;
                 
                 if (preTimeCount == 9 && !strictFlagTimeMode ) {
-                    clearSharkMines();
+                    clearFR();
                 }
 
                 if (preTimeCount >= 10) {

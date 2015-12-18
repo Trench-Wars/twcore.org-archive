@@ -388,12 +388,13 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
     
     public void handleEvent(FrequencyChange event) {        
+        Player player = m_botAction.getPlayer(event.getPlayerID());
+        if (player==null)
+            return;
+        PubPlayer pubPlayer;
+        pubPlayer = players.get(player.getPlayerName().toLowerCase());
+
         if (lowPopSpawning) {
-            Player player = m_botAction.getPlayer(event.getPlayerID());
-            if (player==null)
-                return;
-            PubPlayer pubPlayer;
-            pubPlayer = players.get(player.getPlayerName().toLowerCase());
             if (pubPlayer!=null) {
                 if(!context.getPubChallenge().isDueling(pubPlayer.getPlayerName()) && player.isPlaying()) {
                     pubPlayer.doLowPopSpawn(false);
@@ -408,9 +409,6 @@ public class PubPlayerManagerModule extends AbstractModule {
                 } else {                	
                     checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
                 }
-                Player player = m_botAction.getPlayer(event.getPlayerID());
-                if (player==null)
-                    return;
 
                 if (player.getShipType() == Tools.Ship.LEVIATHAN ) {
                     if (isSortaPurePub) {
@@ -421,8 +419,29 @@ public class PubPlayerManagerModule extends AbstractModule {
                         m_botAction.setShip(event.getPlayerID(), 3);
                     }
                 }
+            } else {
+                if (pubPlayer!=null) {
+                    int oldfreq = pubPlayer.getLastFreq();
+                    if( oldfreq > 1 ) {
+                        int freq0 = m_botAction.getPlayingFrequencySize(0);
+                        int freq1 = m_botAction.getPlayingFrequencySize(1);
+                        if( event.getFrequency() == 0 && freq0 > freq1 + 1 ) {
+                            m_botAction.setFreq( player.getPlayerID(), 1 );
+                            m_botAction.sendPrivateMessage(event.getPlayerID(), "You have been placed on freq 1 to prevent a team imbalance.");
+                        }
+                        if( event.getFrequency() == 1 && freq1 > freq0 + 1 ) {
+                            m_botAction.setFreq( player.getPlayerID(), 0 );
+                            m_botAction.sendPrivateMessage(event.getPlayerID(), "You have been placed on freq 0 to prevent a team imbalance.");
+                        }
+                    }
+                }
             }
             checkLowPopSpawn();
+        }
+        String p = m_botAction.getPlayerName(event.getPlayerID());
+        if (p != null) {
+            if (pubPlayer != null) 
+                pubPlayer.setLastFreqSwitch(event.getFrequency());
         }
 
 
