@@ -28,6 +28,7 @@ import twcore.core.events.SoccerGoal;
 import twcore.core.game.Player;
 import twcore.core.game.Ship;
 import twcore.core.lvz.Objset;
+import twcore.core.net.MobilePusher;
 import twcore.core.util.MapRegions;
 import twcore.core.util.Point;
 import twcore.core.util.Spy;
@@ -98,6 +99,10 @@ public class hockeybot extends SubspaceBot {
     // Debug stuff
     private String debuggee = "";
     private boolean isDebugging = false;
+    
+    // Push to mobile data
+    MobilePusher mobilePusher;
+    long timeBetweenPushes = Tools.TimeInMillis.MINUTE * 30;
     
     /**
      * Game states.
@@ -327,7 +332,10 @@ public class hockeybot extends SubspaceBot {
         scoreOverlay = new Overlay();                   // LVZ display overlay.
         
         currentArena = null;
-
+        
+        String pushAuth = ba.getGeneralSettings().getString("PushAuth");
+        String pushChannel = config.botSettings.getString("PushChannel");
+        mobilePusher = new MobilePusher(pushAuth, pushChannel, timeBetweenPushes);
     }
 
     /** Requests Subspace events */
@@ -2813,7 +2821,8 @@ public class hockeybot extends SubspaceBot {
         }
         
         currentState = HockeyState.ADDING_PLAYERS;
-        determineTurn();
+        mobilePusher.push("New game starting.");
+        determineTurn();        
     }
 
     /**
