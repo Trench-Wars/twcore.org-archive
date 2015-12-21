@@ -116,6 +116,8 @@ public class PubPlayer implements Comparable<PubPlayer>{
     private boolean warp;
     // Used to track whether a shark is in safe due to the mine clearing warp, or because he was already there.
     private boolean minesCleared = false;
+    // Used to track whether a player is in safe due to the FR clearing warp, or because he was already there.
+    private boolean FRCleared = false;
     
     private long playerID;
     private boolean hasStatsDB = false;
@@ -285,14 +287,22 @@ public class PubPlayer implements Comparable<PubPlayer>{
         return warp;
     }
     
-    public boolean isFRCleared() {
+    public boolean areMinesCleared() {
         return minesCleared;
     }
     
-    public void setFRCleared(boolean minesCleared) {
+    public void setMinesCleared(boolean minesCleared) {
         this.minesCleared = minesCleared;
     }
     
+    public boolean wasFRCleared() {
+        return FRCleared;
+    }
+    
+    public void setFRCleared(boolean FRCleared) {
+        this.FRCleared = FRCleared;
+    }
+
     public int getBestStreak() {
         return bestStreak;
     }

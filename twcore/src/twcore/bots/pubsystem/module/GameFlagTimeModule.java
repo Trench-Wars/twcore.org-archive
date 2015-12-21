@@ -2185,8 +2185,8 @@ public class GameFlagTimeModule extends AbstractModule {
                 //Do not warp the player if they have disabled warping and aren't inside the flagroom
                 //or skip the player if he/she's inside a safe, and not there due to a mine clearing warp.
                 if(reg != null
-                        && ((!player.getWarp() && !Region.FLAGROOM.equals(reg)) 
-                                || (Region.SAFE.equals(reg) && !player.isFRCleared())))
+                        && ((!player.getWarp() && (!Region.FLAGROOM.equals(reg) && !player.wasFRCleared())) 
+                                || (Region.SAFE.equals(reg) && !player.areMinesCleared())))
                     continue;
             }
             
@@ -2196,7 +2196,6 @@ public class GameFlagTimeModule extends AbstractModule {
                 rand = r.nextInt(warpPtsLeft.length);
             }
             
-
             if (p.getFrequency() % 2 == randomside)
                 doPlayerWarp(pname, warpPtsLeft[rand]);
             else
@@ -2265,25 +2264,36 @@ public class GameFlagTimeModule extends AbstractModule {
 
         while (i.hasNext()) {
             p = i.next();
-            if (p == null || (p.getFrequency() != 0 && p.getFrequency() != 1))
-                continue;
 
             Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+            if( context.getPubChallenge().isDueling(p.getPlayerName()))
+                continue;
+            PubPlayer pp = context.getPlayerManager().getPlayer(p.getPlayerName());
 
             // Warp all sharks not in safe and all people in flagroom into safe, then force-warp back in at round start
-            if ((p.getShipType() == Tools.Ship.SHARK && !Region.SAFE.equals(reg)) || Region.FLAGROOM.equals(reg)) {
-                
-                PubPlayer pp = context.getPlayerManager().getPlayer(p.getPlayerName());
+            if (p.getShipType() == Tools.Ship.SHARK && !Region.SAFE.equals(reg)) {                
                 if (pp == null)
                     return;
-                pp.setFRCleared(false);
                 
                 if (p.getFrequency() % 2 == 0)
                     m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
                 else
                     m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
                 
-                pp.setFRCleared(true);
+                pp.setMinesCleared(true);
+            } else if( Region.FLAGROOM.equals(reg) ) {
+                if (pp == null)
+                    return;
+                
+                if (p.getFrequency() % 2 == 0)
+                    m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
+                else
+                    m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
+                
+                pp.setFRCleared(true);                
+            } else {
+                pp.setMinesCleared(false);
+                pp.setFRCleared(false);
             }
         }
     }
