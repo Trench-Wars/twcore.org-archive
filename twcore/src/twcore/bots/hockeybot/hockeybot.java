@@ -2821,8 +2821,8 @@ public class hockeybot extends SubspaceBot {
         }
         
         currentState = HockeyState.ADDING_PLAYERS;
-        mobilePusher.push("New game starting.");
-        determineTurn();        
+        mobilePusher.push(team0.getCaptainName() + " v. " + team1.getCaptainName());
+        determineTurn();
     }
 
     /**
