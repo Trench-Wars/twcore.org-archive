@@ -192,13 +192,24 @@ public class MatchTeam {
 
             m_captains = new LinkedList<String>();
 
+            if(rs == null)
+                Tools.printLog("RS null");
+
             while (rs.next()) {
                 String pname = rs.getString("fcUserName");
+                if(pname == null)
+                    Tools.printLog("pname null");                
                 MatchPlayer p = new MatchPlayer(pname, this);
+                if(rs == null)
+                    Tools.printLog("MatchPlayer null");
+
                 //if (p != null && p.m_dbPlayer.isEnabled()) {
                     m_captains.add(pname.toLowerCase());
-                    m_loadedPlayers.put(rs.getString("fcUserName"), p);
+                    m_loadedPlayers.put(pname, p);
                 //}
+                    
+                if(p.m_dbPlayer == null)
+                    Tools.printLog("m_dbPlayer null");
                 
                 if (!p.m_dbPlayer.isEnabled())
                     Tools.printLog("DBPlayer on " + pname + " not enabled. Status = " + p.m_dbPlayer.getStatus());
