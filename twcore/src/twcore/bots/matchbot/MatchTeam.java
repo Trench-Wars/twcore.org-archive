@@ -85,7 +85,8 @@ public class MatchTeam {
     boolean m_checkIPMID = false;
     boolean m_debug = false; // True if debug info should be sent to logs
 
-    LinkedList<MatchPlayer> m_players;
+    HashMap<String,MatchPlayer> m_players;
+    HashMap<String,MatchPlayer> m_loadedPlayers;
     LinkedList<String> m_captains;
 
     boolean m_fbReadyToGo;
@@ -123,7 +124,8 @@ public class MatchTeam {
         m_rules = m_round.m_rules;
         m_logger = m_round.m_logger;
         m_fcTeamName = fcTeamName;
-        m_players = new LinkedList<MatchPlayer>();
+        m_players = new HashMap<String,MatchPlayer>();
+        m_loadedPlayers = new HashMap<String,MatchPlayer>();
         m_captains = new LinkedList<String>();
         checkPlayerMID = new HashMap<String, Boolean>();
         resCheck = new TreeMap<String, ResCheck>(String.CASE_INSENSITIVE_ORDER);
@@ -173,7 +175,7 @@ public class MatchTeam {
 
     // saves player data
     public void storePlayerResults() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
 
         while (i.hasNext()) {
             i.next().storePlayerResult(m_round.m_fnMatchRoundID, m_fnTeamNumber);
@@ -191,7 +193,12 @@ public class MatchTeam {
             m_captains = new LinkedList<String>();
 
             while (rs.next()) {
-                m_captains.add(rs.getString("fcUserName").toLowerCase());
+                String pname = rs.getString("fcUserName");
+                MatchPlayer p = new MatchPlayer(pname, this);
+                if (p != null && p.m_dbPlayer.isEnabled()) {
+                    m_captains.add(pname.toLowerCase());
+                    m_loadedPlayers.put(rs.getString("fcUserName"), p);
+                }
             }
             m_botAction.SQLClose(rs);
         } catch (Exception e) {
@@ -470,10 +477,10 @@ public class MatchTeam {
             if (m_debug) {
                 String namesOnTeam1 = "";
                 String namesOnTeam2 = "";
-                for (MatchPlayer p1 : m_round.m_team1.m_players) {
+                for (MatchPlayer p1 : m_round.m_team1.m_players.values()) {
                     namesOnTeam1 += "'" + p1.getPlayerName() + "' ";
                 }
-                for (MatchPlayer p2 : m_round.m_team2.m_players) {
+                for (MatchPlayer p2 : m_round.m_team2.m_players.values()) {
                     namesOnTeam2 += "'" + p2.getPlayerName() + "' ";
                 }
                 Tools.printLog(name + " not in TWD records for MatchTeam data of " + m_fcTeamName + ".");
@@ -897,7 +904,7 @@ public class MatchTeam {
 
                 p.getOutOfGame();
                 // If the specific player was in the list and is successfully removed.
-                if(m_players.remove(p)) {
+                if(m_players.remove(p.getPlayerName()) != null) {
                 	m_logger.sendPrivateMessage(name, "Player removed from the game");
 
 	                if (m_rules.getInt("pickbyturn") == 1) {
@@ -939,7 +946,7 @@ public class MatchTeam {
         };
 
         // use the comparator
-        MatchPlayer[] players = m_players.toArray(new MatchPlayer[m_players.size()]);
+        MatchPlayer[] players = m_players.values().toArray(new MatchPlayer[m_players.size()]);
         Arrays.sort(players, a);
 
         // show the sorted list
@@ -1416,7 +1423,7 @@ public class MatchTeam {
 
     // warpto (safe spots in this case)
     public void warpTo(int x, int y) {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
 
         while (i.hasNext()) {
             i.next().warpTo(x, y);
@@ -1438,26 +1445,7 @@ public class MatchTeam {
         if (m_round.m_notPlaying.containsKey(name.toLowerCase())) {
             return "Player can't or doesn't want to play this round";
         }
-
-        // when rosterjoined=1, has to exist in the Roster database
-        if (m_rules.getInt("rosterjoined") == 1) {
-            DBPlayerData dbP = new DBPlayerData(m_botAction, dbConn, name);
-            if (!m_fcTeamName.equalsIgnoreCase(dbP.getTeamName()))
-                return "Player isn't on the squad roster";
-            //            if(isDoubleSquadding(name))
-            //                return "Player is not elligible to play because he / she is
-            // if eligibleafter specified, player has to be on the roster for x days
-            if (m_rules.getInt("eligibleafter") > 0) {
-                GregorianCalendar today = new GregorianCalendar();
-                GregorianCalendar signup = new GregorianCalendar();
-                signup.setTime(dbP.getTeamSignedUp());
-                signup.add(GregorianCalendar.DATE, m_rules.getInt("eligibleafter"));
-                double msDiff = (today.getTimeInMillis() - signup.getTimeInMillis()) / 1000 / 60 / 60;
-                if (msDiff < 0)
-                    return "Player isn't eligible yet, he will be eligible " + (-msDiff) + " hours";
-            }
-        }
-
+        
         // name should not start with "matchbot"
         if (name.toLowerCase().startsWith("matchbot")) {
             return "Playername should not start with 'matchbot'";
@@ -1490,7 +1478,7 @@ public class MatchTeam {
         // player is not in this team, and not in the other
 
         if ((m_round.m_team1.getPlayer(name, true) != null) || (m_round.m_team2.getPlayer(name, true) != null))
-            return "Player is already in either of the teams";
+            return "Player is already on one of the teams";
 
         // player should be squadjoined (when squadjoined == 1)
         if ((m_rules.getInt("squadjoined") == 1) && (!p.getSquadName().equalsIgnoreCase(m_fcTeamName)))
@@ -1503,10 +1491,36 @@ public class MatchTeam {
         // player is in the right ship
         if (!((ship == m_rules.getInt("ship")) || (m_rules.getInt("ship") == 0)))
             return "invalid ship";
+        
+        MatchPlayer mp = m_loadedPlayers.get(name);
+        if (mp == null) {
+            mp = new MatchPlayer(name, this);
+            m_loadedPlayers.put(name, mp);
+        }
+
+        // when rosterjoined=1, has to exist in the Roster database
+        if (m_rules.getInt("rosterjoined") == 1) {
+            DBPlayerData dbP = mp.m_dbPlayer;
+            if (!m_fcTeamName.equalsIgnoreCase(dbP.getTeamName()))
+                return "Player isn't on the squad roster";
+            //            if(isDoubleSquadding(name))
+            //                return "Player is not elligible to play because he / she is
+            // if eligibleafter specified, player has to be on the roster for x days
+            if (m_rules.getInt("eligibleafter") > 0) {
+                GregorianCalendar today = new GregorianCalendar();
+                GregorianCalendar signup = new GregorianCalendar();
+                signup.setTime(dbP.getTeamSignedUp());
+                signup.add(GregorianCalendar.DATE, m_rules.getInt("eligibleafter"));
+                double msDiff = (today.getTimeInMillis() - signup.getTimeInMillis()) / 1000 / 60 / 60;
+                if (msDiff < 0)
+                    return "Player isn't eligible yet, he will be eligible " + (-msDiff) + " hours";
+            }
+        }
+
 
         if (m_rules.getInt("aliascheck") == 1) {
             // redudant action
-            DBPlayerData dbP = new DBPlayerData(m_botAction, dbConn, name);
+            DBPlayerData dbP = mp.m_dbPlayer;
 
             // a name has to be registered
             if (!dbP.isRegistered()) {
@@ -1621,9 +1635,14 @@ public class MatchTeam {
     // adds a player to the team (finally)
     @SuppressWarnings("unchecked")
     public void addPlayerFinal(String fcPlayerName, int fnShipType, boolean getInGame, boolean fbSilent) {
-        MatchPlayer p;
         if (!useDatabase) {
-            p = new MatchPlayer(fcPlayerName, this);
+            MatchPlayer p = m_players.remove(fcPlayerName);
+            if (p == null) {
+                p = m_loadedPlayers.remove(fcPlayerName);
+            }
+            if (p == null) {
+                p = new MatchPlayer(fcPlayerName, this);
+            }
             p.setShipAndFreq(fnShipType, m_fnFrequency);
 
             if (getInGame) {
@@ -1635,7 +1654,7 @@ public class MatchTeam {
 
                 p.getInGame(fbSilent);
             }
-            m_players.add(p);
+            m_players.put(fcPlayerName, p);
             // Unfortunately due to how *info and MatchBot work, we have to do this at the end.
             // If MID and IP don't match up, then the player will be removed from the game.
             if (m_checkIPMID)
@@ -1656,7 +1675,7 @@ public class MatchTeam {
 
     // flagreward
     public void flagReward(int points) {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
 
         while (i.hasNext())
             i.next().flagReward(points);
@@ -1667,7 +1686,7 @@ public class MatchTeam {
         String result = "";
         MatchPlayer highDeath = null;
 
-        Iterator<MatchPlayer> i = m_players.iterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         while (i.hasNext()) {
             MatchPlayer temp = i.next();
             if (temp.getPlayerState() == MatchPlayer.IN_GAME) {
@@ -1695,7 +1714,7 @@ public class MatchTeam {
         if (m_round.m_fnRoundState != 3)
             return false;
 
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         int retval = 0;
 
         while (i.hasNext()) {
@@ -1816,7 +1835,7 @@ public class MatchTeam {
 
     // searchers for player <name>. Returns NULL if not exists
     public MatchPlayer getPlayer(String name, boolean matchExact) {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         MatchPlayer answ, best = null;
 
         while (i.hasNext()) {
@@ -1842,7 +1861,7 @@ public class MatchTeam {
 
     // get MVP
     public MatchPlayer getMVP() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         MatchPlayer best = null, rightnow;
 
         while (i.hasNext()) {
@@ -1885,7 +1904,7 @@ public class MatchTeam {
 
     // get total deaths
     public int getTotalDeaths() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         int retval = 0;
 
         while (i.hasNext())
@@ -1896,7 +1915,7 @@ public class MatchTeam {
 
     public int getTotalRepelsUsed() {
         int reps = 0;
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         while (i.hasNext())
             reps += i.next().getRepelsUsed();
         return reps;
@@ -1904,7 +1923,7 @@ public class MatchTeam {
 
     // get total score
     public int getTotalScore() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         int retval = 0;
 
         while (i.hasNext())
@@ -1914,7 +1933,7 @@ public class MatchTeam {
     }
 
     public int getTotalLagOuts() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         int retval = 0;
 
         while (i.hasNext())
@@ -1924,7 +1943,7 @@ public class MatchTeam {
     }
 
     public int getDTotalStats(int sType) {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         int retval = 0;
 
         while (i.hasNext())
@@ -1935,7 +1954,7 @@ public class MatchTeam {
 
     // get # ready to play players
     public int getPlayersReadyToPlay() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         int retval = 0;
 
         while (i.hasNext())
@@ -1947,7 +1966,8 @@ public class MatchTeam {
 
     // get # ready to play players
     public int getPlayersRostered() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
+
         int retval = 0;
 
         while (i.hasNext())
@@ -1958,7 +1978,7 @@ public class MatchTeam {
     }
 
     public int getPlayersIsWasInGame() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         int retval = 0;
 
         while (i.hasNext())
@@ -1970,7 +1990,7 @@ public class MatchTeam {
 
     // get # ready to play in ship #
     public int getPlayersRosteredInShip(int shipType) {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
         MatchPlayer p;
         int retval = 0;
 
@@ -1998,7 +2018,7 @@ public class MatchTeam {
     // send start signal to all players
     public void signalStartToPlayers() {
         addInfo.clear();
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
 
         while (i.hasNext()) {
             MatchPlayer player = i.next();
@@ -2010,7 +2030,7 @@ public class MatchTeam {
 
     // send end signal to all players
     public void signalEndToPlayers() {
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
 
         while (i.hasNext())
             i.next().reportEndOfGame();
@@ -2122,7 +2142,7 @@ public class MatchTeam {
 
     public boolean isPlayerOnTeam(String name) {
         MatchPlayer player;
-        ListIterator<MatchPlayer> i = m_players.listIterator();
+        Iterator<MatchPlayer> i = m_players.values().iterator();
 
         while (i.hasNext()) {
             player = i.next();
@@ -2181,7 +2201,7 @@ public class MatchTeam {
         };
 
         // use the comparator
-        MatchPlayer[] players = m_players.toArray(new MatchPlayer[m_players.size()]);
+        MatchPlayer[] players = m_players.values().toArray(new MatchPlayer[m_players.size()]);
         Arrays.sort(players, a);
 
         if (duelG) {
@@ -2303,7 +2323,7 @@ public class MatchTeam {
         }
 
         MatchPlayer Player;
-        ListIterator<MatchPlayer> j = m_players.listIterator();
+        Iterator<MatchPlayer> j = m_players.values().iterator();
         int temp;
         int counter = 0;
         while (j.hasNext()) {

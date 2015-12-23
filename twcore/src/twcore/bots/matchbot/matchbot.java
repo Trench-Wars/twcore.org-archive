@@ -1030,6 +1030,12 @@ public class matchbot extends SubspaceBot {
                 if (players < 0)
                     players = m_rules.getInt("minplayers");
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                
+                if (!dp.isEnabled()) {
+                    m_botAction.sendPrivateMessage(name, "You can not issue squad commands if your name is not TWD-enabled.");
+                    return;
+                }
+
                 if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                     m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
@@ -1089,6 +1095,12 @@ public class matchbot extends SubspaceBot {
                 if (players < 0)
                     players = m_rules.getInt("minplayers");
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                
+                if (!dp.isEnabled()) {
+                    m_botAction.sendPrivateMessage(name, "You can not issue squad commands if your name is not TWD-enabled.");
+                    return;
+                }
+
                 if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                     m_botAction.sendPrivateMessage(name, "You're not allowed to make challenges for your squad unless you're an assistant or captain.");
                     return;
@@ -1162,6 +1174,12 @@ public class matchbot extends SubspaceBot {
                 Player p = m_botAction.getPlayer(name);
 
                 DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                
+                if (!dp.isEnabled()) {
+                    m_botAction.sendPrivateMessage(name, "You can not issue squad commands if your name is not TWD-enabled.");
+                    return;
+                }
+                
                 if (!dp.isRankAssistantMinimum() && m_rules.getInt("anyone_can_start_game") != 1) {
                     m_botAction.sendPrivateMessage(name, "You must be a captain or assistant to remove challenges.");
                     return;
@@ -1207,6 +1225,12 @@ public class matchbot extends SubspaceBot {
             if (m_isStartingUp == false) {
                 if (m_game == null) {
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                    
+                    if (!dp.isEnabled()) {
+                        m_botAction.sendPrivateMessage(name, "You can not issue squad commands if your name is not TWD-enabled.");
+                        return;
+                    }
+
                     Player p = m_botAction.getPlayer(name);
                     if (p != null) {
                         if (parameters.length > 0) {
@@ -1300,6 +1324,12 @@ public class matchbot extends SubspaceBot {
             if (m_isStartingUp == false) {
                 if (m_game == null) {
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                    
+                    if (!dp.isEnabled()) {
+                        m_botAction.sendPrivateMessage(name, "You can not issue squad commands if your name is not TWD-enabled.");
+                        return;
+                    }
+                    
                     Player p = m_botAction.getPlayer(name);
                     if (p != null) {
                         if ((dp.getTeamName() != null) && (!dp.getTeamName().equals("")) && (p.getSquadName().equalsIgnoreCase(dp.getTeamName()))) {
@@ -1340,6 +1370,12 @@ public class matchbot extends SubspaceBot {
             if (m_isStartingUp == true) {
                 if (m_game == null) {
                     DBPlayerData dp = new DBPlayerData(m_botAction, dbConn, name);
+                    
+                    if (!dp.isEnabled()) {
+                        m_botAction.sendPrivateMessage(name, "You can not issue squad commands if your name is not TWD-enabled.");
+                        return;
+                    }
+
                     Player p = m_botAction.getPlayer(name);
                     if (p != null) {
                         if (dp.getTeamName().equalsIgnoreCase(m_team1) || dp.getTeamName().equalsIgnoreCase(m_team2)) {

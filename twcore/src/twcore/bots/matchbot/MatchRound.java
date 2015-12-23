@@ -1022,13 +1022,13 @@ public class MatchRound {
 
         try {
             ArrayList<MatchPlayer> playerList = new ArrayList<MatchPlayer>();
-            Iterator<MatchPlayer> it = m_team1.m_players.iterator();
+            Iterator<MatchPlayer> it = m_team1.m_players.values().iterator();
 
             while (it.hasNext()) {
                 playerList.add(it.next());
             }
 
-            it = m_team2.m_players.iterator();
+            it = m_team2.m_players.values().iterator();
 
             while (it.hasNext()) {
                 playerList.add(it.next());
