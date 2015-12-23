@@ -195,10 +195,13 @@ public class MatchTeam {
             while (rs.next()) {
                 String pname = rs.getString("fcUserName");
                 MatchPlayer p = new MatchPlayer(pname, this);
-                if (p != null && p.m_dbPlayer.isEnabled()) {
+                //if (p != null && p.m_dbPlayer.isEnabled()) {
                     m_captains.add(pname.toLowerCase());
                     m_loadedPlayers.put(rs.getString("fcUserName"), p);
-                }
+                //}
+                
+                if (!p.m_dbPlayer.isEnabled())
+                    Tools.printLog("DBPlayer on " + pname + " not enabled. Status = " + p.m_dbPlayer.getStatus());
             }
             m_botAction.SQLClose(rs);
         } catch (Exception e) {
@@ -2080,6 +2083,13 @@ public class MatchTeam {
     }
 
     public boolean isCaptain(String name) {
+        MatchPlayer p = m_players.get(name);
+        if( p == null )
+            p = m_loadedPlayers.get(name);
+        if( p == null ) {
+            Tools.printLog("Could not get player " + name + " in lists. They are " + ((m_captains.indexOf(name.toLowerCase()) >= 0) ? "in" : "not in") + " the cap list.");
+            return false;
+        }
         if (m_captains.indexOf(name.toLowerCase()) >= 0)
             return true;
         else
