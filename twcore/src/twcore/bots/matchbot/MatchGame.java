@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.TimerTask;
 
@@ -699,7 +698,7 @@ public class MatchGame {
         if (m_curRound != null) {
             if ((m_curRound.m_fnRoundState == 2) || (m_curRound.m_fnRoundState == 3)) {
 
-                Iterator<MatchPlayer> i = m_curRound.m_team1.m_players.values().iterator();
+                ListIterator<MatchPlayer> i = m_curRound.m_team1.m_players.listIterator();
 
                 while (i.hasNext()) {
 
