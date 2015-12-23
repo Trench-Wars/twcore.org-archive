@@ -2184,10 +2184,18 @@ public class GameFlagTimeModule extends AbstractModule {
                 Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
                 //Do not warp the player if they have disabled warping and aren't inside the flagroom
                 //or skip the player if he/she's inside a safe, and not there due to a mine clearing warp.
-                if(reg != null
-                        && ((!player.getWarp() && (!Region.FLAGROOM.equals(reg) && !player.wasFRCleared())) 
-                                || (Region.SAFE.equals(reg) && !player.areMinesCleared())))
-                    continue;
+                if(reg != null)
+                    // Check unusual circumstances
+                    if( !player.getWarp() ) {
+                        if( !Region.FLAGROOM.equals(reg) ) {
+                            if( Region.SAFE.equals(reg) ) {
+                                 if( !player.wasFRCleared() && !player.areMinesCleared() )
+                                     continue;
+                            } else {
+                                continue;
+                            }
+                        }
+                    }
             }
             
             if (allPlayers)
