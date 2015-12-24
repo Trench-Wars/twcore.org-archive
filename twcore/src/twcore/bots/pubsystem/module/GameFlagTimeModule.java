@@ -2176,7 +2176,7 @@ public class GameFlagTimeModule extends AbstractModule {
             PubPlayer player = context.getPlayerManager().getPlayer(pname);
 
             // Check if the player is a lev. If so, do not warp.
-            if (p.getShipType() == Tools.Ship.LEVIATHAN)
+            if (p.getShipType() == Tools.Ship.LEVIATHAN && !player.wasFRCleared())
                 continue;
             
             // Check player's location for exempt locations.
