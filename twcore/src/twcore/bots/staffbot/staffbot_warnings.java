@@ -40,8 +40,7 @@ public class staffbot_warnings extends Module {
             " !allwarnings <player>     - Shows all warnings on player, including expired",
             " !fuzzyname <player>       - Checks for names similar to <player> in database",
             " !addnote <player>:<note>  - Adds a note on the specified player",
-            " !listnotes <player>       - Lists all notes for the specified player",
-            " !removenote <id>          - Removes note of id specified in listnotes" 
+            " !listnotes <player>       - Lists all notes for the specified player" 
         };
 
     final String[] helpMod = { 
@@ -52,7 +51,8 @@ public class staffbot_warnings extends Module {
     final String[] helpSmod = { 
             "--------------------[ Warnings: SMod+ ]--------------------", 
             " !warningsfrom <player>    - Displays a list of recent warns given to a player.",
-            " !manual player:warning    - Adds a manual database warning to player. Use with caution!" 
+            " !manual player:warning    - Adds a manual database warning to player. Use with caution!",
+            " !deletenote <id>          - Removes note of id specified in listnotes" 
         };
 
     private void addManualWarning(String name, String message) {
@@ -176,15 +176,16 @@ public class staffbot_warnings extends Module {
             Tools.addSlashesToString(msg[1]) + "','" +
             Tools.addSlashesToString(name.toLowerCase()) + "')";
         m_botAction.sendSmartPrivateMessage(name, "Adding note for user: " + msg[0]);
+        m_botAction.sendChatMessage(2, "Staffer " + name + " has created a new note for user: " + msg[0]);
         m_botAction.SQLBackgroundQuery(sqlHost, null, query);
     }
 
-    public void queryRemoveNote(String name, String message) {
+    public void queryDeleteNote(String name, String message) {
         int id;
         try {
             id = Integer.parseInt(message);
         } catch (NumberFormatException e) {
-            m_botAction.sendSmartPrivateMessage(name, "Incorrect usage. Example: !removenote <id of note>");
+            m_botAction.sendSmartPrivateMessage(name, "Incorrect usage. Example: !delnote <id of note>");
             return;
         }
         String query = "DELETE FROM tblWarningsNotes WHERE fnID = '" + Tools.addSlashesToString(message) + "'";
@@ -255,8 +256,10 @@ public class staffbot_warnings extends Module {
             return;
         }
 
-        // Ignore non-private messages
-        if (event.getMessageType() != Message.PRIVATE_MESSAGE && event.getMessageType() != Message.REMOTE_PRIVATE_MESSAGE)
+        // Ignore messages that aren't private or from chat
+        if (event.getMessageType() != Message.PRIVATE_MESSAGE &&
+            event.getMessageType() != Message.CHAT_MESSAGE &&
+            event.getMessageType() != Message.REMOTE_PRIVATE_MESSAGE)
             return;
         // Ignore non-commands
         if (!message.startsWith("!"))
@@ -292,8 +295,6 @@ public class staffbot_warnings extends Module {
                 queryAddNote(name, message.substring(9));
             } else if (message.toLowerCase().startsWith("!listnotes ")) {
                 queryListNotes(name, message.substring(11));
-            } else if (message.toLowerCase().startsWith("!removenote ")) {
-                queryRemoveNote(name, message.substring(12));
             }
         }
 
@@ -307,6 +308,8 @@ public class staffbot_warnings extends Module {
                 queryWarningsFrom(name, message.substring(14));
             if (message.toLowerCase().startsWith("!manual "))
                 addManualWarning(name, message.substring(8).trim());
+            if (message.toLowerCase().startsWith("!delnote "))
+                queryDeleteNote(name, message.substring(12));
         }
 
     }
