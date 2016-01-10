@@ -39,7 +39,7 @@ public class staffbot_warnings extends Module {
             " ! <player>                - (shortcut for above)", 
             " !allwarnings <player>     - Shows all warnings on player, including expired",
             " !fuzzyname <player>       - Checks for names similar to <player> in database",
-            " !addnote <player>         - Adds a note on the specified player",
+            " !addnote <player>:<note>  - Adds a note on the specified player",
             " !listnotes <player>       - Lists all notes for the specified player",
             " !removenote <id>          - Removes note of id specified in listnotes" 
         };
@@ -175,6 +175,7 @@ public class staffbot_warnings extends Module {
             Tools.addSlashesToString(msg[0].toLowerCase()) + "','" +
             Tools.addSlashesToString(msg[1]) + "','" +
             Tools.addSlashesToString(name.toLowerCase()) + "')";
+        m_botAction.sendSmartPrivateMessage(name, "Adding note for user: " + msg[0]);
         m_botAction.SQLBackgroundQuery(sqlHost, null, query);
     }
 
@@ -187,6 +188,7 @@ public class staffbot_warnings extends Module {
             return;
         }
         String query = "DELETE FROM tblWarningsNotes WHERE fnID = '" + Tools.addSlashesToString(message) + "'";
+        m_botAction.sendSmartPrivateMessage(name, "Removing note " + message + ".");
         m_botAction.SQLBackgroundQuery(sqlHost, null, query);
     }
 
