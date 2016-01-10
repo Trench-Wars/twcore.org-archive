@@ -407,6 +407,8 @@ public class PubPlayerManagerModule extends AbstractModule {
                 if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(event.getPlayerID(), event.getFrequency(), true);
                 } else {                	
+                    if( m_botAction.getOperatorList().isModerator(name) )
+                        return;
                     checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
                 }
 
@@ -421,18 +423,17 @@ public class PubPlayerManagerModule extends AbstractModule {
                 }
             } else {
                 if (pubPlayer!=null) {
-                    int oldfreq = pubPlayer.getLastFreq();
-                    if( oldfreq > 1 ) {
-                        int freq0 = m_botAction.getPlayingFrequencySize(0);
-                        int freq1 = m_botAction.getPlayingFrequencySize(1);
-                        if( event.getFrequency() == 0 && freq0 > freq1 + 1 ) {
-                            m_botAction.setFreq( player.getPlayerID(), 1 );
-                            m_botAction.sendPrivateMessage(event.getPlayerID(), "You have been placed on freq 1 to prevent a team imbalance.");
-                        }
-                        if( event.getFrequency() == 1 && freq1 > freq0 + 1 ) {
-                            m_botAction.setFreq( player.getPlayerID(), 0 );
-                            m_botAction.sendPrivateMessage(event.getPlayerID(), "You have been placed on freq 0 to prevent a team imbalance.");
-                        }
+                    if( m_botAction.getOperatorList().isModerator(name) )
+                        return;
+                    int freq0 = m_botAction.getPlayingFrequencySize(0);
+                    int freq1 = m_botAction.getPlayingFrequencySize(1);
+                    if( event.getFrequency() == 0 && freq0 > freq1 + 1 ) {
+                        m_botAction.setFreq( player.getPlayerID(), 1 );
+                        m_botAction.sendPrivateMessage(event.getPlayerID(), "You have been placed on freq 1 to prevent a team imbalance.");
+                    }
+                    if( event.getFrequency() == 1 && freq1 > freq0 + 1 ) {
+                        m_botAction.setFreq( player.getPlayerID(), 0 );
+                        m_botAction.sendPrivateMessage(event.getPlayerID(), "You have been placed on freq 0 to prevent a team imbalance.");
                     }
                 }
             }
