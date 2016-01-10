@@ -267,7 +267,7 @@ public class staffbot_warnings extends Module {
         // Ignore chat messages that aren't from the EL/banmods chat
         if (event.getMessageType() == Message.CHAT_MESSAGE &&
             event.getChatNumber() != 4 &&
-            event.getChatNumber != 2)
+            event.getChatNumber() != 2)
             return;
         // Ignore non-commands
         if (!message.startsWith("!"))
