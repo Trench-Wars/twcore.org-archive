@@ -37,8 +37,11 @@ public class staffbot_warnings extends Module {
             "--------------------[ Warnings: ER+ ]----------------------", 
             " !warnings <player>        - Checks valid red warnings on specified player",
             " ! <player>                - (shortcut for above)", 
-            " !allwarnings <player>     - Shows all warnings on player, including expired.",
-            " !fuzzyname <player>       - Checks for names similar to <player> in database." 
+            " !allwarnings <player>     - Shows all warnings on player, including expired",
+            " !fuzzyname <player>       - Checks for names similar to <player> in database",
+            " !addnote <player>         - Adds a note on the specified player",
+            " !listnotes <player>       - Lists all notes for the specified player",
+            " !removenote <id>          - Removes note of id specified in listnotes" 
         };
 
     final String[] helpMod = { 
@@ -162,6 +165,46 @@ public class staffbot_warnings extends Module {
         return fuzzynames;
     }
 
+    public void queryAddNote(String name, String message) {
+        String[] msg = message.split(":");
+        if(msg.length != 2){
+            m_botAction.sendSmartPrivateMessage( name, "Incorrect usage. Example: !addnote player:note");
+            return;
+        }
+        String query = "INSERT INTO tblWarningsNotes (fcUserName,fcNote,fcStaffer) VALUES ('" +
+            Tools.addSlashesToString(msg[0].toLowerCase()) + "','" +
+            Tools.addSlashesToString(msg[1]) + "','" +
+            Tools.addSlashesToString(name.toLowerCase()) + "')";
+        m_botAction.SQLBackgroundQuery(sqlHost, null, query);
+    }
+
+    public void queryRemoveNote(String name, String message) {
+        int id;
+        try {
+            id = Integer.parseInt(message);
+        } catch (NumberFormatException e) {
+            m_botAction.sendSmartPrivateMessage(name, "Incorrect usage. Example: !removenote <id of note>");
+            return;
+        }
+        String query = "DELETE FROM tblWarningsNotes WHERE fnID = '" + Tools.addSlashesToString(message) + "'";
+        m_botAction.SQLBackgroundQuery(sqlHost, null, query);
+    }
+
+    public void queryListNotes(String name, String message) {
+        String query = "SELECT fnId,fcNote FROM tblWarningsNotes WHERE fcUserName = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY fnId";
+
+        try {
+            ResultSet set = m_botAction.SQLQuery(sqlHost, query);
+            m_botAction.sendSmartPrivateMessage(name, "===== Notes for user: " + message + " =====");
+            while (set.next()) {
+                m_botAction.sendSmartPrivateMessage(name, "   " + set.getString("fnId") + ": " + set.getString("fcNote"));
+            }
+            m_botAction.SQLClose(set);
+        } catch (SQLException sqle) {
+            Tools.printLog("SQLException encountered in Staffbot.queryListNotes(): " + sqle.getMessage());
+        }
+    }
+
     @Override
     public void handleEvent(Message event) {
         short sender = event.getPlayerID();
@@ -243,6 +286,12 @@ public class staffbot_warnings extends Module {
                 queryWarnings(name, message.substring(13), true);
             } else if (message.toLowerCase().startsWith("!fuzzyname ")) {
                 getFuzzyNames(name, message.substring(11));
+            } else if (message.toLowerCase().startsWith("!addnote ")) {
+                queryAddNote(name, message.substring(9));
+            } else if (message.toLowerCase().startsWith("!listnotes ")) {
+                queryListNotes(name, message.substring(11));
+            } else if (message.toLowerCase().startsWith("!removenote ")) {
+                queryRemoveNote(name, message.substring(12));
             }
         }
 
