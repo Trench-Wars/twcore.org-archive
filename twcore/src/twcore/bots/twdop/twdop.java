@@ -97,9 +97,12 @@ public class twdop extends SubspaceBot {
             String senderName = event.getMessageType() == Message.CHAT_MESSAGE ? event.getMessager() : m_botAction.getPlayerName(sender);
 
             // Ignore player's commands
-            if (senderName != null && (!m_botAction.getOperatorList().isSmod(senderName) && !isTWDOp(senderName))) {
+            if (senderName != null && (!m_botAction.getOperatorList().isSmod(senderName) && !isTWDOp(senderName)))
                 return;
-            }
+
+            // Ignore chat messages that aren't from the banmods chat
+            if (event.getMessageType() == Message.CHAT_MESSAGE && event.getChatNumber() != 1)
+                return;
 
             // !help
             if (message.startsWith("!help")) {
