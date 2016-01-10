@@ -69,7 +69,7 @@ public class staffbot_warnings extends Module {
 
             m_botAction.SQLInsertInto(sqlHost, "tblWarnings", paramNames, data);
             m_botAction.sendSmartPrivateMessage(name, "Inserted warning (" + warning + ") to player (" + player + ")");
-            m_botAction.sendChatMessage(4, "Staffer " + name + " has inserted a manual warning to player " + player);
+            m_botAction.sendChatMessage(2, "Staffer " + name + " has inserted a manual warning to player " + player);
         } else {
             m_botAction.sendSmartPrivateMessage(name, "Formatting Syntax Error: Please use PlayerName:Warning to proceed.");
         }
@@ -248,7 +248,7 @@ public class staffbot_warnings extends Module {
                 m_botAction.SQLInsertInto(sqlHost, "tblWarnings", paramNames, data);
 
                 // Send a chat message to the smod chat stating that staffer warned a player
-                m_botAction.sendChatMessage(4, "[" + time + "] " + staffMember + " issued a warning towards " + warnedPlayer + " (\"" + warning + "\")");
+                m_botAction.sendChatMessage(2, "[" + time + "] " + staffMember + " issued a warning towards " + warnedPlayer + " (\"" + warning + "\")");
 
                 // Add this warning to the lastWarnings Vector so it isn't inserted into the database on the next check
                 lastWarnings.add(0, message);
@@ -258,13 +258,16 @@ public class staffbot_warnings extends Module {
             return;
         }
 
+
         // Ignore messages that aren't private or from chat
         if (event.getMessageType() != Message.PRIVATE_MESSAGE &&
             event.getMessageType() != Message.REMOTE_PRIVATE_MESSAGE &&
             event.getMessageType() != Message.CHAT_MESSAGE)
             return;
-        // Ignore chat messages that aren't from the banmods chat
-        if (event.getMessageType() == Message.CHAT_MESSAGE && event.getChatNumber() != 4)
+        // Ignore chat messages that aren't from the EL/banmods chat
+        if (event.getMessageType() == Message.CHAT_MESSAGE &&
+            event.getChatNumber() != 4 &&
+            event.getChatNumber != 2)
             return;
         // Ignore non-commands
         if (!message.startsWith("!"))
