@@ -370,9 +370,9 @@ public class staffbot_warnings extends Module {
             if (message.toLowerCase().startsWith("!delnote "))
                 queryDeleteNote(name, message.substring(9));
             if (message.toLowerCase().startsWith("!recentnotes "))
-                queryDeleteNote(name, message.substring(13));
+                queryRecentNotes(name, message.substring(13));
             if (message.toLowerCase().startsWith("!notesby "))
-                queryDeleteNote(name, message.substring(9));
+                queryNotesBy(name, message.substring(9));
         }
 
     }
