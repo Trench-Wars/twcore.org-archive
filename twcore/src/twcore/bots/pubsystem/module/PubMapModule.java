@@ -20,6 +20,7 @@ import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
@@ -55,7 +56,7 @@ public class PubMapModule extends AbstractModule {
     private boolean inPub;
     private boolean checkForHolidayLVZ;
     private Map<String,Boolean> usingHolidayLVZ;
-    private Set<String> shownLVZAfterEnterInShip;   // True if player has been shown LVZ after entering game in ship
+    private Set<Integer> shownLVZAfterEnterInShip;   // True if player has been shown LVZ after entering game in ship
                                                     // (Bugfix for missing doors after download)
     
     private MapRegions regions;
@@ -81,7 +82,7 @@ public class PubMapModule extends AbstractModule {
         };
         ba.scheduleTask(initialize, 5000);
         usingHolidayLVZ = Collections.synchronizedMap( new HashMap<String,Boolean>() );
-        shownLVZAfterEnterInShip = Collections.synchronizedSet( new HashSet<String>() ); 
+        shownLVZAfterEnterInShip = Collections.synchronizedSet( new HashSet<Integer>() ); 
     }
 
     @Override
@@ -162,12 +163,26 @@ public class PubMapModule extends AbstractModule {
     public void handleEvent(FrequencyShipChange event) {
         if (enabled && inPub) {
             doPopCheck();
+            /*
             if (event.getShipType() > Tools.Ship.SPECTATOR) {
                 Player p = m_botAction.getPlayer(event.getPlayerID());
                 if (p != null && !shownLVZAfterEnterInShip.contains( p.getPlayerName() )) {
                     doLVZ(p.getPlayerID(), true);
-                    shownLVZAfterEnterInShip.add(p.getPlayerName());
+                    shownLVZAfterEnterInShip.add(p.getPlayerID());
                 }
+            }
+            */
+        }
+    }
+    
+    /**
+     * Accounting for late joiners due to download. A little costly, but newbie-friendly.
+     */
+    public void handleEvent(PlayerPosition event) {
+        if (enabled && inPub) {
+            if (!shownLVZAfterEnterInShip.contains( new Integer(event.getPlayerID()) )) {
+                doLVZ(event.getPlayerID(), true);
+                shownLVZAfterEnterInShip.add( new Integer(event.getPlayerID()));
             }
         }
     }
