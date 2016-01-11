@@ -20,7 +20,6 @@ import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
-import twcore.core.events.PlayerPosition;
 import twcore.core.game.Player;
 import twcore.core.util.MapRegions;
 import twcore.core.util.Tools;
@@ -155,34 +154,17 @@ public class PubMapModule extends AbstractModule {
     public void handleEvent(PlayerLeft event) {
         if (enabled && inPub)
             doPopCheck();
-        Player p = m_botAction.getPlayer(event.getPlayerID());
-        if (p != null)
-            shownLVZAfterEnterInShip.remove(p.getPlayerName());
+        shownLVZAfterEnterInShip.remove(event.getPlayerID());
     }
     
     public void handleEvent(FrequencyShipChange event) {
         if (enabled && inPub) {
             doPopCheck();
-            /*
             if (event.getShipType() > Tools.Ship.SPECTATOR) {
-                Player p = m_botAction.getPlayer(event.getPlayerID());
-                if (p != null && !shownLVZAfterEnterInShip.contains( p.getPlayerName() )) {
-                    doLVZ(p.getPlayerID(), true);
-                    shownLVZAfterEnterInShip.add(p.getPlayerID());
+                if (!shownLVZAfterEnterInShip.contains(event.getPlayerID())) {
+                    doLVZ(event.getPlayerID(), true);
+                    shownLVZAfterEnterInShip.add(new Integer(event.getPlayerID()));
                 }
-            }
-            */
-        }
-    }
-    
-    /**
-     * Accounting for late joiners due to download. A little costly, but newbie-friendly.
-     */
-    public void handleEvent(PlayerPosition event) {
-        if (enabled && inPub) {
-            if (!shownLVZAfterEnterInShip.contains( new Integer(event.getPlayerID()) )) {
-                doLVZ(event.getPlayerID(), true);
-                shownLVZAfterEnterInShip.add( new Integer(event.getPlayerID()));
             }
         }
     }
