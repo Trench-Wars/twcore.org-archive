@@ -196,7 +196,7 @@ public class GameFlagTimeModule extends AbstractModule {
                     }
                 }
             };
-            //m_botAction.scheduleTaskAtFixedRate(levCoordReporter, 5000, 30000);
+            m_botAction.scheduleTaskAtFixedRate(levCoordReporter, 5000, 30000);
         }
 
     }
