@@ -2888,9 +2888,9 @@ public class GameFlagTimeModule extends AbstractModule {
                     return "[FLAG] Round 1 of a new game will start soon.";
                 else
                     return "[FLAG] Round " + roundNum + " starting soon. Score: " + freq0Score + "-" + freq1Score;
-            return "[FLAG] ROUND " + roundNum + "  " + (flagHoldingFreq == -1 || flagHoldingFreq > 99 ? "?" : "Freq " + flagHoldingFreq)
+            return "[FLAG] ROUND " + roundNum + " (" + freq0Score + "-" + freq1Score + ")  " + (flagHoldingFreq == -1 || flagHoldingFreq > 99 ? "?" : "Freq " + flagHoldingFreq)
                     + " holding for " + getTimeString(secondsHeld) + ", needs " + getTimeString((flagMinutesRequired * 60) - secondsHeld)
-                    + " more.  [Time: " + getTimeString(totalSecs) + "]";
+                    + " more. [Time: " + getTimeString(totalSecs) + "]";
         }
 
         /**
