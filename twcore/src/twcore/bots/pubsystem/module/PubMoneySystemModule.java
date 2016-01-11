@@ -418,7 +418,7 @@ public class PubMoneySystemModule extends AbstractModule {
             if(canBuyAnywhere.isEmpty() || !canBuyAnywhere.contains((int) p.getShipType())) {
                 Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
                 if (r != null && !(buyRegions.contains(r))) {
-                    m_botAction.sendSmartPrivateMessage(buyerName, Tools.shipName(p.getShipType()) + " can only !buy in designated buy regions.");
+                    m_botAction.sendSmartPrivateMessage(buyerName, Tools.shipName(p.getShipType()) + " must !buy in a buy zone (ears of lower and midbase).");
                     return true;
                 }
             }
@@ -430,9 +430,9 @@ public class PubMoneySystemModule extends AbstractModule {
                 Region r = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
                 if (r != null && !(buyRegions.contains(r))) {
                     if (!buyingForOther)
-                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region to purchase items.");
+                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy zone (ears of lower and midbase) to purchase items.");
                     else
-                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region to have an item purchased for them.");
+                        m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy zone (ears of lower and midbase) to have an item purchased for them.");
                     return true;
                 }
             } else if (p.isShip(Ship.TERRIER) && p.hasAttachees()) {
@@ -443,9 +443,9 @@ public class PubMoneySystemModule extends AbstractModule {
                         Player a = m_botAction.getPlayer(i);
                         if (a != null && a.isShip(Ship.LEVIATHAN)) {
                             if (!buyingForOther)
-                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region to purchase items.");
+                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region (ears of lower and midbase) to purchase items.");
                             else
-                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region to have an item purchased for them.");
+                                m_botAction.sendPrivateMessage(buyerName, "LTs must be in a buy region (ears of lower and midbase) to have an item purchased for them.");
                             return true;
                         }
                     }
