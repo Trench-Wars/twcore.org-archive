@@ -1166,7 +1166,7 @@ public class PubMoneySystemModule extends AbstractModule {
         Iterator<Player> it = m_botAction.getPlayerIterator();
         while (it.hasNext()) {
             PubPlayer player = playerManager.getPlayer(it.next().getPlayerName());
-            if (player != null) {
+            if (player != null && !player.equals(m_botAction.getBotName())) {
                 players.put(player.getPlayerName(), player.getMoney());
             }
         }
@@ -1193,7 +1193,7 @@ public class PubMoneySystemModule extends AbstractModule {
      * @param command The command, no parameters.
      */
     private void doCmdRichestAll(String sender, String command) {
-    	String query = "SELECT fcName, fnMoney FROM tblPlayerStats ORDER BY fnMoney DESC LIMIT 0, 10";
+    	String query = "SELECT fcName, fnMoney FROM tblPlayerStats WHERE fcName != 'TW-PubSystem' ORDER BY fnMoney DESC LIMIT 0, 10";
     	try {
     		ResultSet r = m_botAction.SQLQuery("pubstats", query);
     		int count = 0;
