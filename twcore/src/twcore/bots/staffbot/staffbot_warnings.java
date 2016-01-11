@@ -52,7 +52,9 @@ public class staffbot_warnings extends Module {
             "--------------------[ Warnings: SMod+ ]--------------------", 
             " !warningsfrom <player>    - Displays a list of recent warns given to a player.",
             " !manual player:warning    - Adds a manual database warning to player. Use with caution!",
-            " !delnote <id>             - Removes note of id specified in listnotes" 
+            " !delnote <id>             - Removes note of id specified in listnotes",
+            " !recentnotes <#>          - Displays # most recent notes (default 10)",
+            " !notesby <staff>          - Displays notes created by staffer" 
         };
 
     private void addManualWarning(String name, String message) {
@@ -195,17 +197,66 @@ public class staffbot_warnings extends Module {
     }
 
     public void queryListNotes(String name, String message) {
-        String query = "SELECT fnId,fcNote FROM tblWarningsNotes WHERE fcUserName = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY fnId";
+        String query = "SELECT fnId,fcNote,fcStaffer,fdCreated FROM tblWarningsNotes WHERE fcUserName = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY fnId";
 
         try {
             ResultSet set = m_botAction.SQLQuery(sqlHost, query);
-            m_botAction.sendSmartPrivateMessage(name, "===== Notes for user: " + message + " =====");
+            m_botAction.sendSmartPrivateMessage(name, "===== Listing notes for " + message + " =====");
             while (set.next()) {
-                m_botAction.sendSmartPrivateMessage(name, "   " + set.getString("fnId") + ": " + set.getString("fcNote"));
+                m_botAction.sendSmartPrivateMessage(name, set.getString("fnId")      + ": " +
+                                                          set.getString("fcNote")    + " -" +
+                                                          set.getString("fcStaffer") + " (" +
+                                                          set.getString("fdCreated") + ")");
             }
             m_botAction.SQLClose(set);
         } catch (SQLException sqle) {
             Tools.printLog("SQLException encountered in Staffbot.queryListNotes(): " + sqle.getMessage());
+        }
+    }
+
+    public void queryRecentNotes(String name, String message) {
+        int limit;
+        try {
+            limit = Integer.parseInt(message);
+        } catch (NumberFormatException e) {
+            m_botAction.sendSmartPrivateMessage(name, "Incorrect usage. Example: !recentnotes <number of notes to display>");
+            return;
+        }
+
+        String query = "SELECT * FROM tblWarningsNotes ORDER BY fdCreated DESC LIMIT " + Tools.addSlashes(message);
+
+        try {
+            ResultSet set = m_botAction.SQLQuery(sqlHost, query);
+            m_botAction.sendSmartPrivateMessage(name, "===== Listing " + message + " most recent notes =====");
+            while (set.next()) {
+                m_botAction.sendSmartPrivateMessage(name, set.getString("fcUserName") + "> " +
+                                                          set.getString("fnId")       + ": " +
+                                                          set.getString("fcNote")     + " -" +
+                                                          set.getString("fcStaffer")  + " (" +
+                                                          set.getString("fdCreated")  + ")");
+            }
+            m_botAction.SQLClose(set);
+        } catch (SQLException sqle) {
+            Tools.printLog("SQLException encountered in Staffbot.queryRecentNotes(): " + sqle.getMessage());
+        }
+    }
+
+    public void queryNotesBy(String name, String message) {
+        String query = "SELECT * FROM tblWarningsNotes WHERE fcStaffer = '" + Tools.addSlashes(message) + "' ORDER BY fdCreated DESC";
+
+        try {
+            ResultSet set = m_botAction.SQLQuery(sqlHost, query);
+            m_botAction.sendSmartPrivateMessage(name, "===== Listing " + message + "'s notes =====");
+            while (set.next()) {
+                m_botAction.sendSmartPrivateMessage(name, set.getString("fcUserName") + "> " +
+                                                          set.getString("fnId")       + ": " +
+                                                          set.getString("fcNote")     + " -" +
+                                                          set.getString("fcStaffer")  + " (" +
+                                                          set.getString("fdCreated")  + ")");
+            }
+            m_botAction.SQLClose(set);
+        } catch (SQLException sqle) {
+            Tools.printLog("SQLException encountered in Staffbot.queryNotesBy(): " + sqle.getMessage());
         }
     }
 
@@ -317,6 +368,10 @@ public class staffbot_warnings extends Module {
             if (message.toLowerCase().startsWith("!manual "))
                 addManualWarning(name, message.substring(8).trim());
             if (message.toLowerCase().startsWith("!delnote "))
+                queryDeleteNote(name, message.substring(9));
+            if (message.toLowerCase().startsWith("!recentnotes "))
+                queryDeleteNote(name, message.substring(13));
+            if (message.toLowerCase().startsWith("!notesby "))
                 queryDeleteNote(name, message.substring(9));
         }
 
