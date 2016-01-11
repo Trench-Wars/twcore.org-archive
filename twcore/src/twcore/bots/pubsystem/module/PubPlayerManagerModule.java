@@ -101,13 +101,13 @@ public class PubPlayerManagerModule extends AbstractModule {
     
     public void handleEvent(Message event) {
         if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.PUBLIC_MESSAGE) {
-            if (switchAllowed) {
+            if (event.getMessage().equalsIgnoreCase("!switch") && switchAllowed) {
                 int id = event.getPlayerID();
                 Player p = m_botAction.getPlayer(id);
                 if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
                     return;
                 
-                if( MSG_AT_FREQSIZE_DIFF != -1 && event.getMessage().equalsIgnoreCase("!switch")) {
+                if( MSG_AT_FREQSIZE_DIFF != -1 ) {
                     if (freqSizeInfo[0] <= 1) {
                         m_botAction.sendPrivateMessage(id, "Team adjustment not needed.");
                         switchAllowed = false;
@@ -948,6 +948,8 @@ public class PubPlayerManagerModule extends AbstractModule {
                 m_botAction.sendOpposingTeamMessageByFrequency(1, msg);
                 freqSizeInfo[1] = 0;
             }
+        } else {
+            switchAllowed = false;
         }
     }
     
@@ -1025,7 +1027,8 @@ public class PubPlayerManagerModule extends AbstractModule {
             m_botAction.sendPrivateMessage(playerID,"Thank you for switching!  You have recieved " + NICEGUY_BOUNTY_AWARD + "$");
             addMoney(m_botAction.getPlayerName(playerID), NICEGUY_BOUNTY_AWARD);
             pubPlayer.setLastSwitchReward();
-        }       
+            checkFreqSizes(false);
+        }
     }
     
     
