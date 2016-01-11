@@ -1166,7 +1166,7 @@ public class PubMoneySystemModule extends AbstractModule {
         Iterator<Player> it = m_botAction.getPlayerIterator();
         while (it.hasNext()) {
             PubPlayer player = playerManager.getPlayer(it.next().getPlayerName());
-            if (player != null && !player.equals(m_botAction.getBotName())) {
+            if (player != null && !player.getPlayerName().equals(m_botAction.getBotName())) {
                 players.put(player.getPlayerName(), player.getMoney());
             }
         }
