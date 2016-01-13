@@ -2652,7 +2652,7 @@ public class PubMoneySystemModule extends AbstractModule {
         if (command.startsWith("!items") || command.trim().equals("!i")) {
             doCmdItems(sender, false);
         } else if (command.trim().equals("!buy") || command.trim().equals("!b")) {
-            doCmdItems(sender, true);
+            doCmdItems(sender, false);
         } else if (command.trim().equals("!fullbuylist") || command.trim().equals("!fbl") 
                 || command.trim().equals("!fullitemlist") || command.trim().equals("!fil") ) {
             doCmdItems(sender, true);
