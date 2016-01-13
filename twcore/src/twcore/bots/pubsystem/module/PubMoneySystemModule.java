@@ -45,6 +45,7 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubItemRestriction;
 import twcore.bots.pubsystem.module.moneysystem.item.PubPrizeItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
+import twcore.bots.pubsystem.module.moneysystem.item.PubEventBuy;
 import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.util.AutobotThread;
 import twcore.bots.pubsystem.util.IPCReceiver;
@@ -112,7 +113,7 @@ public class PubMoneySystemModule extends AbstractModule {
     private boolean canLTBuyAnywhere = false;       // True if LTs can buy outside buy regions
     private boolean donationEnabled = false;
     private boolean buyBlock = false;
-    private static final int BONUS_FLAG = 10;       // Bux given extra for holding flag  
+    private static final int BONUS_FLAG = 10;       // Bux given extra for holding flag
 
     private String database;
     private MapRegions regions;
@@ -120,7 +121,10 @@ public class PubMoneySystemModule extends AbstractModule {
     
     PreparedStatement updateMoney;
     private int[] fruitStats = {0,0};
-
+    
+    private ArrayList<PubEventBuy> eventsBought;
+    private EventBuyCheckTask checkEventsBought;    
+    
     /** PubMoneySystemModule constructor */
     public PubMoneySystemModule(BotAction botAction, PubContext context) {
 
@@ -150,6 +154,10 @@ public class PubMoneySystemModule extends AbstractModule {
         } catch (Exception e) {
             Tools.printStackTrace("Error while initializing the money system", e);
         }
+        
+        this.eventsBought = new ArrayList<PubEventBuy>();
+        this.checkEventsBought = new EventBuyCheckTask();
+        m_botAction.scheduleTask(checkEventsBought, 10 * Tools.TimeInMillis.MINUTE, 2 * Tools.TimeInMillis.MINUTE);
 
         m_botAction.ipcSubscribe(IPC_CHANNEL);
 
@@ -466,7 +474,7 @@ public class PubMoneySystemModule extends AbstractModule {
      * </ul>
      * @param item Item to be executed
      * @param receiver The person who receives the item. (Often equals the buyer of the item.)
-     * @param params If the receiver isn't the person who bought it, his/her name will be in here as well.
+     * @param params If the receiver isn't the person who bought it, his/her name will be in here as well. This may be used for command parameters IFF the item can't be bought for another person.
      */
     public void executeItem(final PubItem item, final PubPlayer receiver, final String params) {
 
@@ -2678,6 +2686,16 @@ public class PubMoneySystemModule extends AbstractModule {
             doCmdFruitInfo(sender);
         }
         
+        if (m_botAction.getOperatorList().isER(sender)) {
+            if (command.trim().equals("!listevents")) {
+                doCmdListEventBuys(sender);
+            } else if (command.trim().startsWith("!acceptevent ")) {
+                doCmdAcceptEventBuy(sender, command.substring(command.indexOf(" ") + 1).trim());
+            } else if (command.startsWith("!fruitstats")) {
+                m_botAction.sendSmartPrivateMessage( sender, "Players have ... Won: $" + fruitStats[0] + "  Lost: $" + fruitStats[1] + "  House Earnings: " + (fruitStats[1] - fruitStats[0]) );
+            }
+        }
+        
         if (m_botAction.getOperatorList().isSmod(sender) || couponOperators.contains(sender.toLowerCase())) {
 
             // (Operator/SMOD only)
@@ -2704,8 +2722,6 @@ public class PubMoneySystemModule extends AbstractModule {
                 doCmdAward(sender, command);
             } else if (command.equals("!pot")) {
                 m_botAction.sendSmartPrivateMessage(sender, "$" + getMoneyPot());
-            } else if (command.startsWith("!fruitstats")) {
-                m_botAction.sendSmartPrivateMessage( sender, "Players have ... Won: $" + fruitStats[0] + "  Lost: $" + fruitStats[1] + "  House Earnings: " + (fruitStats[1] - fruitStats[0]) );
             }
         }
     }
@@ -3337,7 +3353,7 @@ public class PubMoneySystemModule extends AbstractModule {
      * <p>
      * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
      * which is not detected by Eclipse.
-     * @param sender Person who bought the PurePub
+     * @param sender Person who bought the can of STFU
      * @param params Currently unused
      */
     @SuppressWarnings("unused")
@@ -3356,10 +3372,128 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         };
         m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 20);
-        
     }
 
     
+    /**
+     * Executes the special shop item Buy Event Host.
+     * <p>
+     * A player buys a potential event host, and it is put into a list. A host may then accept the request
+     * and earn half of the money offered. This !buy itself costs nothing.
+     *    Ex:
+     *      !buy event:rabbit:5000
+     *    If nobody hosts in 30 min, the 5000 is refunded. If a staffer hosts, they are given 2500, half
+     *    the money, as an incentive to accept these special hosting requests.
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person who bought the potential event host
+     * @param params Which event and for how much extra $ on top of cost of buying event host
+     */
+    @SuppressWarnings("unused")
+    private void itemCommandBuyEvent(String sender, String params) {
+        if (params.indexOf(":") == -1) {
+            m_botAction.sendPrivateMessage(sender, "You must specify the event you want hosted and the amount you are willing to pay for the hosting! (Minimum $5000)  Example: !buy event:rabbit:5000");
+            return;
+        }
+        
+        String event = "";
+        int amount = 0;
+        
+        try {
+            String[] p2 = params.split(":");
+            if (p2.length != 2) {
+                m_botAction.sendPrivateMessage(sender, "You must specify the event you want hosted and the amount you are willing to pay for the hosting! (Minimum $5000)  Example: !buy event:rabbit:5000");
+                return;
+            }
+            event = p2[0];
+            amount = Integer.parseInt(p2[1]);
+        } catch (Exception e) {
+            m_botAction.sendPrivateMessage(sender, "Please use this format to request an event.  Example: !buy event:rabbit:5000");
+            return;            
+        }
+        
+        if (event.equals("")) {
+            m_botAction.sendPrivateMessage(sender, "You must specify the event you want hosted.  Example: !buy event:rabbit:5000");
+            return;
+        }
+        
+        if (amount < 5000) {
+            m_botAction.sendPrivateMessage(sender, "$5000 is the minimum you can offer to pay for an event hosting.  Example: !buy event:rabbit:5000");
+            return;
+        }
+
+        if (amount > 100000) {
+            m_botAction.sendPrivateMessage(sender, "$100000 is the maximum you can offer to pay for an event hosting.  Example: !buy event:rabbit:100000");
+            return;
+        }
+
+        PubPlayer buyer = playerManager.getPlayer(sender);
+        if (buyer.getMoney() < amount) {
+            m_botAction.sendPrivateMessage(sender, "You don't have that much money.");
+            return;
+        }
+        
+        PubEventBuy eventObject = new PubEventBuy(sender, event, amount);
+        buyer.removeMoney(amount);
+        m_botAction.sendPrivateMessage(sender, "Request sent for a host of " + event + " for $" + amount + ". NOTE: Staff are not required to respond to your request. Your money will be refunded if no host is available after " + PubEventBuy.EVENT_BUY_EXPIRE_MIN + " minutes.");
+        m_botAction.sendHelpMessage("EVENT REQUEST: " + sender + " is requesting " + event + " for $" + amount + ". :tw-p:!acceptevent " + event + " to accept.");
+    }
+    
+    /**
+     * Lists all buy event host requests that are still active.
+     * @param sender
+     */
+    private void doCmdListEventBuys(String sender) {
+        if (eventsBought.size() < 1) {
+            m_botAction.sendSmartPrivateMessage(sender, "No events currently requested.");
+            return;
+        }
+            
+        m_botAction.sendSmartPrivateMessage(sender, "Events requested:");
+        int i = 0;
+        for( PubEventBuy event : eventsBought ) {
+            m_botAction.sendSmartPrivateMessage(sender, (++i) + ")   " + event.event + " by " + event.buyer + " for $" + event.amount);
+        }
+        m_botAction.sendSmartPrivateMessage(sender, "!acceptevent eventname to host the event and claim reward.");
+    }
+    
+    /**
+     * Accepts a buy event host request.
+     * @param sender
+     */
+    private void doCmdAcceptEventBuy(String sender, String params) {
+        if (eventsBought.size() < 1) {
+            m_botAction.sendSmartPrivateMessage(sender, "No events currently requested.");
+            return;
+        }
+        
+        boolean eventFound = false;
+        
+        for( PubEventBuy event : eventsBought ) {
+            if (params.equalsIgnoreCase(event.event)) {
+                int amountEarned = event.amount / 2;
+                m_botAction.sendSmartPrivateMessage(sender, "Accepted event request for " + event.event + ". You earn $" + amountEarned + " for honoring this requested host!");
+                m_botAction.sendSmartPrivateMessage(event.buyer, sender + " has accepted your event request to host " + event.event + "! The event will begin within 15 minutes.");
+                // Hacky? Yes. But better than having yet another bot on staffchat, or sending a ?help
+                m_botAction.sendSmartPrivateMessage("RoboHelp", ">echo< " + sender + " accepted event request for " + event.event + ". Please advert within 15 minutes.");
+                
+                PubPlayer pp = playerManager.getPlayer(sender);
+                if( pp != null ) {
+                    // Player still in pub: refund directly
+                    pp.addMoney(event.amount);
+                } else {
+                    // Player has left: refund via database
+                    String query = "UPDATE tblPlayerStats SET fnMoney = (fnMoney + " + amountEarned + ") WHERE fcName = '" + Tools.addSlashesToString(sender) + "'";
+                    m_botAction.SQLBackgroundQuery("pubstats", null, query);                        
+                }
+                eventFound = true;
+            }
+        }        
+        if (!eventFound) {
+            m_botAction.sendSmartPrivateMessage(sender, "Can't find an event by name of '" + params + "'. Please check !listevents to confirm the name is correct.");
+        }
+    }
     
     /**
      * This class is used by the {@link PubMoneySystemModule#itemCommandNukeBase(String, String) NukeBase} command.
@@ -3901,8 +4035,6 @@ public class PubMoneySystemModule extends AbstractModule {
     
     /**
      * Timertask that executes the prizing of items bought through the {@link PubShop}.
-     * @author unknown
-     *
      */
     private class PrizeTask extends TimerTask {
 
@@ -3935,8 +4067,39 @@ public class PubMoneySystemModule extends AbstractModule {
     };
 
     /**
+     * TimerTask that checks event hosts purchased previously, and refunds them if they have expired.
+     */
+    private class EventBuyCheckTask extends TimerTask {
+        public void run() {
+            ArrayList<PubEventBuy> expired = new ArrayList<PubEventBuy>();
+            for (PubEventBuy event : eventsBought) {
+                if( event != null && event.hasBuyExpired() ) {
+                    if( event.buyer != null || event.amount == 0 ) {
+                        expired.add(event);
+                        continue;
+                    }
+                    PubPlayer pp = playerManager.getPlayer(event.buyer);
+                    if( pp != null ) {
+                        // Player still in pub: refund directly
+                        pp.addMoney(event.amount);
+                    } else {
+                        // Player has left: refund via database
+                        String query = "UPDATE tblPlayerStats SET fnMoney = (fnMoney + " + event.amount + ") WHERE fcName = '" + Tools.addSlashesToString(event.buyer) + "'";
+                        m_botAction.SQLBackgroundQuery("pubstats", null, query);                        
+                    }
+                    m_botAction.sendSmartPrivateMessage(event.buyer, "Event buy expired. $" + event.amount + " refunded to your account." );
+                }
+            }
+            for (PubEventBuy event : expired) {
+                eventsBought.remove(event);
+                event = null;
+            }
+        }
+    }
+    
+    
+    /**
      * This class sets up a spawned in TW-Bot to act like a base terrier.
-     * @author unknown
      * @see AutobotThread
      * @see pubautobot
      */
