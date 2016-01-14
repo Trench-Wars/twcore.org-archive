@@ -3358,7 +3358,8 @@ public class PubMoneySystemModule extends AbstractModule {
      */
     @SuppressWarnings("unused")
     private void itemCommandSTFU(String sender, String params) {
-        m_botAction.sendArenaMessage( "--[SPEC SILENCE BUY]--  Someone just purchased a big can of STFU for the spec freq. Spectators will not be allowed to speak in public for 20 minutes.", Tools.Sound.HALLELUJAH );
+        m_botAction.sendArenaMessage( "--[SPEC SILENCE BUY]--  " + sender + " just bought a big can of STFU for the spec freq. Spectators will not be allowed to speak in public chat for 3 minutes.", Tools.Sound.HALLELUJAH );
+        m_botAction.sendTeamMessage( "Can of STFU opened on you." );
         m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
         m_botAction.sendUnfilteredPublicMessage( "*lockpublic" );
         m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
@@ -3368,10 +3369,11 @@ public class PubMoneySystemModule extends AbstractModule {
                 m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
                 m_botAction.sendUnfilteredPublicMessage( "*lockpublic" );
                 m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
-                m_botAction.sendArenaMessage( "[SPEC SILENCE] has finished -- spectators may once again speak in public.", Tools.Sound.BEEP2 );
+                m_botAction.sendArenaMessage( "[SPEC SILENCE] has finished. Spectators may once again speak in public.", Tools.Sound.BEEP2 );
+                m_botAction.sendTeamMessage( "STFU can is now closed." );
             }
         };
-        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 20);
+        m_botAction.scheduleTask(reenableLevis, Tools.TimeInMillis.MINUTE * 3);
     }
 
     
