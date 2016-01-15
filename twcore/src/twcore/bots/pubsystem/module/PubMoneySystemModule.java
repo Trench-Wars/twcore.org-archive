@@ -3437,6 +3437,7 @@ public class PubMoneySystemModule extends AbstractModule {
         }
         
         PubEventBuy eventObject = new PubEventBuy(sender, event, amount);
+        eventsBought.add(eventObject);
         buyer.removeMoney(amount);
         m_botAction.sendPrivateMessage(sender, "Request sent for a host of " + event + " for $" + amount + ". NOTE: Staff are not required to respond to your request. Your money will be refunded if no host is available after " + PubEventBuy.EVENT_BUY_EXPIRE_MIN + " minutes.");
         m_botAction.sendHelpMessage("EVENT REQUEST: " + sender + " is requesting " + event + " for $" + amount + ". :tw-p:!acceptevent " + event + " to accept.");
