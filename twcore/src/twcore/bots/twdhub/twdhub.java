@@ -545,13 +545,13 @@ public class twdhub extends SubspaceBot {
 
         //put values in prepared statement
         try {
-                ps_signup.clearParameters();
-                ps_signup.setString(1, Tools.addSlashesToString(name));
-                ps_signup.setString(2, Tools.addSlashesToString(email));
-                // m_botAction.sendPublicMessage(ps_signup.toString());
-                ps_signup.execute();
-                ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
-                ba.sendPublicMessage("Debug: Signed Up " + name + " Successfully!");
+            ps_signup.clearParameters();
+            ps_signup.setString(1, Tools.addSlashesToString(name));
+            ps_signup.setString(2, Tools.addSlashesToString(email));
+            // m_botAction.sendPublicMessage(ps_signup.toString());
+            ps_signup.execute();
+            ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
+            ba.sendPublicMessage("Debug: Signed Up " + name + " Successfully!");
         } catch (SQLException e1) {
             try {
                 for (Throwable x : ps_signup.getWarnings()) {
