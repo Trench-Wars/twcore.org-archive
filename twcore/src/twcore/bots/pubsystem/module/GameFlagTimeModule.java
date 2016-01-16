@@ -768,7 +768,7 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     public void cmd_shuffleVote(String name) {
-        if (!autoVote) {
+        if (autoVote) {
             if (votePeriod) {
                 // This var is never checked; probably was going to be used at one point, but then was forgotten?
                 //shuffleVote = false;
