@@ -3362,13 +3362,11 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.sendTeamMessage( "Can of STFU opened on you." );
         m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
         m_botAction.sendUnfilteredPublicMessage( "*lockpublic" );
-        m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
                 
         final TimerTask reenableLevis = new TimerTask() {
             public void run() {
                 m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
                 m_botAction.sendUnfilteredPublicMessage( "*lockpublic" );
-                m_botAction.sendUnfilteredPublicMessage( "*lockspec" );
                 m_botAction.sendArenaMessage( "[SPEC SILENCE] has finished. Spectators may once again speak in public.", Tools.Sound.BEEP2 );
                 m_botAction.sendTeamMessage( "STFU can is now closed." );
             }
