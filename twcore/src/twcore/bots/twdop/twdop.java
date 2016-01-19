@@ -164,8 +164,8 @@ public class twdop extends SubspaceBot {
                 String player = message.substring(11);
                 try {
                     ResultSet result = m_botAction.SQLQuery(DATABASE, "SELECT fnID, fcNote, fcStaffer, fdCreated FROM tblTWDNote WHERE fcUserName = '"
-                            + Tools.addSlashesToString(player) + "'");
-                    m_botAction.sendSmartPrivateMessage(senderName, "The format of the listing notes is ID:NOTE:STAFFER:DATE.");
+                            + Tools.addSlashesToString(player) + "' ORDER BY fdCreated DESC");
+                    m_botAction.sendSmartPrivateMessage(senderName, "The format of the listing notes is ID) Note - staffer - date created.");
 
                     while (result.next()) {
                         int id = result.getInt("fnID");
