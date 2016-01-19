@@ -97,8 +97,8 @@ public class GameFlagTimeModule extends AbstractModule {
     private Point[] warpPtsRight;
     
     // Warp coords for safes (for use in strict flag time mode)
-    private Point warpSafeLeft;
-    private Point warpSafeRight;
+    Point warpSafeLeft;
+    Point warpSafeRight;
 
     private boolean warpEnabled = false;
     private boolean autoWarp = false;
@@ -570,8 +570,6 @@ public class GameFlagTimeModule extends AbstractModule {
                 cmd_terr(sender);
             else if (command.trim().equals("!lt") || command.trim().startsWith("!levter"))
                 cmd_levTerr(sender);
-            else if (command.trim().equals("!shufflevote"))
-                cmd_shuffleVote(sender);
             else if (warpCmdsAllowed && (command.trim().equals("!warp") || command.trim().equals("!w")))
                 cmd_warp(sender);
 
@@ -590,7 +588,9 @@ public class GameFlagTimeModule extends AbstractModule {
             else if (command.equals("!stricttime"))
                 cmd_strictTime(sender);
             else if (command.equals("!stoptime"))
-                cmd_stopTime(sender);            
+                cmd_stopTime(sender);
+            else if (command.trim().equals("!shufflevote"))
+                cmd_shuffleVote(sender);
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
@@ -614,7 +614,7 @@ public class GameFlagTimeModule extends AbstractModule {
     @Override
     public String[] getHelpMessage(String sender) {
     	if( warpCmdsAllowed ) {
-    		return new String[] { pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends."),
+    		return new String[] { 
                 pubsystem.getHelpLine("!warp             -- Warps you inside base at start of next round. (!w)"),
                 pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
                 pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
@@ -623,7 +623,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     		};
     	} else {
-            return new String[] { pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends."),
+            return new String[] {
                 pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
                 pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
                 pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
@@ -637,7 +637,8 @@ public class GameFlagTimeModule extends AbstractModule {
     public String[] getModHelpMessage(String sender) {
         return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
                 pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
-                pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),                
+                pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
+                pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends.")
         };
     }
 
@@ -768,19 +769,14 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     public void cmd_shuffleVote(String name) {
-        if (autoVote) {
-            if (votePeriod) {
-                // This var is never checked; probably was going to be used at one point, but then was forgotten?
-                //shuffleVote = false;
-                votePeriod = false;
-                m_botAction.cancelTask(voteWait);
-                context.getPlayerManager().checkSizesAndShuffle(name);
-            } else {
-                m_botAction.sendSmartPrivateMessage(name, "!shufflevote may only be used immediately following the end of a round.");
-                return;
-            }
+        if (votePeriod) {
+            // This var is never checked; probably was going to be used at one point, but then was forgotten?
+            //shuffleVote = false;
+            votePeriod = false;
+            m_botAction.cancelTask(voteWait);
+            context.getPlayerManager().checkSizesAndShuffle(name);
         } else {
-            m_botAction.sendSmartPrivateMessage(name, "Command disabled, shuffle vote is being handled automatically.");
+            m_botAction.sendSmartPrivateMessage(name, "!shufflevote may only be used immediately following the end of a round.");
             return;
         }
     }
