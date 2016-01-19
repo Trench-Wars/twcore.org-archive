@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -402,6 +403,79 @@ public class PubUtilModule extends AbstractModule {
 
         m_botAction.sendSmartPrivateMessage(sender, p2.getPlayerName() + " last seen: " + getPlayerLocation(p2.getXTileLocation(), p2.getYTileLocation()));
     }
+    
+    /**
+     * Clears mines of a bad shark (someone who is blocking FR with mines when there is no other shark and few players total).
+     * 
+     * @param sender Person issuing the command.
+     * @param target Name of the bad shark in question
+     */
+    public void doBadSharkCmd(String sender, String target) {
+        Player p = m_botAction.getFuzzyPlayer(target);
+        if( p == null ) {
+            m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
+            return;
+        }
+        
+        if( p.getShipType() != Tools.Ship.SHARK) {
+            m_botAction.sendSmartPrivateMessage(sender, "That's no shark.");
+            return;
+        }
+        m_botAction.spectatePlayerImmediately(p.getPlayerID());
+        
+        Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+        if( i == null)
+            return;
+
+        int opposingTotal = 0;
+        int totalPlayers = 0;
+
+        Player dummy;
+        while( i.hasNext() ) {
+            dummy = (Player)i.next();
+            if( dummy != null) {
+                if( dummy.getShipType() == Tools.Ship.SHARK ) {
+                    if( dummy.getFrequency() != p.getFrequency() ) {
+                        opposingTotal++;
+                    }
+                }
+                totalPlayers++;
+            }
+        }
+
+        if( totalPlayers > 12 ) {
+            m_botAction.sendSmartPrivateMessage(sender, "This command isn't meant to be used with larger populations.");
+            return;
+        }
+        if( opposingTotal > 0 ) {
+            m_botAction.sendSmartPrivateMessage(sender, "There's " + opposingTotal + " Shark(s) playing against this player who should be able to handle the mines.");
+            return;
+        }
+
+        m_botAction.sendSmartPrivateMessage(sender, "Clearing " + p.getPlayerName() + "'s mines. BAD SHARK!" );
+        m_botAction.sendPrivateMessage(p.getPlayerID(), "SPORTSMANSHIP REMINDER: Mining the entrance to the flag room when there is no other Shark (ship 8) and there are few players is considered to be VERY CHEAP! Please do not place entrance-blocking mines until another Shark is playing." );
+        
+        m_botAction.warpTo(p.getPlayerID(), context.getGameFlagTime().warpSafeLeft);
+        TimerTask badShark = new BadSharkTask(p.getPlayerID(), p.getXTileLocation(), p.getYTileLocation());
+        m_botAction.scheduleTask(badShark, 1000);
+    }
+    
+    class BadSharkTask extends TimerTask {
+        private int pid;
+        private int x;
+        private int y;
+
+        public BadSharkTask( int pid, int x, int y) {
+            this.pid = pid;
+            this.x = x;
+            this.y = y;
+        }
+        
+        public void run() {
+            m_botAction.warpTo(pid, x, y);            
+        }
+    }
+
 
     public String getLocationName(Location location) {
 
@@ -515,8 +589,9 @@ public class PubUtilModule extends AbstractModule {
             context.getPlayerManager().doSetCmd(sender, command.substring(5));
         } else if (command.equals("!die") && dev) {
             doDieCmd(sender);
+        } else if (command.startsWith("!badshark ")) {
+            doBadSharkCmd(sender, command.substring(10));
         }
-
     }
 
     public boolean isPrivateFrequencyEnabled() {
@@ -540,6 +615,7 @@ public class PubUtilModule extends AbstractModule {
             String[] string = {
                 pubsystem.getHelpLine("!privfreqs        -- Toggles private frequencies & check for imbalances."),
                 pubsystem.getHelpLine("!levattach        -- Toggles lev attach capability on public frequencies."),
+                pubsystem.getHelpLine("!badshark         -- Clear's a shark's mines if they're the only shark + few ppl"),
                 pubsystem.getHelpLine("!set <ship> <#>   -- Sets <ship> to max 1/<#> freq (!set 4 5=20% levi); 0=off"),
                 pubsystem.getHelpLine("!go <arena>       -- Moves the bot to <arena>."),
                 pubsystem.getHelpLine("!reloadconfig     -- Reload the configuration (needed if .cfg has changed)."),
