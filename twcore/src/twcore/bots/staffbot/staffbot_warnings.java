@@ -215,6 +215,7 @@ public class staffbot_warnings extends Module {
     }
 
     public void queryRecentNotes(String name, String message) {
+        /*
         int limit;
         try {
             limit = Integer.parseInt(message);
@@ -222,6 +223,7 @@ public class staffbot_warnings extends Module {
             m_botAction.sendSmartPrivateMessage(name, "Incorrect usage. Example: !recentnotes <number of notes to display>");
             return;
         }
+        */
 
         String query = "SELECT * FROM tblWarningsNotes ORDER BY fdCreated DESC LIMIT " + Tools.addSlashes(message);
 

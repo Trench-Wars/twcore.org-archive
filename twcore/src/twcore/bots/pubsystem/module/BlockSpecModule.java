@@ -5,7 +5,6 @@ import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
 import twcore.core.events.FrequencyChange;
-import twcore.core.events.FrequencyShipChange;
 import twcore.core.game.Player;
 import twcore.core.util.Tools;
 

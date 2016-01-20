@@ -993,6 +993,7 @@ public class twdopalias extends Module {
         m_botAction.cancelTask(clearRecordTask);
     }
 
+    @SuppressWarnings("unused")
     private void recordInfo(String playerName, String playerIP, String playerMacID) {
         DBPlayerData playerData = new DBPlayerData(m_botAction, DATABASE, playerName, true);
         int userID = playerData.getUserID();

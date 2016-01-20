@@ -3355,8 +3355,9 @@ public class teamduel extends SubspaceBot {
                         enabled = false;
                     else
                         enabled = true;
-                } else
-                    return null;
+                }
+                //else
+                //    return null;
                 Integer tid = info.getInt("p.fnUserID");
                 if (tid != null && tid > 0)
                     id = tid;
@@ -3493,8 +3494,9 @@ public class teamduel extends SubspaceBot {
                         enabled = false;
                     else
                         enabled = true;
-                } else
-                    return null;
+                }
+                //else
+                //    return null;
                 Integer tid = info.getInt("p.fnUserID");
                 if (tid != null && userID == tid);
                 else
