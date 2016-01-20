@@ -3442,6 +3442,35 @@ public class PubMoneySystemModule extends AbstractModule {
     }
     
     /**
+     * Executes the special shop item ShoutOut.
+     * <p>
+     * Gives a shoutout in pub to the specified player
+     * <p>
+     * Do not remove this function despite the unused warning. This method can be called upon through an invoke, 
+     * which is not detected by Eclipse.
+     * @param sender Person buying the shoutout
+     * @param params Player they wish to give a shoutout to
+     */
+    @SuppressWarnings("unused")
+    private void itemCommandShoutout(String sender, String params) {
+        Player p = m_botAction.getFuzzyPlayer(params);
+        if( p == null ) {
+            m_botAction.sendPrivateMessage(sender, "Can't find a player in this arena that matches that name.");
+            PubPlayer buyer = playerManager.getPlayer(sender);
+            PubItem item = store.getItem("shoutout");
+            if( item != null ) {
+                buyer.addMoney(item.getPrice());
+            } else {
+                buyer.addMoney(10000);  // Unfortunately must use a magic # if we fail to get price
+            }
+            return;
+        }
+        m_botAction.sendPrivateMessage(sender, "Giving a shoutout to " + p.getPlayerName() + "!");
+        m_botAction.sendArenaMessage("\\o/   " + sender + " gives a shoutout to " + p.getPlayerName() + "!   \\o/", Tools.Sound.PLAY_MUSIC_ONCE);
+        //      \o/   Bob Dole gives a shoutout to Barbara Walters!   \o/
+    }
+    
+    /**
      * Lists all buy event host requests that are still active.
      * @param sender
      */
