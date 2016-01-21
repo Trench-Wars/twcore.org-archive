@@ -173,7 +173,8 @@ public class twdop extends SubspaceBot {
                         String staffer = result.getString("fcStaffer");
                         String created = result.getString("fdCreated").substring(0, 11);
 
-                        m_botAction.sendSmartPrivateMessage(senderName, " " + id + ") " + note + " - " + staffer + " - " + created);
+                        m_botAction.sendSmartPrivateMessage(senderName, id + ") " + note + " - " + staffer + " - " + created);
+
                     }
 
                     m_botAction.SQLClose(result);
