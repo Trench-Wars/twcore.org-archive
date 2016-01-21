@@ -16,5 +16,5 @@ public class pubhubnewbie extends PubBotModule {
     @Override
     public void requestEvents(EventRequester eventRequester) {
     }
-    
+
 }

@@ -6,22 +6,22 @@ import twcore.core.EventRequester;
 public class pubhubmessage extends PubBotModule {
 
     /**
-     * This method initializes the pubhubtk module.  It is called after
-     * m_botAction has been initialized.
-     */
+        This method initializes the pubhubtk module.  It is called after
+        m_botAction has been initialized.
+    */
     public void initializeModule() {
     }
 
 
     /**
-     * Requests the events.  No events.
-     */
+        Requests the events.  No events.
+    */
     public void requestEvents(EventRequester eventRequester) {
     }
 
     /**
-     * Unimplemented.
-     */
+        Unimplemented.
+    */
     public void cancel() {
     }
 }

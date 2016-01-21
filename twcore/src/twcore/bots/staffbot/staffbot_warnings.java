@@ -28,37 +28,38 @@ public class staffbot_warnings extends Module {
     // private final static int CHECK_LOG_DELAY = 30000; // Delay when *log is checked for *warnings UNNEEDED FOR RIGHT NOW
 
     private TimerTask getLog;
-    private Vector<String> lastWarnings = new Vector<String>(20);	// Holds track of last 20 warnings
+    private Vector<String> lastWarnings = new Vector<String>(20);   // Holds track of last 20 warnings
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     // Helps (strange to redefine each time someone types !help)
-    final String[] helpER = { 
-            "--------------------[ Warnings: ER+ ]----------------------", 
-            " !warnings <player>        - Checks valid red warnings on specified player",
-            " ! <player>                - (shortcut for above)", 
-            " !allwarnings <player>     - Shows all warnings on player, including expired",
-            " !fuzzyname <player>       - Checks for names similar to <player> in database",
-            " !addnote <player>:<note>  - Adds a note on the specified player",
-            " !listnotes <player>       - Lists all notes for the specified player" 
-        };
+    final String[] helpER = {
+        "--------------------[ Warnings: ER+ ]----------------------",
+        " !warnings <player>        - Checks valid red warnings on specified player",
+        " ! <player>                - (shortcut for above)",
+        " !allwarnings <player>     - Shows all warnings on player, including expired",
+        " !fuzzyname <player>       - Checks for names similar to <player> in database",
+        " !addnote <player>:<note>  - Adds a note on the specified player",
+        " !listnotes <player>       - Lists all notes for the specified player"
+    };
 
-    final String[] helpMod = { 
-            "--------------------[ Warnings: Mod+ ]---------------------", 
-            " !deletelast <player>      - Deletes last warning given to a player." 
-        };
+    final String[] helpMod = {
+        "--------------------[ Warnings: Mod+ ]---------------------",
+        " !deletelast <player>      - Deletes last warning given to a player."
+    };
 
-    final String[] helpSmod = { 
-            "--------------------[ Warnings: SMod+ ]--------------------", 
-            " !warningsfrom <player>    - Displays a list of recent warns given to a player.",
-            " !manual player:warning    - Adds a manual database warning to player. Use with caution!",
-            " !delnote <id>             - Removes note of id specified in listnotes",
-            " !recentnotes <#>          - Displays # most recent notes (default 10)",
-            " !notesby <staff>          - Displays notes created by staffer" 
-        };
+    final String[] helpSmod = {
+        "--------------------[ Warnings: SMod+ ]--------------------",
+        " !warningsfrom <player>    - Displays a list of recent warns given to a player.",
+        " !manual player:warning    - Adds a manual database warning to player. Use with caution!",
+        " !delnote <id>             - Removes note of id specified in listnotes",
+        " !recentnotes <#>          - Displays # most recent notes (default 10)",
+        " !notesby <staff>          - Displays notes created by staffer"
+    };
 
     private void addManualWarning(String name, String message) {
         StringTokenizer argTokens = new StringTokenizer(message, ":");
+
         if (argTokens.countTokens() == 2) {
             String player = argTokens.nextToken();
             String warning = argTokens.nextToken();
@@ -84,34 +85,40 @@ public class staffbot_warnings extends Module {
     }
 
     /**
-     * Deletes a player's last warning by overwriting its text with relevant data.
-     * 
-     * @param name
-     *            Staffer requesting
-     * @param message
-     *            Name of player whose l
-     * @param showExpired
-     */
+        Deletes a player's last warning by overwriting its text with relevant data.
+
+        @param name
+                  Staffer requesting
+        @param message
+                  Name of player whose l
+        @param showExpired
+    */
     public void deleteLastWarning(String name, String message) {
         String query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY timeofwarning DESC";
+
         try {
             ResultSet set = m_botAction.SQLQuery(sqlHost, query);
+
             if (set.next()) {
                 String warner = set.getString("staffmember");
+
                 if (!name.toLowerCase().equals(warner)) {
                     if (!opList.isSmod(name)) {
                         m_botAction.sendRemotePrivateMessage(name, "You must be SMod+ to delete warnings that you didn't issue yourself.");
                     }
                 }
+
                 String warningText = set.getString("warning");
                 java.sql.Date date = new java.sql.Date(System.currentTimeMillis());
                 m_botAction.SQLQueryAndClose(sqlHost, "UPDATE tblWarnings SET warning='DEL: (Warning deleted by " + name + " on " + new SimpleDateFormat("dd MMM yyyy kk:mm:ss").format(date)
-                        + ")' WHERE warning='" + Tools.addSlashesToString(warningText) + "'");
+                                             + ")' WHERE warning='" + Tools.addSlashesToString(warningText) + "'");
                 String[] text;
+
                 if (warningText.contains("Ext: "))
                     text = warningText.split("Ext: ", 2);
                 else
                     text = warningText.split(": ", 2);
+
                 if (text.length == 2)
                     m_botAction.sendRemotePrivateMessage(name, "Warning deleted: " + text[1]);
                 else
@@ -119,6 +126,7 @@ public class staffbot_warnings extends Module {
             } else {
                 m_botAction.sendRemotePrivateMessage(name, "No warnings found for '" + message + "'.  Use the exact name.");
             }
+
             m_botAction.SQLClose(set);
         } catch (SQLException e) {
             Tools.printStackTrace(e);
@@ -127,13 +135,13 @@ public class staffbot_warnings extends Module {
     }
 
     /**
-     * Based on a given name fragment, find other players that start with the fragment.
-     * 
-     * @param name
-     *            Staffer running cmd
-     * @param message
-     *            Name fragment
-     */
+        Based on a given name fragment, find other players that start with the fragment.
+
+        @param name
+                  Staffer running cmd
+        @param message
+                  Name fragment
+    */
     public void getFuzzyNames(String name, String message) {
         ArrayList<String> fuzzynames;
 
@@ -142,6 +150,7 @@ public class staffbot_warnings extends Module {
         if (fuzzynames.size() > 0) {
             m_botAction.sendRemotePrivateMessage(name, "Names in database starting with '" + message + "':");
             m_botAction.remotePrivateMessageSpam(name, fuzzynames.toArray(new String[fuzzynames.size()]));
+
             if (fuzzynames.size() == MAX_NAME_SUGGESTIONS)
                 m_botAction.sendRemotePrivateMessage(name, "Results limited to " + MAX_NAME_SUGGESTIONS + ", refine your search further if you have not found the desired result.");
         } else {
@@ -156,9 +165,11 @@ public class staffbot_warnings extends Module {
 
         try {
             ResultSet set = m_botAction.SQLQuery(sqlHost, query);
+
             while (set.next()) {
                 fuzzynames.add(" " + set.getString("name"));
             }
+
             m_botAction.SQLClose(set);
         } catch (SQLException sqle) {
             Tools.printLog("SQLException encountered in Staffbot.getFuzzyNamesDB(): " + sqle.getMessage());
@@ -169,14 +180,16 @@ public class staffbot_warnings extends Module {
 
     public void queryAddNote(String name, String message) {
         String[] msg = message.split(":");
-        if(msg.length != 2){
+
+        if(msg.length != 2) {
             m_botAction.sendSmartPrivateMessage( name, "Incorrect usage. Example: !addnote player:note");
             return;
         }
+
         String query = "INSERT INTO tblWarningsNotes (fcUserName,fcNote,fcStaffer) VALUES ('" +
-            Tools.addSlashesToString(msg[0].toLowerCase()) + "','" +
-            Tools.addSlashesToString(msg[1]) + "','" +
-            Tools.addSlashesToString(name.toLowerCase()) + "')";
+                       Tools.addSlashesToString(msg[0].toLowerCase()) + "','" +
+                       Tools.addSlashesToString(msg[1]) + "','" +
+                       Tools.addSlashesToString(name.toLowerCase()) + "')";
         m_botAction.sendSmartPrivateMessage(name, "Adding note for user: " + msg[0]);
         m_botAction.sendChatMessage(4, "Staffer " + name + " has created a new note for user: " + msg[0]);
         m_botAction.SQLBackgroundQuery(sqlHost, null, query);
@@ -184,12 +197,14 @@ public class staffbot_warnings extends Module {
 
     public void queryDeleteNote(String name, String message) {
         int id;
+
         try {
             id = Integer.parseInt(message);
         } catch (NumberFormatException e) {
             m_botAction.sendSmartPrivateMessage(name, "Incorrect usage. Example: !delnote <id of note>");
             return;
         }
+
         String query = "DELETE FROM tblWarningsNotes WHERE fnID = '" + Tools.addSlashesToString(message) + "'";
         m_botAction.sendSmartPrivateMessage(name, "Removing note " + message + ".");
         m_botAction.sendChatMessage(4, "Note ID " + id + " has been removed.");
@@ -202,12 +217,14 @@ public class staffbot_warnings extends Module {
         try {
             ResultSet set = m_botAction.SQLQuery(sqlHost, query);
             m_botAction.sendSmartPrivateMessage(name, "===== Listing notes for " + message + " =====");
+
             while (set.next()) {
                 m_botAction.sendSmartPrivateMessage(name, set.getString("fnId")      + ": " +
-                                                          set.getString("fcNote")    + " -" +
-                                                          set.getString("fcStaffer") + " (" +
-                                                          set.getString("fdCreated") + ")");
+                                                    set.getString("fcNote")    + " -" +
+                                                    set.getString("fcStaffer") + " (" +
+                                                    set.getString("fdCreated") + ")");
             }
+
             m_botAction.SQLClose(set);
         } catch (SQLException sqle) {
             Tools.printLog("SQLException encountered in Staffbot.queryListNotes(): " + sqle.getMessage());
@@ -216,13 +233,13 @@ public class staffbot_warnings extends Module {
 
     public void queryRecentNotes(String name, String message) {
         /*
-        int limit;
-        try {
+            int limit;
+            try {
             limit = Integer.parseInt(message);
-        } catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
             m_botAction.sendSmartPrivateMessage(name, "Incorrect usage. Example: !recentnotes <number of notes to display>");
             return;
-        }
+            }
         */
 
         String query = "SELECT * FROM tblWarningsNotes ORDER BY fdCreated DESC LIMIT " + Tools.addSlashes(message);
@@ -230,13 +247,15 @@ public class staffbot_warnings extends Module {
         try {
             ResultSet set = m_botAction.SQLQuery(sqlHost, query);
             m_botAction.sendSmartPrivateMessage(name, "===== Listing " + message + " most recent notes =====");
+
             while (set.next()) {
                 m_botAction.sendSmartPrivateMessage(name, set.getString("fcUserName") + "> " +
-                                                          set.getString("fnId")       + ": " +
-                                                          set.getString("fcNote")     + " -" +
-                                                          set.getString("fcStaffer")  + " (" +
-                                                          set.getString("fdCreated")  + ")");
+                                                    set.getString("fnId")       + ": " +
+                                                    set.getString("fcNote")     + " -" +
+                                                    set.getString("fcStaffer")  + " (" +
+                                                    set.getString("fdCreated")  + ")");
             }
+
             m_botAction.SQLClose(set);
         } catch (SQLException sqle) {
             Tools.printLog("SQLException encountered in Staffbot.queryRecentNotes(): " + sqle.getMessage());
@@ -249,13 +268,15 @@ public class staffbot_warnings extends Module {
         try {
             ResultSet set = m_botAction.SQLQuery(sqlHost, query);
             m_botAction.sendSmartPrivateMessage(name, "===== Listing " + message + "'s notes =====");
+
             while (set.next()) {
                 m_botAction.sendSmartPrivateMessage(name, set.getString("fcUserName") + "> " +
-                                                          set.getString("fnId")       + ": " +
-                                                          set.getString("fcNote")     + " -" +
-                                                          set.getString("fcStaffer")  + " (" +
-                                                          set.getString("fdCreated")  + ")");
+                                                    set.getString("fnId")       + ": " +
+                                                    set.getString("fcNote")     + " -" +
+                                                    set.getString("fcStaffer")  + " (" +
+                                                    set.getString("fdCreated")  + ")");
             }
+
             m_botAction.SQLClose(set);
         } catch (SQLException sqle) {
             Tools.printLog("SQLException encountered in Staffbot.queryNotesBy(): " + sqle.getMessage());
@@ -285,10 +306,12 @@ public class staffbot_warnings extends Module {
                 temp = message.substring(message.indexOf("Ext: ") + 5);
                 staffMember = temp.substring(0, temp.indexOf(" (")).trim();
                 warning = message.substring(message.toLowerCase().indexOf(" *warn ") + 7);
+
                 if (warning.length() > 50) {
                     warning = warning.substring(0, 49).trim();
                     warning += "...";
                 }
+
                 time = message.substring(message.lastIndexOf(" ", message.indexOf(":  Ext:")) + 1, message.indexOf(":  Ext:"));
 
                 if (!m_opList.isBot(staffMember))
@@ -314,16 +337,19 @@ public class staffbot_warnings extends Module {
 
         // Ignore messages that aren't private or from chat
         if (event.getMessageType() != Message.PRIVATE_MESSAGE &&
-            event.getMessageType() != Message.REMOTE_PRIVATE_MESSAGE &&
-            event.getMessageType() != Message.CHAT_MESSAGE)
+                event.getMessageType() != Message.REMOTE_PRIVATE_MESSAGE &&
+                event.getMessageType() != Message.CHAT_MESSAGE)
             return;
+
         // Ignore chat messages that aren't from the EL/banmods chat
         if (event.getMessageType() == Message.CHAT_MESSAGE &&
-            event.getChatNumber() != 4)
+                event.getChatNumber() != 4)
             return;
+
         // Ignore non-commands
         if (!message.startsWith("!"))
             return;
+
         // Ignore player's commands
         if (!m_opList.isBot(name))
             return;
@@ -332,9 +358,11 @@ public class staffbot_warnings extends Module {
             if (m_opList.isER(name)) {
                 m_botAction.smartPrivateMessageSpam(name, helpER);
             }
+
             if (m_opList.isModerator(name)) {
                 m_botAction.smartPrivateMessageSpam(name, helpMod);
             }
+
             if (m_opList.isSmod(name)) {
                 m_botAction.smartPrivateMessageSpam(name, helpSmod);
             }
@@ -366,12 +394,16 @@ public class staffbot_warnings extends Module {
         if (m_opList.isSmod(name)) {
             if (message.toLowerCase().startsWith("!warningsfrom "))
                 queryWarningsFrom(name, message.substring(14));
+
             if (message.toLowerCase().startsWith("!manual "))
                 addManualWarning(name, message.substring(8).trim());
+
             if (message.toLowerCase().startsWith("!delnote "))
                 queryDeleteNote(name, message.substring(9));
+
             if (message.toLowerCase().startsWith("!recentnotes "))
                 queryRecentNotes(name, message.substring(13));
+
             if (message.toLowerCase().startsWith("!notesby "))
                 queryNotesBy(name, message.substring(9));
         }
@@ -384,27 +416,27 @@ public class staffbot_warnings extends Module {
         // removed and added to staffbot
         // TimerTask to check the logs for *warnings
         /*
-        getLog = new TimerTask() {
+            getLog = new TimerTask() {
             public void run() {
                 m_botAction.sendUnfilteredPublicMessage( "*log" );
             }
-        };
+            };
 
-        m_botAction.scheduleTaskAtFixedRate( getLog, 0, CHECK_LOG_DELAY );
+            m_botAction.scheduleTaskAtFixedRate( getLog, 0, CHECK_LOG_DELAY );
         */
 
     }
 
     /**
-     * Queries the database for stored warnings on a player.
-     * 
-     * @param name
-     *            Staffer requesting
-     * @param message
-     *            Player to query
-     * @param showExpired
-     *            Whether or not to display expired warnings
-     */
+        Queries the database for stored warnings on a player.
+
+        @param name
+                  Staffer requesting
+        @param message
+                  Player to query
+        @param showExpired
+                  Whether or not to display expired warnings
+    */
     public void queryWarnings(String name, String message, boolean showExpired) {
         String query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY timeofwarning ASC";
         ArrayList<String> warnings = new ArrayList<String>();
@@ -430,14 +462,17 @@ public class staffbot_warnings extends Module {
                 java.sql.Date pre = new java.sql.Date(f.parse("15-11-2012").getTime());
                 java.sql.Date expireDate = new java.sql.Date(System.currentTimeMillis() - WARNING_EXPIRE_TIME);
                 boolean expired = date.before(expireDate) || date.before(pre);
+
                 if (expired)
                     numExpired++;
+
                 if (!expired || showExpired) {
                     String strDate = new SimpleDateFormat("dd MMM yyyy").format(date);
 
                     String[] text;
                     String tempWarn = "";
                     String tempWarn2 = "";
+
                     if (warning.contains("Ext: "))
                         text = warning.split("Ext: ", 2);
                     else
@@ -445,6 +480,7 @@ public class staffbot_warnings extends Module {
 
                     if (text.length == 2) {
                         tempWarn = strDate + "  " + text[1];
+
                         if (tempWarn.length() > 190) {
                             tempWarn2 = tempWarn.substring(190);
                             tempWarn = tempWarn.substring(0, 190);
@@ -455,6 +491,7 @@ public class staffbot_warnings extends Module {
                             warnings.add(tempWarn);
                     }
                 }
+
                 numTotal++;
             }
 
@@ -471,7 +508,7 @@ public class staffbot_warnings extends Module {
                         m_botAction.sendRemotePrivateMessage(name, "Warnings in database for " + message + ":");
                         m_botAction.remotePrivateMessageSpam(name, warnings.toArray(new String[warnings.size()]));
                         m_botAction.sendRemotePrivateMessage(name, "Displayed " + (warnings.size() - splitCount) + " valid warnings (suppressed " + numExpired + " expired)."
-                                + (numExpired > 0 ? " PM !allwarnings to display all." : ""));
+                                                             + (numExpired > 0 ? " PM !allwarnings to display all." : ""));
                     } else {
                         m_botAction.sendRemotePrivateMessage(name, "No active warnings for " + message + ".");
                         m_botAction.sendRemotePrivateMessage(name, "There are " + numExpired + " expired warnings. PM !allwarnings to display these.");
@@ -482,6 +519,7 @@ public class staffbot_warnings extends Module {
                 m_botAction.sendRemotePrivateMessage(name, "No warnings found for '" + message + "'.");
 
                 ArrayList<String> fuzzynames = getFuzzyNamesDB(message);
+
                 if (fuzzynames.size() > 0) {
                     m_botAction.sendRemotePrivateMessage(name, "_");
                     m_botAction.sendRemotePrivateMessage(name, "Maybe you were searching for the warnings of one of the following players?");
@@ -503,13 +541,16 @@ public class staffbot_warnings extends Module {
             ResultSet set = m_botAction.SQLQuery(sqlHost, query);
 
             m_botAction.sendRemotePrivateMessage(name, "Last (max 50) warnings in database given by " + message + ":");
+
             while (set.next()) {
                 String warning = set.getString("warning");
                 String strDate = new SimpleDateFormat("dd MMM yyyy").format(sdf.parse(set.getString("timeofwarning")));
                 String[] text = warning.split(": ", 3);
+
                 if (text.length == 3)
                     m_botAction.sendRemotePrivateMessage(name, strDate + "  - " + text[2]);
             }
+
             m_botAction.sendRemotePrivateMessage(name, "End of list.");
             m_botAction.SQLClose(set);
         } catch (SQLException e) {

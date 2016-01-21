@@ -12,7 +12,7 @@ public class Duel {
     // Team IDs for the duel
     private int m_challengerTeam;
     private int m_challengedTeam;
-    
+
     // Team Freqs for the duel
     private int m_challengerFreq;
     private int m_challengedFreq;
@@ -42,14 +42,14 @@ public class Duel {
     private boolean m_settingUp;
 
     /**
-     * Basic constructor for duel which holds information over a duel between
-     * two players.
-     * 
-     * @param _duelBox
-     *            A DuelBox object for the box the duel is being held in
-     * @param _challenge
-     *            A DuelChallenge object for the players
-     */
+        Basic constructor for duel which holds information over a duel between
+        two players.
+
+        @param _duelBox
+                  A DuelBox object for the box the duel is being held in
+        @param _challenge
+                  A DuelChallenge object for the players
+    */
     public Duel(DuelBox duelBox, DuelChallenge challenge) {
 
         // Set the duelbox to be in use
@@ -70,7 +70,7 @@ public class Duel {
         m_noCount = challenge.getNoCount();
         m_challengerFreq = getBoxFreq();
         m_challengedFreq = getBoxFreq() + 1;
-        
+
         m_settingUp = true;
 
         // Create stat tracking objects
@@ -79,7 +79,7 @@ public class Duel {
         m_challengedStats[0] = new DuelPlayerStats(m_challenged[0], m_challengedTeam, m_division, m_challengedFreq, getSafeB1(), getB1());
         m_challengedStats[1] = new DuelPlayerStats(m_challenged[1], m_challengedTeam, m_division, m_challengedFreq, getSafeB2(), getB2());
 
-        // Save Ships 
+        // Save Ships
         if (m_division == 4 || m_division == 7) {
             m_challengerStats[0].setShip(7);
             m_challengerStats[1].setShip(7);
@@ -90,7 +90,7 @@ public class Duel {
             m_challengerStats[1].setShip(2);
             m_challengedStats[0].setShip(2);
             m_challengedStats[1].setShip(2);
-        }else if (m_division == 3) {
+        } else if (m_division == 3) {
             m_challengerStats[0].setShip(3);
             m_challengerStats[1].setShip(3);
             m_challengedStats[0].setShip(3);
@@ -101,27 +101,27 @@ public class Duel {
             m_challengedStats[0].setShip(1);
             m_challengedStats[1].setShip(1);
         }
-        
+
         m_locked = true;
     }
-    
+
     public boolean isSettingUp() {
         return m_settingUp;
     }
-    
+
     public void settingUpOn() {
         m_settingUp = true;
     }
-    
+
     public void settingUpOff() {
         m_settingUp = false;
     }
 
     /**
-     * Returns the current name of the league being played
-     * 
-     * @return A String representation of the league being played.
-     */
+        Returns the current name of the league being played
+
+        @return A String representation of the league being played.
+    */
     public String getDivision() {
 
         if (m_division == 1)
@@ -141,10 +141,10 @@ public class Duel {
     }
 
     /**
-     * Returns an integer value representing the league being played
-     * 
-     * @return An int representation of the league being played.
-     */
+        Returns an integer value representing the league being played
+
+        @return An int representation of the league being played.
+    */
     public int getDivisionID() {
         return m_division;
     }
@@ -159,19 +159,19 @@ public class Duel {
     public boolean hasStarted() {
         return m_gameStarted;
     }
-    
+
     public boolean getNoCount() {
         return m_noCount;
     }
-    
+
     public boolean isLocked() {
         return m_locked;
     }
-    
+
     public void setLockOn() {
         m_locked = true;
     }
-    
+
     public void setLockOff() {
         m_locked = false;
     }
@@ -179,7 +179,7 @@ public class Duel {
     public void endTime() {
         m_time = (int) (System.currentTimeMillis() / 1000) - m_startTime;
     }
-    
+
     public int getTime() {
         return m_time;
     }
@@ -198,31 +198,32 @@ public class Duel {
         else
             return m_challenger;
     }
-    
+
     public String toString() {
         String duel = "|";
         int box = getBoxNumber();
+
         if (box / 10 > 0) {
-                 // | Box | Division | Teams
+            // | Box | Division | Teams
             duel += "  " + box + " |";
         } else
             duel += " " + box + "   |";
 
-        if (m_division== 1 || m_division== 2) 
+        if (m_division == 1 || m_division == 2)
             duel += " " + getDivision() + "  | ";
-        else if (m_division== 3)
+        else if (m_division == 3)
             duel += "  " + getDivision() + "  | ";
-        else if (m_division== 4 || m_division== 7)
+        else if (m_division == 4 || m_division == 7)
             duel += " " + getDivision() + "| ";
-        else if (m_division== 5)
+        else if (m_division == 5)
             duel += "  " + getDivision() + "   | ";
-        
+
         duel += m_challenger[0] + " and " + m_challenger[1] + " vs " + m_challenged[0] + " and " + m_challenged[1];
-        
+
         while (duel.length() < 82) {
             duel += " ";
         }
-        
+
         return duel + "|";
     }
 
@@ -272,11 +273,11 @@ public class Duel {
     public DuelPlayerStats[] getChallengedStats() {
         return m_challengedStats;
     }
-    
+
     public int getChallengerFreq() {
         return m_challengerFreq;
     }
-    
+
     public int getChallengedFreq() {
         return m_challengedFreq;
     }
@@ -304,9 +305,9 @@ public class Duel {
     public int getBoxNumber() {
         return m_duelBox.getBoxNumber();
     }
-    
+
     public int getTeamID(String name) {
-        if (name.equalsIgnoreCase(m_challenger[0]) || name.equalsIgnoreCase(m_challenger[1])) 
+        if (name.equalsIgnoreCase(m_challenger[0]) || name.equalsIgnoreCase(m_challenger[1]))
             return m_challengerTeam;
         else
             return m_challengedTeam;
@@ -324,6 +325,7 @@ public class Duel {
     public boolean toggleScoreboard(String name) {
         if (name.equalsIgnoreCase(m_challenger[0]))
             return m_scoreChallenger[0] = !m_scoreChallenger[0];
+
         if (name.equalsIgnoreCase(m_challenger[1]))
             return m_scoreChallenger[1] = !m_scoreChallenger[1];
         else if (name.equalsIgnoreCase(m_challenged[0]))
@@ -372,7 +374,7 @@ public class Duel {
     public int[] getChallengedShip() {
         return new int[] {m_challengedStats[0].getShip(), m_challengedStats[1].getShip()};
     }
-    
+
     public void updateShips(int[] challenger, int[] challenged) {
         m_challengerStats[0].setShip(challenger[0]);
         m_challengerStats[1].setShip(challenger[1]);
@@ -395,19 +397,19 @@ public class Duel {
     public String[] getChallenged() {
         return m_challenged;
     }
-    
+
     public int[] getA1() {
         return new int[] { m_duelBox.getAXOne(), m_duelBox.getAYOne() };
     }
-    
+
     public int[] getA2() {
         return new int[] { m_duelBox.getAXTwo(), m_duelBox.getAYTwo() };
     }
-    
+
     public int[] getB1() {
         return new int[] { m_duelBox.getBXOne(), m_duelBox.getBYOne() };
     }
-    
+
     public int[] getB2() {
         return new int[] { m_duelBox.getBXTwo(), m_duelBox.getBYTwo() };
     }
@@ -427,7 +429,7 @@ public class Duel {
     public int[] getSafeB2() {
         return new int[] { m_duelBox.getSafeBXTwo(), m_duelBox.getSafeBYTwo() };
     }
-    
+
     public int getAXOne() {
         return m_duelBox.getAXOne();
     }
@@ -491,19 +493,19 @@ public class Duel {
     public int getSafeBYTwo() {
         return m_duelBox.getSafeBYTwo();
     }
-    
+
     public int getAreaMinX() {
         return m_duelBox.getAreaMinX();
     }
-    
+
     public int getAreaMinY() {
         return m_duelBox.getAreaMinY();
     }
-    
+
     public int getAreaMaxX() {
         return m_duelBox.getAreaMaxX();
     }
-    
+
     public int getAreaMaxY() {
         return m_duelBox.getAreaMaxY();
     }
@@ -511,14 +513,14 @@ public class Duel {
     public int toWin() {
         return m_toWin;
     }
-    
+
     public int[] getCoords(String name) {
         if (name.equalsIgnoreCase(m_challenger[0]) || name.equalsIgnoreCase(m_challenger[1]))
             return new int[] { getAXOne(), getAYOne(), getAXTwo(), getAYTwo() };
         else
             return new int[] { getBXOne(), getBYOne(), getBXTwo(), getBYTwo() };
     }
-    
+
     public int[] getSafeCoords(String name) {
         if (name.equalsIgnoreCase(m_challenger[0]) || name.equalsIgnoreCase(m_challenger[1]))
             return new int[] { getSafeAXOne(), getSafeAYOne(), getSafeAXTwo(), getSafeAYTwo() };
@@ -533,7 +535,7 @@ public class Duel {
     public void toggleDuelBox() {
         m_duelBox.toggleUse();
     }
-    
+
     public int getBoxType() {
         return m_boxType;
     }

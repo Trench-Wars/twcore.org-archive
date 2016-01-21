@@ -59,8 +59,10 @@ public class pubbotspy extends PubBotModule {
                 else
                     m_botAction.sendChatMessage(2, messageTypeString + ": (" + sender + "): " + message);
             }
+
             if (spying || watchList.contains(sender.toLowerCase()))
                 m_botAction.sendChatMessage(2, messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
+
             if (pWatchList.containsKey(sender.toLowerCase()))
                 for (String staffMember : pWatchList.get(sender.toLowerCase()))
                     m_botAction.sendSmartPrivateMessage(staffMember, messageTypeString + ": (" + sender + ") (" + currentArena + "): " + message);
@@ -98,8 +100,10 @@ public class pubbotspy extends PubBotModule {
         try {
             if (command.equals("!spy on"))
                 doSpyOnCmd();
+
             if (command.equals("!spy off"))
                 doSpyOffCmd();
+
             if (command.equals("!spy"))
                 doSpyCmd();
         } catch (Exception e) {
@@ -123,8 +127,10 @@ public class pubbotspy extends PubBotModule {
         String[] names = argString.split(":");
         String playerName = names[0];
         String staffName = names[1];
+
         if (pWatchList.containsKey(playerName) && pWatchList.get(playerName).contains(staffName)) {
             ArrayList<String> staffNames = pWatchList.get(playerName);
+
             if (staffNames.size() == 1)
                 pWatchList.remove(playerName);
             else if (staffNames.size() != 1) {
@@ -157,16 +163,22 @@ public class pubbotspy extends PubBotModule {
         try {
             if (command.startsWith("watch "))
                 gotWatchCmd(message.substring(6));
+
             if (command.startsWith("unwatch "))
                 gotUnWatchCmd(message.substring(8));
+
             if (command.startsWith("ignore "))
                 gotIgnoreCmd(message.substring(7));
+
             if (command.startsWith("unignore "))
                 gotUnignoreCmd(message.substring(9));
+
             if (command.startsWith("pwatch "))
                 gotPWatchCmd(message.substring(7));
+
             if (command.startsWith("away "))
                 gotAway(message.substring(5));
+
             if (command.startsWith("saway "))
                 gotUnAway(message.substring(6));
 
@@ -186,11 +198,11 @@ public class pubbotspy extends PubBotModule {
     }
 
     /**
-     * This method handles an InterProcessEvent.
-     * 
-     * @param event
-     *            is the InterProcessEvent to handle.
-     */
+        This method handles an InterProcessEvent.
+
+        @param event
+                  is the InterProcessEvent to handle.
+    */
 
     public void handleEvent(InterProcessEvent event) {
         // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
@@ -225,6 +237,7 @@ public class pubbotspy extends PubBotModule {
                 && (nameLC.endsWith("<er>") || nameLC.endsWith("<zh>") || nameLC.startsWith("matchbot") || nameLC.startsWith("tw-"))) {
             m_botAction.sendUnfilteredPublicMessage("?cheater Possible bot/staff impersonator entered: " + name);
         }
+
         if (racismCheck.isRacist(event.getSquadName())) {
             m_botAction.sendUnfilteredPublicMessage("?cheater Possible illegal squad name of player " + name + ": " + event.getSquadName());
         }
@@ -236,43 +249,54 @@ public class pubbotspy extends PubBotModule {
 
     private String getMessageTypeString(int messageType) {
         switch (messageType) {
-            case Message.PUBLIC_MESSAGE:
-                return "Public";
-            case Message.PRIVATE_MESSAGE:
-                return "Private";
-            case Message.TEAM_MESSAGE:
-                return "Team";
-            case Message.OPPOSING_TEAM_MESSAGE:
-                return "Opp. Team";
-            case Message.ARENA_MESSAGE:
-                return "Arena";
-            case Message.PUBLIC_MACRO_MESSAGE:
-                return "Pub. Macro";
-            case Message.REMOTE_PRIVATE_MESSAGE:
-                return "Private";
-            case Message.WARNING_MESSAGE:
-                return "Warning";
-            case Message.SERVER_ERROR:
-                return "Serv. Error";
-            case Message.ALERT_MESSAGE:
-                return "Alert";
+        case Message.PUBLIC_MESSAGE:
+            return "Public";
+
+        case Message.PRIVATE_MESSAGE:
+            return "Private";
+
+        case Message.TEAM_MESSAGE:
+            return "Team";
+
+        case Message.OPPOSING_TEAM_MESSAGE:
+            return "Opp. Team";
+
+        case Message.ARENA_MESSAGE:
+            return "Arena";
+
+        case Message.PUBLIC_MACRO_MESSAGE:
+            return "Pub. Macro";
+
+        case Message.REMOTE_PRIVATE_MESSAGE:
+            return "Private";
+
+        case Message.WARNING_MESSAGE:
+            return "Warning";
+
+        case Message.SERVER_ERROR:
+            return "Serv. Error";
+
+        case Message.ALERT_MESSAGE:
+            return "Alert";
         }
+
         return "Other";
     }
 
     /**
-     * This method gets the sender from a message Event.
-     * 
-     * @param event
-     *            is the message event to analyze.
-     * @return the name of the sender is returned. If the sender cannot be determined then null is returned.
-     */
+        This method gets the sender from a message Event.
+
+        @param event
+                  is the message event to analyze.
+        @return the name of the sender is returned. If the sender cannot be determined then null is returned.
+    */
 
     private String getSender(Message event) {
         int messageType = event.getMessageType();
 
         if (messageType == Message.REMOTE_PRIVATE_MESSAGE || messageType == Message.CHAT_MESSAGE)
             return event.getMessager();
+
         int senderID = event.getPlayerID();
         return m_botAction.getPlayerName(senderID);
     }

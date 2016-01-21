@@ -29,15 +29,15 @@ import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
- * THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
- *
- * XXX: THIS CODE REMAINS FORKED FROM PUBHUBALIAS. (It was copied from there, resulting
- * in problems in the past, such as double alias entries.)
- *
- * Their shared algorithms (!altnick etc) will not be updated concurrently.
- * Consider refactoring so that they share the same algorithms from a central
- * place, perhaps in a /core/ file.
- */
+    THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
+
+    XXX: THIS CODE REMAINS FORKED FROM PUBHUBALIAS. (It was copied from there, resulting
+    in problems in the past, such as double alias entries.)
+
+    Their shared algorithms (!altnick etc) will not be updated concurrently.
+    Consider refactoring so that they share the same algorithms from a central
+    place, perhaps in a /core/ file.
+*/
 
 public class twdopalias extends Module {
     public static final String DATABASE = "website";
@@ -85,8 +85,8 @@ public class twdopalias extends Module {
     private Hider hider;
 
     /**
-     * This method initializes the module.
-     */
+        This method initializes the module.
+    */
     public void initializeModule() {
         justAdded = Collections.synchronizedSet(new HashSet<String>());
         deleteNextTime = Collections.synchronizedSet(new HashSet<String>());
@@ -135,13 +135,13 @@ public class twdopalias extends Module {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
             String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
-                    + Tools.addSlashesToString(playerName) + "'", "fnIP");
+                               + Tools.addSlashesToString(playerName) + "'", "fnIP");
 
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
-                    + Tools.addSlashesToString(playerName) + "'", "fnMachineId");
+                                + Tools.addSlashesToString(playerName) + "'", "fnMachineId");
 
             String queryString = "SELECT * " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fnIP IN " + ipResults + " " + "AND fnMachineID IN "
-                    + midResults + " " + getOrderBy();
+                                 + midResults + " " + getOrderBy();
 
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
@@ -173,6 +173,7 @@ public class twdopalias extends Module {
     private String getOrderBy() {
         if (m_sortByName)
             return "ORDER BY fcUserName";
+
         return "ORDER BY fdUpdated DESC";
     }
 
@@ -217,9 +218,11 @@ public class twdopalias extends Module {
 
             ArrayList<String> results = new ArrayList<String>();
             results.add(getResultHeaders(headers));
+
             while (resultSet.next()) {
                 if (!hide && numResults <= m_maxRecords)
                     results.add(getResultLine(resultSet, headers));
+
                 prevResults.add(curResult);
                 numResults++;
             }
@@ -228,6 +231,7 @@ public class twdopalias extends Module {
                 results.add(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
             else
                 results.add("Altnick returned " + numResults + " results.");
+
             m_botAction.SQLClose(resultSet);
             m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
         } catch (SQLException e) {
@@ -238,11 +242,11 @@ public class twdopalias extends Module {
     private void doInfoAllCmd(String sender, String playerName) {
         try {
             String[] headers = { IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
-            displayAltNickAllResults(sender, 
-                    "SELECT * "
-                            + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
-                            + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' "
-                            + getOrderBy(), headers, null);
+            displayAltNickAllResults(sender,
+                                     "SELECT * "
+                                     + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
+                                     + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' "
+                                     + getOrderBy(), headers, null);
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -277,6 +281,7 @@ public class twdopalias extends Module {
         //m_botAction.sendChatMessage(getResultHeaders(headers));
         ArrayList<String> results = new ArrayList<String>();
         results.add(getResultHeaders(headers));
+
         while (resultSet.next()) {
             if (uniqueField != null)
                 curResult = resultSet.getString(uniqueField);
@@ -284,6 +289,7 @@ public class twdopalias extends Module {
             if (uniqueField == null || !prevResults.contains(curResult)) {
                 if (numResults <= m_maxRecords)
                     results.add(getResultLine(resultSet, headers));
+
                 prevResults.add(curResult);
                 numResults++;
             }
@@ -293,6 +299,7 @@ public class twdopalias extends Module {
             results.add(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
         else
             results.add("Altnick returned " + numResults + " results.");
+
         m_botAction.SQLClose(resultSet);
         m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
     }
@@ -308,12 +315,14 @@ public class twdopalias extends Module {
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
 
         boolean hide = false;
+
         if (player != null && hider.isHidden(player))
             hide = true;
 
         //m_botAction.sendChatMessage(getResultHeaders(headers));
         ArrayList<String> results = new ArrayList<String>();
         results.add(getResultHeaders(headers));
+
         while (resultSet.next()) {
             if (uniqueField != null)
                 curResult = resultSet.getString(uniqueField);
@@ -324,6 +333,7 @@ public class twdopalias extends Module {
                     results.add(getResultLine(resultSet, headers));
                     shownResults++;
                 }
+
                 prevResults.add(curResult);
                 totalResults++;
             }
@@ -331,10 +341,11 @@ public class twdopalias extends Module {
 
         if (shownResults > m_maxRecords)
             results.add(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
-            //m_botAction.sendChatMessage(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
+        //m_botAction.sendChatMessage(shownResults - m_maxRecords + " records not shown.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
         else
             results.add("Altnick returned " + shownResults + " (" + totalResults + ") results.");
-            //m_botAction.sendChatMessage("Altnick returned " + shownResults + " (" + totalResults + ") results.");
+
+        //m_botAction.sendChatMessage("Altnick returned " + shownResults + " (" + totalResults + ") results.");
         m_botAction.SQLClose(resultSet);
         m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
     }
@@ -352,6 +363,7 @@ public class twdopalias extends Module {
 
             resultHeaders.append(padString(fieldHeader, padding));
         }
+
         return resultHeaders.toString().trim();
     }
 
@@ -369,34 +381,45 @@ public class twdopalias extends Module {
                 fieldValue = resultSet.getDate(displayField).toString();
             else
                 fieldValue = resultSet.getString(displayField);
+
             resultLine.append(padString(fieldValue, padding));
         }
+
         return resultLine.toString().trim();
     }
 
     private String getFieldHeader(String displayField) {
         if (displayField.equalsIgnoreCase(NAME_FIELD))
             return NAME_HEADER;
+
         if (displayField.equalsIgnoreCase(IP_FIELD))
             return IP_HEADER;
+
         if (displayField.equalsIgnoreCase(MID_FIELD))
             return MID_HEADER;
+
         if (displayField.equalsIgnoreCase(TIMES_UPDATED_FIELD))
             return TIMES_UPDATED_HEADER;
+
         if (displayField.equalsIgnoreCase(LAST_UPDATED_FIELD))
             return DATE_UPDATED_HEADER;
+
         return DEFAULT_HEADER;
     }
 
     private int getFieldPadding(String displayField) {
         if (displayField.equalsIgnoreCase(NAME_FIELD))
             return NAME_PADDING;
+
         if (displayField.equalsIgnoreCase(IP_FIELD))
             return IP_PADDING;
+
         if (displayField.equalsIgnoreCase(MID_FIELD))
             return MID_PADDING;
+
         if (displayField.equalsIgnoreCase(TIMES_UPDATED_FIELD))
             return TIMES_UPDATED_PADDING;
+
         if (displayField.equalsIgnoreCase(LAST_UPDATED_FIELD))
             return DATE_UPDATED_PADDING;
 
@@ -409,14 +432,19 @@ public class twdopalias extends Module {
 
         if (resultSet == null)
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+
         if (!resultSet.next())
             return null;
+
         for (;;) {
             subQueryResultString.append(resultSet.getString(columnName));
+
             if (!resultSet.next())
                 break;
+
             subQueryResultString.append(", ");
         }
+
         subQueryResultString.append(") ");
         m_botAction.SQLClose(resultSet);
 
@@ -424,11 +452,11 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Compares IP and MID info of two names, and shows where they match.
-     * 
-     * @param argString
-     * @throws SQLException
-     */
+        Compares IP and MID info of two names, and shows where they match.
+
+        @param argString
+        @throws SQLException
+    */
     public void doCompareCmd(String sender, String argString) throws SQLException {
         StringTokenizer argTokens = new StringTokenizer(argString, ":");
 
@@ -440,10 +468,10 @@ public class twdopalias extends Module {
 
         try {
             ResultSet p1Set = m_botAction.SQLQuery(DATABASE, "SELECT * " + "FROM tblUser U, tblAlias A " + "WHERE U.fcUserName = '" + Tools.addSlashesToString(player1Name) + "' "
-                    + "AND U.fnUserID = A.fnUserID " + "ORDER BY A.fdUpdated DESC");
+                                                   + "AND U.fnUserID = A.fnUserID " + "ORDER BY A.fdUpdated DESC");
 
             ResultSet p2Set = m_botAction.SQLQuery(DATABASE, "SELECT * " + "FROM tblUser U, tblAlias A " + "WHERE U.fcUserName = '" + Tools.addSlashesToString(player2Name) + "' "
-                    + "AND U.fnUserID = A.fnUserID " + "ORDER BY A.fdUpdated DESC");
+                                                   + "AND U.fnUserID = A.fnUserID " + "ORDER BY A.fdUpdated DESC");
 
             if (p1Set == null || p2Set == null)
                 throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
@@ -456,6 +484,7 @@ public class twdopalias extends Module {
 
             LinkedList<String> IPs = new LinkedList<String>();
             LinkedList<Integer> MIDs = new LinkedList<Integer>();
+
             while (p1Set.previous()) {
                 IPs.add(p1Set.getString("A.fcIPString"));
                 MIDs.add(p1Set.getInt("A.fnMachineID"));
@@ -469,13 +498,16 @@ public class twdopalias extends Module {
                 matchIP = false;
                 matchMID = false;
                 display = "";
+
                 if (MIDs.contains(p2Set.getInt("A.fnMachineID")))
                     matchMID = true;
+
                 if (IPs.contains(p2Set.getString("A.fcIPString")))
                     matchIP = true;
 
                 if (matchMID == true)
                     display += "MID match: " + p2Set.getInt("A.fnMachineID") + " ";
+
                 if (matchIP == true)
                     display += " IP match: " + p2Set.getString("A.fcIPString");
 
@@ -490,12 +522,15 @@ public class twdopalias extends Module {
 
             m_botAction.SQLClose(p1Set);
             m_botAction.SQLClose(p2Set);
+
             if (results == 0)
                 msgs.add("No matching IPs or MIDs found.");
-                //m_botAction.sendChatMessage("No matching IPs or MIDs found.");
+
+            //m_botAction.sendChatMessage("No matching IPs or MIDs found.");
             if (results > m_maxRecords)
                 msgs.add(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
-                //m_botAction.sendChatMessage(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
+
+            //m_botAction.sendChatMessage(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
             m_botAction.smartPrivateMessageSpam(sender, msgs.toArray(new String[msgs.size()]));
         } catch (SQLException e) {
             throw new RuntimeException("ERROR: Cannot connect to database.");
@@ -505,18 +540,18 @@ public class twdopalias extends Module {
 
     public void doHelpCmd(String sender) {
         String[] message = { "                                                       ", " [TWDOP ALIAS MODULE]", "                                                       ",
-                " !altnick  <PlayerName>         - Alias by <PlayerName>", " !altIP    <IP>                 - Alias by <IP>", " !partialIP <IP>                - Alias by <PARTIALIP>",
-                " !altMID   <MacID>              - Alias by <MacID>", " !info     <PlayerName>         - Shows stored info of <PlayerName>",
-                " !compare  <Player1>:<Player2>  - Compares and shows matches", " !maxResults <#>                - Changes the max. number of results to return",
-                " !nameWatch <Name>:<reason>     - Watches logins for <Name> with the specified <reason>", " !nameWatch <Name>              - Disables the login watch for <Name>",
-                " !IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>", " !IPWatch   <IP>                - Disables the login watch for <IP>",
-                " !MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>", " !MIDWatch  <MID>               - Disables the login watch for <MID>",
-                " !clearNameWatch                - Clears all login watches for names", " !clearIPWatch                  - Clears all login watches for IPs",
-                " !clearMIDWatch                 - Clears all login watches for MIDs", " !showWatches                   - Shows all current login watches",
-                " !sortByName / !sortByDate      - Selects sorting method", " !aliasop <name>                - Gives <name> alias access",
-                " !aliasdeop <name>              - Removes alias access for <name>", " !listaliasops (!lao)           - Lists current alias-ops"
+                             " !altnick  <PlayerName>         - Alias by <PlayerName>", " !altIP    <IP>                 - Alias by <IP>", " !partialIP <IP>                - Alias by <PARTIALIP>",
+                             " !altMID   <MacID>              - Alias by <MacID>", " !info     <PlayerName>         - Shows stored info of <PlayerName>",
+                             " !compare  <Player1>:<Player2>  - Compares and shows matches", " !maxResults <#>                - Changes the max. number of results to return",
+                             " !nameWatch <Name>:<reason>     - Watches logins for <Name> with the specified <reason>", " !nameWatch <Name>              - Disables the login watch for <Name>",
+                             " !IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>", " !IPWatch   <IP>                - Disables the login watch for <IP>",
+                             " !MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>", " !MIDWatch  <MID>               - Disables the login watch for <MID>",
+                             " !clearNameWatch                - Clears all login watches for names", " !clearIPWatch                  - Clears all login watches for IPs",
+                             " !clearMIDWatch                 - Clears all login watches for MIDs", " !showWatches                   - Shows all current login watches",
+                             " !sortByName / !sortByDate      - Selects sorting method", " !aliasop <name>                - Gives <name> alias access",
+                             " !aliasdeop <name>              - Removes alias access for <name>", " !listaliasops (!lao)           - Lists current alias-ops"
 
-        };
+                           };
         m_botAction.smartPrivateMessageSpam(sender, message);
     }
 
@@ -527,26 +562,33 @@ public class twdopalias extends Module {
     public void doAltTWLCmd(String argString) {
         try {
             ResultSet resultSet = m_botAction.SQLQuery(DATABASE, "SELECT U2.fcUserName, T.fcTeamName " + "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2, tblTeam T, tblTeamUser TU "
-                    + "WHERE U1.fcUserName = '" + Tools.addSlashesToString(argString) + "' " + "AND A1.fnUserID = U1.fnUserID " + "AND A1.fnIP = A2.fnIP " + "AND A1.fnMachineID = A2.fnMachineID "
-                    + "AND A2.fnUserID = U2.fnUserID " + "AND TU.fnUserID = U2.fnUserID " + "AND TU.fnCurrentTeam = 1 " + "AND TU.fnTeamID = T.fnTeamID " + "AND T.fdDeleted = '0000-00-00 00:00:00' "
-                    + "ORDER BY U2.fcUserName, T.fcTeamName");
+                                  + "WHERE U1.fcUserName = '" + Tools.addSlashesToString(argString) + "' " + "AND A1.fnUserID = U1.fnUserID " + "AND A1.fnIP = A2.fnIP " + "AND A1.fnMachineID = A2.fnMachineID "
+                                  + "AND A2.fnUserID = U2.fnUserID " + "AND TU.fnUserID = U2.fnUserID " + "AND TU.fnCurrentTeam = 1 " + "AND TU.fnTeamID = T.fnTeamID " + "AND T.fdDeleted = '0000-00-00 00:00:00' "
+                                  + "ORDER BY U2.fcUserName, T.fcTeamName");
 
             int results = 0;
             String lastName = "";
             String currName;
+
             if (resultSet == null)
                 throw new RuntimeException("ERROR: Cannot connect to database.");
+
             for (; resultSet.next(); results++) {
                 if (results <= m_maxRecords) {
                     currName = resultSet.getString("U2.fcUserName");
+
                     if (!currName.equalsIgnoreCase(lastName))
                         m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Squad: " + resultSet.getString("T.fcTeamName"));
+
                     lastName = currName;
                 }
             }
+
             m_botAction.SQLClose(resultSet);
+
             if (results == 0)
                 m_botAction.sendChatMessage("Player is not on a TWL squad.");
+
             if (results > m_maxRecords)
                 m_botAction.sendChatMessage(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
         } catch (SQLException e) {
@@ -555,8 +597,8 @@ public class twdopalias extends Module {
     }
 
     /**
-     *
-     */
+
+    */
     public void doMaxRecordsCmd(String maxRecords) {
         try {
             m_maxRecords = Integer.parseInt(maxRecords);
@@ -567,11 +609,11 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Starts watching for an IP starting with a given string.
-     * 
-     * @param IP
-     *            IP to watch for
-     */
+        Starts watching for an IP starting with a given string.
+
+        @param IP
+                  IP to watch for
+    */
     public void doIPWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String IP = params[0].trim();
@@ -590,6 +632,7 @@ public class twdopalias extends Module {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for IPs starting with " + IP);
             }
+
             watchedIPs.put(IP, sender + ": " + comment);
             saveWatches();
         }
@@ -653,10 +696,12 @@ public class twdopalias extends Module {
 
             if (counter == 6) {
                 counter = 0;
+
                 if (aliasops.size() <= 6)
                     m_botAction.sendChatMessage(output.substring(0, output.length() - 2));
                 else
                     m_botAction.sendChatMessage(output);
+
                 output = "";
             }
         }
@@ -667,11 +712,11 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Starts watching for a name to log on.
-     * 
-     * @param name
-     *            Name to watch for
-     */
+        Starts watching for a name to log on.
+
+        @param name
+                  Name to watch for
+    */
     public void doNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String name = params[0].trim();
@@ -690,17 +735,18 @@ public class twdopalias extends Module {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
             }
+
             watchedNames.put(name.toLowerCase(), sender + ": " + comment);
             saveWatches();
         }
     }
 
     /**
-     * Starts watching for a given MacID.
-     * 
-     * @param MID
-     *            MID to watch for
-     */
+        Starts watching for a given MacID.
+
+        @param MID
+                  MID to watch for
+    */
     public void doMIDWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String MID = params[0].trim();
@@ -719,6 +765,7 @@ public class twdopalias extends Module {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for MID: " + MID);
             }
+
             watchedMIDs.put(MID, sender + ": " + comment);
             saveWatches();
 
@@ -726,8 +773,8 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Stops all IP watching.
-     */
+        Stops all IP watching.
+    */
     public void doClearIPWatchCmd() {
         watchedIPs.clear();
         m_botAction.sendChatMessage("All watched IPs cleared.");
@@ -735,8 +782,8 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Stops all name watching.
-     */
+        Stops all name watching.
+    */
     public void doClearNameWatchCmd() {
         watchedNames.clear();
         m_botAction.sendChatMessage("All watched names cleared.");
@@ -744,8 +791,8 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Stops all MacID watching.
-     */
+        Stops all MacID watching.
+    */
     public void doClearMIDWatchCmd() {
         watchedMIDs.clear();
         m_botAction.sendChatMessage("All watched MIDs cleared.");
@@ -753,12 +800,13 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Shows current watches.
-     */
+        Shows current watches.
+    */
     public void doShowWatchesCmd(String sender) {
         if (watchedIPs.size() == 0) {
             m_botAction.sendSmartPrivateMessage(sender, "IP:   (none)");
         }
+
         for (String IP : watchedIPs.keySet()) {
             m_botAction.sendSmartPrivateMessage(sender, "IP:   " + IP + "  ( " + watchedIPs.get(IP) + " )");
         }
@@ -766,6 +814,7 @@ public class twdopalias extends Module {
         if (watchedMIDs.size() == 0) {
             m_botAction.sendSmartPrivateMessage(sender, "MID:  (none)");
         }
+
         for (String MID : watchedMIDs.keySet()) {
             m_botAction.sendSmartPrivateMessage(sender, "MID:  " + MID + "  ( " + watchedMIDs.get(MID) + " )");
         }
@@ -773,6 +822,7 @@ public class twdopalias extends Module {
         if (watchedNames.size() == 0) {
             m_botAction.sendSmartPrivateMessage(sender, "Name: (none)");
         }
+
         for (String Name : watchedNames.keySet()) {
             m_botAction.sendSmartPrivateMessage(sender, "Name: " + Name + "  ( " + watchedNames.get(Name) + " )");
         }
@@ -782,9 +832,9 @@ public class twdopalias extends Module {
         String command = message.toLowerCase();
 
         /*
-         * Extra check for smod and twdop added
-         * -fantus
-         */
+            Extra check for smod and twdop added
+            -fantus
+        */
         if (!m_botAction.getOperatorList().isSmod(sender) && !isTWDOp(sender) && !isAliasOp(sender)) {
             return;
         }
@@ -806,7 +856,7 @@ public class twdopalias extends Module {
             } else if (command.startsWith("!altmid ")) {
                 doAltMacIdCmd(sender, message.substring(8).trim());
                 record(sender, message);
-            } 
+            }
             //          else if(command.startsWith("!alttwl "))
             //              doAltTWLCmd(message.substring(8).trim());
             else if (command.startsWith("!info ")) {
@@ -837,6 +887,7 @@ public class twdopalias extends Module {
                 m_sortByName = true;
                 m_botAction.sendChatMessage("Sorting !alt cmds by name first.");
             }
+
             if (message.equalsIgnoreCase("!update")) {
                 updateTWDOps();
                 updateAliasOps();
@@ -890,8 +941,10 @@ public class twdopalias extends Module {
             return;
 
         StringTokenizer recordArgs = new StringTokenizer(argString, ":");
+
         if (recordArgs.countTokens() != 3)
             throw new IllegalArgumentException("ERROR: Could not write player information.");
+
         String playerName = recordArgs.nextToken();
         String playerIP = recordArgs.nextToken();
         String playerMacID = recordArgs.nextToken();
@@ -907,15 +960,15 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Check if a name is being watched for, and notify on chat if so.
-     * 
-     * @param name
-     *            Name to check
-     * @param IP
-     *            IP of player
-     * @param MacId
-     *            MacID of player
-     */
+        Check if a name is being watched for, and notify on chat if so.
+
+        @param name
+                  Name to check
+        @param IP
+                  IP of player
+        @param MacId
+                  MacID of player
+    */
     public void checkName(String name, String IP, String MacID) {
         if (watchedNames.containsKey(name.toLowerCase())) {
             m_botAction.sendChatMessage("NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")");
@@ -924,15 +977,15 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Check if an IP is being watched for, and notify on chat if so.
-     * 
-     * @param name
-     *            Name of player
-     * @param IP
-     *            IP to check
-     * @param MacId
-     *            MacID of player
-     */
+        Check if an IP is being watched for, and notify on chat if so.
+
+        @param name
+                  Name of player
+        @param IP
+                  IP to check
+        @param MacId
+                  MacID of player
+    */
     public void checkIP(String name, String IP, String MacID) {
         for (String IPfragment : watchedIPs.keySet()) {
             if (IP.startsWith(IPfragment)) {
@@ -943,15 +996,15 @@ public class twdopalias extends Module {
     }
 
     /**
-     * Check if an MID is being watched for, and notify on chat if so.
-     * 
-     * @param name
-     *            Name of player
-     * @param IP
-     *            IP of player
-     * @param MacId
-     *            MacID to check
-     */
+        Check if an MID is being watched for, and notify on chat if so.
+
+        @param name
+                  Name of player
+        @param IP
+                  IP of player
+        @param MacId
+                  MacID to check
+    */
     public void checkMID(String name, String IP, String MacID) {
         if (watchedMIDs.containsKey(MacID)) {
             m_botAction.sendChatMessage("MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP);
@@ -960,11 +1013,11 @@ public class twdopalias extends Module {
     }
 
     /**
-     * This method handles an InterProcess event.
-     * 
-     * @param event
-     *            is the IPC event to handle.
-     */
+        This method handles an InterProcess event.
+
+        @param event
+                  is the IPC event to handle.
+    */
     public void handleEvent(InterProcessEvent event) {
         // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
         if (event.getObject() instanceof IPCMessage == false) {
@@ -986,8 +1039,8 @@ public class twdopalias extends Module {
     }
 
     /**
-     * This method handles the destruction of this module.
-     */
+        This method handles the destruction of this module.
+    */
 
     public void cancel() {
         m_botAction.cancelTask(clearRecordTask);
@@ -1009,9 +1062,11 @@ public class twdopalias extends Module {
         try {
             long ip32Bit = make32BitIp(playerIP);
             ResultSet resultSet = m_botAction.SQLQuery(DATABASE, "SELECT * " + "FROM tblAlias " + "WHERE fnUserID = " + userID + " " + "AND fnIP = " + ip32Bit + " " + "AND fnMachineID = "
-                    + playerMacID);
+                                  + playerMacID);
+
             if (!resultSet.next())
                 return -1;
+
             int results = resultSet.getInt("fnAliasID");
             m_botAction.SQLClose(resultSet);
             return results;
@@ -1024,7 +1079,7 @@ public class twdopalias extends Module {
         try {
             long ip32Bit = make32BitIp(playerIP);
             String query = "INSERT INTO tblAlias " + "(fnUserID, fcIPString, fnIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " + "VALUES (" + userID + ", '" + playerIP + "', " + ip32Bit
-                    + ", " + playerMacID + ", 1, NOW(), NOW())";
+                           + ", " + playerMacID + ", 1, NOW(), NOW())";
             ResultSet r = m_botAction.SQLQuery(DATABASE, query);
             m_botAction.SQLClose(r);
         } catch (SQLException e) {
@@ -1095,10 +1150,13 @@ public class twdopalias extends Module {
         // Load the IP watches from the configuration
         while (loop) {
             String IPWatch = cfg.getString("IPWatch" + i);
+
             if (IPWatch != null && IPWatch.trim().length() > 0) {
                 String[] IPWatchSplit = IPWatch.split(":", 2);
+
                 if (IPWatchSplit.length == 2)       // Check for corrupted data
                     watchedIPs.put(IPWatchSplit[0], IPWatchSplit[1]);
+
                 i++;
             } else {
                 loop = false;
@@ -1111,10 +1169,13 @@ public class twdopalias extends Module {
 
         while (loop) {
             String MIDWatch = cfg.getString("MIDWatch" + i);
+
             if (MIDWatch != null && MIDWatch.trim().length() > 0) {
                 String[] MIDWatchSplit = MIDWatch.split(":", 2);
+
                 if (MIDWatchSplit.length == 2)       // Check for corrupted data
                     watchedMIDs.put(MIDWatchSplit[0], MIDWatchSplit[1]);
+
                 i++;
             } else {
                 loop = false;
@@ -1127,10 +1188,13 @@ public class twdopalias extends Module {
 
         while (loop) {
             String NameWatch = cfg.getString("NameWatch" + i);
+
             if (NameWatch != null && NameWatch.trim().length() > 0) {
                 String[] NameWatchSplit = NameWatch.split(":", 2);
+
                 if (NameWatchSplit.length == 2)       // Check for corrupted data
                     watchedNames.put(NameWatchSplit[0], NameWatchSplit[1]);
+
                 i++;
             } else {
                 loop = false;
@@ -1150,6 +1214,7 @@ public class twdopalias extends Module {
             cfg.put("IPWatch" + i, IP + ":" + watchedIPs.get(IP));
             i++;
         }
+
         // Clear any other still stored IP watches
         while (loop) {
             if (cfg.getString("IPWatch" + i) != null) {
@@ -1168,6 +1233,7 @@ public class twdopalias extends Module {
             cfg.put("MIDWatch" + i, MID + ":" + watchedMIDs.get(MID));
             i++;
         }
+
         // Clear any other still stored MID watches
         while (loop) {
             if (cfg.getString("MIDWatch" + i) != null) {
@@ -1186,6 +1252,7 @@ public class twdopalias extends Module {
             cfg.put("NameWatch" + i, Name + ":" + watchedNames.get(Name));
             i++;
         }
+
         // Clear any other still stored MID watches
         while (loop) {
             if (cfg.getString("NameWatch" + i) != null) {
@@ -1200,14 +1267,14 @@ public class twdopalias extends Module {
     }
 
     /**
-     * This method pads the string with whitespace.
-     * 
-     * @param string
-     *            is the string to pad.
-     * @param spaces
-     *            is the size of the resultant string.
-     * @return the string padded with spaces to fit into spaces characters. If the string is too long to fit, it is truncated.
-     */
+        This method pads the string with whitespace.
+
+        @param string
+                  is the string to pad.
+        @param spaces
+                  is the size of the resultant string.
+        @return the string padded with spaces to fit into spaces characters. If the string is too long to fit, it is truncated.
+    */
     private String padString(String string, int spaces) {
         int whitespaces = spaces - string.length();
 
@@ -1215,14 +1282,16 @@ public class twdopalias extends Module {
             return string.substring(spaces);
 
         StringBuffer stringBuffer = new StringBuffer(string);
+
         for (int index = 0; index < whitespaces; index++)
             stringBuffer.append(' ');
+
         return stringBuffer.toString();
     }
 
     /**
-     * This method clears out RecordTimes that have been recorded later than RECORD_DELAY so the info for those players can be recorded again.
-     */
+        This method clears out RecordTimes that have been recorded later than RECORD_DELAY so the info for those players can be recorded again.
+    */
     private class ClearRecordTask extends TimerTask {
         public void run() {
             deleteNextTime.clear();

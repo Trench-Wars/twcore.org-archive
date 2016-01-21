@@ -43,6 +43,7 @@ public class DBPlayerData {
         m_connection = conn;
         m_fcUserName = fcPlayerName;
         m_connName = connName;
+
         if (!getPlayerData() && createIfNotExists) createPlayerData();
     }
 
@@ -52,8 +53,8 @@ public class DBPlayerData {
     public boolean getPlayerSquadData() {
         try {
             ResultSet qryPlayerSquadInfo = m_connection.SQLQuery(m_connName,
-            "SELECT TU.fdJoined, TU.fnTeamUserID, T.fnTeamID, T.fcTeamName FROM tblTeam T, tblTeamUser TU " +
-            "WHERE TU.fnTeamID = T.fnTeamID AND TU.fnCurrentTeam = 1 AND TU.fnUserID = " + getUserID());
+                                           "SELECT TU.fdJoined, TU.fnTeamUserID, T.fnTeamID, T.fcTeamName FROM tblTeam T, tblTeamUser TU " +
+                                           "WHERE TU.fnTeamID = T.fnTeamID AND TU.fnCurrentTeam = 1 AND TU.fnUserID = " + getUserID());
             m_lastQuery = System.currentTimeMillis();
 
             if (qryPlayerSquadInfo.next()) {
@@ -77,8 +78,9 @@ public class DBPlayerData {
     public boolean getPlayerData() {
         try {
             ResultSet qryPlayerInfo = m_connection.SQLQuery(m_connName,
-            "SELECT U.fnUserID, U.fcUserName, U.fdSignedUp FROM tblUser U WHERE U.fcUserName = '"+Tools.addSlashesToString(m_fcUserName)+"'");
+                                      "SELECT U.fnUserID, U.fcUserName, U.fdSignedUp FROM tblUser U WHERE U.fcUserName = '" + Tools.addSlashesToString(m_fcUserName) + "'");
             m_lastQuery = System.currentTimeMillis();
+
             if (qryPlayerInfo.next()) {
                 m_playerLoaded = true;
                 m_fcUserName = qryPlayerInfo.getString("fcUserName");
@@ -100,9 +102,11 @@ public class DBPlayerData {
 
     public boolean createPlayerData() {
         try {
-            m_connection.SQLQueryAndClose(m_connName, "INSERT INTO tblUser (fcUserName, fdSignedUp) VALUES ('"+Tools.addSlashesToString(m_fcUserName)+"', NOW())");
+            m_connection.SQLQueryAndClose(m_connName, "INSERT INTO tblUser (fcUserName, fdSignedUp) VALUES ('" + Tools.addSlashesToString(m_fcUserName) + "', NOW())");
             m_lastQuery = System.currentTimeMillis();
-            if (getPlayerData()) return true; else return false;
+
+            if (getPlayerData()) return true;
+            else return false;
         } catch (Exception e) {
             Tools.printLog("Couldn't create user: " + m_fcUserName );
             return false;
@@ -111,7 +115,7 @@ public class DBPlayerData {
 
 
 
-    /*public boolean createPlayerAccountData(String fcPassword) {
+    /*  public boolean createPlayerAccountData(String fcPassword) {
         if (m_fnUserID != 0) {
             try {
                 m_connection.SQLQueryAndClose(m_connName, "INSERT INTO tblUserAccount(fnUserID, fcPassword) VALUES ("+m_fnUserID+",PASSWORD('"+Tools.addSlashesToString(fcPassword)+"'))");
@@ -123,13 +127,13 @@ public class DBPlayerData {
                 return false;
             }
         } else return false;
-    };*/
+        };*/
 
 
     public boolean updatePlayerAccountData(String fcPassword) {
         if (m_fnUserID != 0) {
             try {
-                m_connection.SQLQueryAndClose(m_connName, "UPDATE tblUserAccount SET fcPassword = PASSWORD('"+Tools.addSlashesToString(fcPassword)+"') WHERE fnUserID = "+m_fnUserID);
+                m_connection.SQLQueryAndClose(m_connName, "UPDATE tblUserAccount SET fcPassword = PASSWORD('" + Tools.addSlashesToString(fcPassword) + "') WHERE fnUserID = " + m_fnUserID);
                 m_lastQuery = System.currentTimeMillis();
                 m_fcPassword = fcPassword;
                 return true;
@@ -143,8 +147,9 @@ public class DBPlayerData {
     public boolean getPlayerAccountData() {
         if (m_fnUserID != 0) {
             try {
-                ResultSet qryPlayerAccountInfo = m_connection.SQLQuery(m_connName, "SELECT fcPassword FROM tblUserAccount WHERE fnUserID="+m_fnUserID);
+                ResultSet qryPlayerAccountInfo = m_connection.SQLQuery(m_connName, "SELECT fcPassword FROM tblUserAccount WHERE fnUserID=" + m_fnUserID);
                 m_lastQuery = System.currentTimeMillis();
+
                 if (qryPlayerAccountInfo.next()) {
                     m_fcPassword = qryPlayerAccountInfo.getString("fcPassword");
                     m_connection.SQLClose(qryPlayerAccountInfo);
@@ -157,6 +162,7 @@ public class DBPlayerData {
 
             };
         };
+
         return false;
     };
 
@@ -165,15 +171,18 @@ public class DBPlayerData {
         if (m_fnUserID != 0) {
             try {
                 boolean hasRank = false;
-                ResultSet qryHasPlayerRank = m_connection.SQLQuery(m_connName, "SELECT fnUserID FROM tblUserRank WHERE fnUserID = "+m_fnUserID+" AND fnRankID =" + rankNr);
+                ResultSet qryHasPlayerRank = m_connection.SQLQuery(m_connName, "SELECT fnUserID FROM tblUserRank WHERE fnUserID = " + m_fnUserID + " AND fnRankID =" + rankNr);
                 m_lastQuery = System.currentTimeMillis();
+
                 if (qryHasPlayerRank.next())
                     hasRank = true;
+
                 m_connection.SQLClose(qryHasPlayerRank);
                 return hasRank;
             } catch (Exception e) {
             };
         };
+
         return false;
     };
 
@@ -182,29 +191,54 @@ public class DBPlayerData {
     public boolean giveRank(int rankNr) {
         if (m_fnUserID != 0) {
             try {
-                m_connection.SQLQueryAndClose(m_connName, "INSERT tblUserRank (fnUserID, fnRankID) VALUES ("+m_fnUserID+", "+rankNr+")");
+                m_connection.SQLQueryAndClose(m_connName, "INSERT tblUserRank (fnUserID, fnRankID) VALUES (" + m_fnUserID + ", " + rankNr + ")");
                 m_lastQuery = System.currentTimeMillis();
                 return true;
             } catch (Exception e) {
                 return false;
             }
         };
+
         return false;
     };
 
 
-    public BotAction getBotAction() { return m_connection; };
+    public BotAction getBotAction() {
+        return m_connection;
+    };
 
-    public boolean playerLoaded() { return m_playerLoaded; };
-    public int getUserID() { return m_fnUserID; };
-    public String getUserName() { return m_fcUserName; };
-    public String getPassword() { return m_fcPassword; };
-    public java.util.Date getSignedUp() { return (java.util.Date)m_fdSignedUp; };
-    public java.util.Date getTeamSignedUp() { return (java.util.Date)m_fdTeamSignedUp; };
-    public String getTeamName() { return m_fcTeamName; };
-    public int getTeamID() { return m_fnTeamID; };
-    public int getTeamUserID() { return m_fnTeamUserID; };
-    public long getLastQuery() { return m_lastQuery; };
+    public boolean playerLoaded() {
+        return m_playerLoaded;
+    };
+    public int getUserID() {
+        return m_fnUserID;
+    };
+    public String getUserName() {
+        return m_fcUserName;
+    };
+    public String getPassword() {
+        return m_fcPassword;
+    };
+    public java.util.Date getSignedUp() {
+        return (java.util.Date)m_fdSignedUp;
+    };
+    public java.util.Date getTeamSignedUp() {
+        return (java.util.Date)m_fdTeamSignedUp;
+    };
+    public String getTeamName() {
+        return m_fcTeamName;
+    };
+    public int getTeamID() {
+        return m_fnTeamID;
+    };
+    public int getTeamUserID() {
+        return m_fnTeamUserID;
+    };
+    public long getLastQuery() {
+        return m_lastQuery;
+    };
 
-    public void setUserName(String fcUserName) { m_fcUserName = fcUserName; };
+    public void setUserName(String fcUserName) {
+        m_fcUserName = fcUserName;
+    };
 };

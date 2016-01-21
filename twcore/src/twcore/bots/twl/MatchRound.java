@@ -1,15 +1,15 @@
 package twcore.bots.twl;
 
 /*
- * MatchRound.java
- *
- * Created on August 19, 2002, 10:51 PM
- */
+    MatchRound.java
+
+    Created on August 19, 2002, 10:51 PM
+*/
 
 /**
- *
- * @author  Administrator
- */
+
+    @author  Administrator
+*/
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -143,9 +143,10 @@ public class MatchRound {
         Iterator<Player> iterator = m_botAction.getPlayerIterator();
         Player player;
 
-        while( iterator.hasNext() ){
+        while( iterator.hasNext() ) {
             player = iterator.next();
-            if( player.getFrequency() == NOT_PLAYING_FREQ ){
+
+            if( player.getFrequency() == NOT_PLAYING_FREQ ) {
                 m_notPlaying.add(player.getPlayerName().toLowerCase());
             }
         }
@@ -153,6 +154,7 @@ public class MatchRound {
         if (m_rules.getInt("pickbyturn") == 0) {
             //This is for the time race.  If the person hasn't set the time it is set to default
             String winby = m_rules.getString("winby");
+
             if (winby.equals("timerace")) // 5 mins and 30 mins in secs
             {
                 if (!m_playoff && (m_raceTarget < 5 * 60 || m_raceTarget > 30 * 30)) {
@@ -160,7 +162,7 @@ public class MatchRound {
                     m_logger.sendArenaMessage("Race set to " + m_rules.getInt("defaulttarget") + " mins");
                 } else if (m_playoff && (m_raceTarget < 5 * 60 || m_raceTarget > 40 * 30)) {
                     setRaceTarget(m_rules.getInt("playofftarget") * 60); //mins to secs
-                    m_logger.sendArenaMessage("Race set to " + m_rules.getInt("playofftarget") + " mins");                            
+                    m_logger.sendArenaMessage("Race set to " + m_rules.getInt("playofftarget") + " mins");
                 }
             }
 
@@ -174,21 +176,26 @@ public class MatchRound {
             m_botAction.scheduleTask(m_scheduleTimer, 60000 * m_rules.getInt("lineuptime"));
             m_botAction.setTimer(m_rules.getInt("lineuptime"));
         }
+
         specAll();
 
     }
 
     public int getRoundID() {
         int id = 1;
+
         try {
             String query = "SELECT fnTWL__RoundId as id FROM tblTWL__Match WHERE fnMatchID = " + m_game.m_fnMatchID + " LIMIT 1";
             ResultSet rs = m_botAction.SQLQuery(dbConn, query);
+
             if (rs.next())
                 id = rs.getInt("id");
+
             m_botAction.SQLClose(rs);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
+
         return id;
     }
 
@@ -197,6 +204,7 @@ public class MatchRound {
             if (m_fnRoundID == i)
                 return true;
         }
+
         return false;
     }
 
@@ -207,9 +215,11 @@ public class MatchRound {
 
         while (iterator.hasNext()) {
             player = iterator.next();
+
             if (!player.isPlaying() && player.getFrequency() != specFreq && player.getFrequency() != NOT_PLAYING_FREQ)
                 placeOnSpecFreq(player.getPlayerName());
         }
+
         m_botAction.specAll();
     }
 
@@ -231,40 +241,47 @@ public class MatchRound {
     }
 
     /*
-     * Create a database record for the round
-     */
+        Create a database record for the round
+    */
     public void storeRoundResult() {
         int fnMatchID = m_game.m_fnMatchID;
         int roundstate = 0;
+
         try {
             if (m_fnRoundResult == 1)
                 roundstate = 3;
+
             if (m_fnRoundResult == 2)
                 roundstate = 5;
+
             if (m_fnRoundResult == 3)
                 roundstate = 1;
+
             String started = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_timeStarted);
             String ended = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(m_timeEnded);
 
             String[] fields = {
-                    "fnMatchID",
-                    "fnRoundStateID",
-                    "ftTimeStarted",
-                    "ftTimeEnded",
-                    "fnTeam1Score",
-            "fnTeam2Score" };
+                "fnMatchID",
+                "fnRoundStateID",
+                "ftTimeStarted",
+                "ftTimeEnded",
+                "fnTeam1Score",
+                "fnTeam2Score"
+            };
 
             String[] values = {
-                    Integer.toString(fnMatchID),
-                    Integer.toString(roundstate),
-                    started,
-                    ended,
-                    Integer.toString(m_fnTeam1Score),
-                    Integer.toString(m_fnTeam2Score)};
+                Integer.toString(fnMatchID),
+                Integer.toString(roundstate),
+                started,
+                ended,
+                Integer.toString(m_fnTeam1Score),
+                Integer.toString(m_fnTeam2Score)
+            };
 
             m_botAction.SQLInsertInto(dbConn, "tblTWL__MatchRound", fields, values);
             //            ResultSet s = m_botAction.SQLQuery(dbConn, "select fnMatchRoundID from tblMatchRound where ftTimeStarted = '"+started+"' and ftTimeEnded = '"+ended+"' and fnTeam1Score = "+m_fnTeam1Score+" and fnTeam2Score = "+m_fnTeam2Score);
             ResultSet s = m_botAction.SQLQuery(dbConn, "select MAX(fnMatchRoundID) as fnMatchRoundID from tblTWL__MatchRound");
+
             if (s.next()) {
                 m_fnMatchRoundID = s.getInt("fnMatchRoundID");
                 m_team1.storePlayerResults();
@@ -274,14 +291,16 @@ public class MatchRound {
             m_botAction.SQLClose(s);
 
             String[] fields2 = {
-                    "fnMatchID",
-                    "fnMatchRoundID",
-            "fcEvent" };
+                "fnMatchID",
+                "fnMatchRoundID",
+                "fcEvent"
+            };
 
             String[] values2 = {
-                    Integer.toString(fnMatchID),
-                    Integer.toString(m_fnMatchRoundID),
-                    JSONValue.escape(JSONValue.toJSONString(events)) };
+                Integer.toString(fnMatchID),
+                Integer.toString(m_fnMatchRoundID),
+                JSONValue.escape(JSONValue.toJSONString(events))
+            };
 
             m_botAction.SQLBackgroundInsertInto(dbConn, "tblTWL__MatchRoundExtra", fields2, values2);
 
@@ -298,12 +317,12 @@ public class MatchRound {
     }
 
     /**
-     * Parses the FlagClaimed event to the correct team
-     * It also check if any of the teams won the race
-     *
-     * @author Force of Nature
-     * @param event The flagClaimed event holding the playerId claiming the flag
-     */
+        Parses the FlagClaimed event to the correct team
+        It also check if any of the teams won the race
+
+        @author Force of Nature
+        @param event The flagClaimed event holding the playerId claiming the flag
+    */
     @SuppressWarnings("unchecked")
     public void handleEvent(FlagClaimed event) {
         if (m_fnRoundState == 3) {
@@ -315,6 +334,7 @@ public class MatchRound {
                 m_team1.ownFlag(event.getPlayerID()); // .. or else own will not register. -qan 10/04
 
                 MatchPlayer p = getPlayer(player.getPlayerName());
+
                 if (p != null && m_rules.getInt("storegame") != 0)
                     events.add(MatchRoundEvent.flagTouch(1, p.m_dbPlayer.getUserID()));
             }
@@ -324,37 +344,43 @@ public class MatchRound {
                 m_team2.ownFlag(event.getPlayerID());
 
                 MatchPlayer p = getPlayer(player.getPlayerName());
+
                 if (p != null && m_rules.getInt("storegame") != 0)
                     events.add(MatchRoundEvent.flagTouch(2, p.m_dbPlayer.getUserID()));
             }
         }
     }
-    
+
     /*
-     * Parses the FlagReward event to the correct team
-     */
+        Parses the FlagReward event to the correct team
+    */
     public void handleEvent(FlagReward event) {
         if (m_fnRoundState == 3) {
             int freq = event.getFrequency();
+
             if (m_team1.getFrequency() == freq)
                 m_team1.flagReward(event.getPoints());
+
             if (m_team2.getFrequency() == freq)
                 m_team2.flagReward(event.getPoints());
+
             if (m_team1.wonRace() || m_team2.wonRace())
                 endGame();
         }
     }
-    
+
     /**
-     * Parses the FrequencyShipChange event to the team in which the player is
-     *
-     * @param event FrequencyShipChange event
-     */
+        Parses the FrequencyShipChange event to the team in which the player is
+
+        @param event FrequencyShipChange event
+    */
     public void handleEvent(FrequencyShipChange event) {
         try {
             String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+
             if (m_team1.getPlayer(playerName, true) != null)
                 m_team1.handleEvent(event);
+
             if (m_team2.getPlayer(playerName, true) != null)
                 m_team2.handleEvent(event);
 
@@ -366,8 +392,8 @@ public class MatchRound {
     }
 
     /*
-     * Parses the PlayerDeath event to the team in which the player is
-     */
+        Parses the PlayerDeath event to the team in which the player is
+    */
     @SuppressWarnings("unchecked")
     public void handleEvent(PlayerDeath event) {
         try {
@@ -382,7 +408,7 @@ public class MatchRound {
 
             // Distance between the killer and killee
             double distance = Math.sqrt(Math.pow(killer.getXLocation() - killee.getXLocation(), 2)
-                    + Math.pow(killer.getYLocation() - killee.getYLocation(), 2)) / 16;
+                                        + Math.pow(killer.getYLocation() - killee.getYLocation(), 2)) / 16;
 
             MatchPlayer p1 = getPlayer(killerName);
             MatchPlayer p2 = getPlayer(killeeName);
@@ -402,10 +428,13 @@ public class MatchRound {
 
             if (m_team1.getPlayer(killeeName, true) != null)
                 m_team1.handleEvent(event, killerName, killer.getShipType());
+
             if (m_team2.getPlayer(killeeName, true) != null)
                 m_team2.handleEvent(event, killerName, killer.getShipType());
+
             if (m_team1.getPlayer(killerName, true) != null)
                 m_team1.reportKill(event, killeeName, killee.getShipType());
+
             if (m_team2.getPlayer(killerName, true) != null)
                 m_team2.reportKill(event, killeeName, killee.getShipType());
 
@@ -413,11 +442,13 @@ public class MatchRound {
             if (p1 != null && p2 != null && p2.m_fnPlayerState == 4) {
                 if (m_rules.getInt("storegame") != 0)
                     events.add(MatchRoundEvent.eliminated(p2.m_dbPlayer.getUserID(), p1.m_dbPlayer.getUserID()));
+
                 p2.reportKO(killerName);
             }
 
             if (m_team1.isDead() || m_team2.isDead())
                 endGame();
+
             if (m_team1.wonRace() || m_team2.wonRace())
                 endGame();
         } catch (Exception e) {
@@ -425,28 +456,31 @@ public class MatchRound {
         }
     }
 
-    public void handleEvent( PlayerEntered event ){
+    public void handleEvent( PlayerEntered event ) {
 
-        if (m_blueoutState == 1){
+        if (m_blueoutState == 1) {
             m_botAction.sendPrivateMessage(event.getPlayerID(), "This game has blueout enabled.");
         }
 
         int exists = m_notPlaying.indexOf( event.getPlayerName().toLowerCase());
-        if( exists != -1 ){
+
+        if( exists != -1 ) {
             m_botAction.spec( event.getPlayerName() );
             m_botAction.spec( event.getPlayerName() );
             m_logger.sendPrivateMessage( event.getPlayerName(), "notplaying mode is still on, captains will be unable to pick you");
             m_logger.setFreq( event.getPlayerName(), NOT_PLAYING_FREQ);
         }
     }
-    
+
     /*
-     * Parses the PlayerLeft event to the team in which the player is
-     */
+        Parses the PlayerLeft event to the team in which the player is
+    */
     public void handleEvent(PlayerLeft event) {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+
         if (m_team1.getPlayer(playerName, true) != null)
             m_team1.handleEvent(event);
+
         if (m_team2.getPlayer(playerName, true) != null)
             m_team2.handleEvent(event);
 
@@ -455,34 +489,38 @@ public class MatchRound {
     }
 
     public void handleEvent(PlayerPosition event) {
-        /* for round state 2:
-         * since the bot is at 0,0. The only position packets it receives are those
-         * of player warps, which is illegal when the game is starting
-         */
+        /*  for round state 2:
+            since the bot is at 0,0. The only position packets it receives are those
+            of player warps, which is illegal when the game is starting
+        */
         if (m_fnRoundState == 2) {
             Player p = m_botAction.getPlayer(event.getPlayerID());
+
             if (p == null)
                 return;
+
             String playerName = p.getPlayerName();
             m_logger.announce("warping " + playerName + " to his team's safe zone");
+
             if ((m_team1.getPlayer(playerName, true) != null)
                     && (event.getXLocation() / 16 != m_rules.getInt("safe1x"))
                     && (event.getYLocation() / 16 != m_rules.getInt("safe1y")))
                 m_botAction.warpTo(event.getPlayerID(), m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
+
             if ((m_team2.getPlayer(playerName, true) != null)
                     && (event.getXLocation() / 16 != m_rules.getInt("safe2x"))
                     && (event.getYLocation() / 16 != m_rules.getInt("safe2y")))
                 m_botAction.warpTo(event.getPlayerID(), m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
         } else if (m_fnRoundState == 3) {
-            /* for round state 3:
-             * bot centers at (centeratx, centeraty), checks if a person is longer than (outofbordertime) below (bordery)
-             */
+            /*  for round state 3:
+                bot centers at (centeratx, centeraty), checks if a person is longer than (outofbordertime) below (bordery)
+            */
             /*
-             * if (position OUTSIDE border) then
-             *   if (outsidestart == 0) then outsidestart = systemtimems
-             *   else if (systemtimems - outside start) > outofbordertime*500 then give_warning
-             *   else if (systemtimems - outside start) > outofbordertime*1000 then kick_out_of_game
-             */
+                if (position OUTSIDE border) then
+                 if (outsidestart == 0) then outsidestart = systemtimems
+                 else if (systemtimems - outside start) > outofbordertime*500 then give_warning
+                 else if (systemtimems - outside start) > outofbordertime*1000 then kick_out_of_game
+            */
             if (m_rules.getInt("yborder") != 0) {
                 //int xpos = event.getXLocation() / 16;
                 int ypos = event.getYLocation() / 16;
@@ -494,7 +532,7 @@ public class MatchRound {
                     return;
 
                 if (ypos > yborder) {
-                    MatchPlayer p = m_team1.getPlayer(playerName); 
+                    MatchPlayer p = m_team1.getPlayer(playerName);
                     MatchPlayer p2 = m_team2.getPlayer(playerName);
 
                     // We can't settle for whichever one -- have to find the best match
@@ -513,12 +551,12 @@ public class MatchRound {
                             if (pSysTime == 0)
                                 p.setOutOfBorderTime();
                             else if (((sysTime - pSysTime) > outofbordertime / 2) && (!p.hasHalfBorderWarning())
-                                    && ((sysTime - pSysTime) < outofbordertime)) {
+                                     && ((sysTime - pSysTime) < outofbordertime)) {
                                 p.setHalfBorderWarning();
                                 m_logger.sendPrivateMessage(
-                                        playerName,
-                                        "Go to base! You have " + outofbordertime / 2000 + " seconds before you'll get +1 death",
-                                        26);
+                                    playerName,
+                                    "Go to base! You have " + outofbordertime / 2000 + " seconds before you'll get +1 death",
+                                    26);
                             } else if ((sysTime - pSysTime) > outofbordertime) {
                                 m_botAction.sendArenaMessage(playerName + " has been given 1 death for being out of base too long.");
                                 p.reportDeath();
@@ -532,13 +570,15 @@ public class MatchRound {
             }
         }
     }
-    
+
     public void handleEvent(Prize event) {
         try {
             if (m_fnRoundState == 3) {
                 String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+
                 if (m_team1.getPlayer(playerName, true) != null)
                     m_team1.handleEvent(event);
+
                 if (m_team2.getPlayer(playerName, true) != null)
                     m_team2.handleEvent(event);
             }
@@ -548,22 +588,26 @@ public class MatchRound {
     }
 
     /*
-     * Parses the SoccerGoal event to the team in which the player is
-     */
+        Parses the SoccerGoal event to the team in which the player is
+    */
     public void handleEvent(SoccerGoal event) {
         try {
             int freq = event.getFrequency();
 
             if (freq == 0) {
                 m_fnTeam1Score++;
+
                 if (m_fnTeam1Score >= m_rules.getInt("goals"))
                     endGame();
             }
+
             if (freq == 1) {
                 m_fnTeam2Score++;
+
                 if (m_fnTeam2Score >= m_rules.getInt("goals"))
                     endGame();
             }
+
             System.out.println("Goal by: " + freq);
             System.out.println("Score: " + m_fnTeam1Score + "-" + m_fnTeam2Score);
         } catch (Exception e) {
@@ -576,8 +620,10 @@ public class MatchRound {
             if (m_fnRoundState == 3 && event.isAttaching()) {
 
                 String playerName = m_botAction.getPlayer(event.getAttacherID()).getPlayerName();
+
                 if (m_team1.getPlayer(playerName, true) != null)
                     m_team1.handleEvent(event);
+
                 if (m_team2.getPlayer(playerName, true) != null)
                     m_team2.handleEvent(event);
             }
@@ -587,28 +633,30 @@ public class MatchRound {
     }
 
     /**
-     * Can get various weapon info and the player who used it
-     * Get repel used count
-     *
-     * @param event WeaponFired event
-     */
+        Can get various weapon info and the player who used it
+        Get repel used count
+
+        @param event WeaponFired event
+    */
     public void handleEvent(WeaponFired event) {
         try {
             if (m_fnRoundState == 3) {
                 String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
+
                 if (m_team1.getPlayer(playerName, true) != null)
                     m_team1.handleEvent(event);
+
                 if (m_team2.getPlayer(playerName, true) != null)
                     m_team2.handleEvent(event);
             }
         } catch (Exception e) {
             Tools.printStackTrace(e);
-        }   
+        }
     }
 
     /*
-     * Checks if lag reports are sent (in the shape of an arenamessage)
-     */
+        Checks if lag reports are sent (in the shape of an arenamessage)
+    */
     public void handleEvent(Message event) {
         if ((event.getMessageType() == Message.PUBLIC_MESSAGE) && (m_blueoutState == 1) && (m_endGame != null) && (System.currentTimeMillis() - m_timeBOEnabled > 5000)) {
             String name = m_botAction.getPlayerName(event.getPlayerID());
@@ -622,15 +670,16 @@ public class MatchRound {
 
             if (m_fnRoundState == 1) {
                 m_team1.handleEvent(event);
-                m_team2.handleEvent(event);            
-            } else if (m_fnRoundState == 2 && msg.contains("Res:")){
-            	m_team1.handleEvent(event);
-            	m_team2.handleEvent(event);            	
+                m_team2.handleEvent(event);
+            } else if (m_fnRoundState == 2 && msg.contains("Res:")) {
+                m_team1.handleEvent(event);
+                m_team2.handleEvent(event);
             } else if (m_fnRoundState == 3) {
                 m_lagHandler.handleLagMessage(msg);
+
                 if(msg.contains("Res:")) {
-                	m_team1.handleEvent(event);
-                	m_team2.handleEvent(event);
+                    m_team1.handleEvent(event);
+                    m_team2.handleEvent(event);
                 }
             }
 
@@ -651,7 +700,7 @@ public class MatchRound {
                             } catch (Exception e) {
                             };
                         };
-             */
+            */
             if (msg.equals("Public Messages LOCKED")) {
                 if (!m_blueoutDesiredState)
                     m_botAction.toggleBlueOut();
@@ -668,28 +717,33 @@ public class MatchRound {
 
             MatchPlayer p;
             p = m_team1.getPlayer(playerName);
+
             if (p == null)
                 p = m_team2.getPlayer(playerName);
 
             return p;
 
         }
+
         return null;
     }
 
     /*
-     * Collects the available help messages for the player of this class and
-     * the subclasses
-     */
+        Collects the available help messages for the player of this class and
+        the subclasses
+    */
     public ArrayList<String> getHelpMessages(String name, boolean isStaff) {
         ArrayList<String> help = new ArrayList<String>();
 
         // for everybody
         help.add("!cap                                     - Show the captains of both teams");
         help.add("!myfreq                                  - sets you on your team's frequency");
+
         if ((m_fnRoundState <= 1) && (m_rules.getInt("pickbyturn") == 1))
             help.add("!notplaying                              - Indicate that you won't play this round");
+
         help.add("!notplaylist                             - Show all the players who have turned '!notplaying' on");
+
         if (m_fnRoundState == 3) {
             help.add("!score                                   - Show the current score of both teams");
             help.add("!rating <player>                         - provides realtime stats and rating of the player");
@@ -702,6 +756,7 @@ public class MatchRound {
                 help.add("!settime <time in mins>                  - time to racebetween 5 and 30 only for timerace");
                 help.add("!startpick                               - start rostering");
             }
+
             if ((m_fnRoundState == 1)) {
                 if (m_team1.isReadyToGo() && m_team2.isReadyToGo()) {
                     help.add("!startgame                               - start the game");
@@ -711,12 +766,15 @@ public class MatchRound {
                     help.add("!add2mins                                - adds 2 mins to lineup submission");
                 }
             }
+
             if (m_fnRoundState == 3)
                 help.add("!lag <player>                            - show <player> lag");
+
             if (m_team1 != null) {
                 help.add("-- Prepend your command with !t1- for '" + m_team1.getTeamName() + "', !t2- for '" + m_team2.getTeamName() + "' --");
                 help.addAll(m_team1.getHelpMessages(name, isStaff));
             };
+
             // for others
         } else {
             help.addAll(m_team1.getHelpMessages(name, isStaff));
@@ -730,6 +788,7 @@ public class MatchRound {
         if (m_rules.getInt("pickbyturn") == 1) {
             if (command.equals("!notplaying"))
                 command_notplaying(name, parameters);
+
             if (command.equals("!notplaylist"))
                 command_notplaylist(name, parameters);
         };
@@ -785,10 +844,10 @@ public class MatchRound {
     }
 
     /**
-     * Method command_mvp.
-     * @param name The person who got commanded
-     * @param parameters
-     */
+        Method command_mvp.
+        @param name The person who got commanded
+        @param parameters
+    */
     public void command_mvp(String name, String[] parameters) {
         int NUMBER_OF_MVPS = 3;
 
@@ -816,6 +875,7 @@ public class MatchRound {
                 m_logger.sendPrivateMessage(name, "MVP " + (j + 1) + ": " + mvp.getPlayerName());
 
                 String[] stats = mvp.getStatistics();
+
                 for (int i = 1; i < stats.length; i++)
                     m_logger.sendPrivateMessage(name, stats[i]);
             }
@@ -825,8 +885,8 @@ public class MatchRound {
     }
 
     /*
-    private class MvpCompare implements Comparator
-    {
+        private class MvpCompare implements Comparator
+        {
         public MvpCompare() {
         }
 
@@ -844,16 +904,17 @@ public class MatchRound {
                 return 1;
         }
 
-    }
-     */
+        }
+    */
 
     /**
-     * Method command_rating.
-     * @param name The person who got commanded
-     * @param parameters
-     */
+        Method command_rating.
+        @param name The person who got commanded
+        @param parameters
+    */
     public void command_rating(String name, String[] parameters) {
         String winby = m_rules.getString("winby");
+
         if (winby.equals("timerace") && m_fnRoundState == 3) {
             try {
                 if (parameters.length > 0) {
@@ -869,9 +930,9 @@ public class MatchRound {
     }
 
     /**
-     * @param name The name of the person who messaged the bot
-     * @param playerName The name of the player to retreive the rating for
-     */
+        @param name The name of the person who messaged the bot
+        @param playerName The name of the player to retreive the rating for
+    */
     private void reportRating(String name, String playerName) {
         MatchPlayer player;
 
@@ -879,12 +940,14 @@ public class MatchRound {
             player = m_team1.getPlayer(playerName);
             String[] stats = player.getStatistics();
             m_logger.sendPrivateMessage(name, player.getPlayerName());
+
             for (int i = 0; i < stats.length; i++)
                 m_logger.sendPrivateMessage(name, stats[i]);
         } else if (m_team2.getPlayer(playerName) != null) {
             player = m_team2.getPlayer(playerName);
             String[] stats = player.getStatistics();
             m_logger.sendPrivateMessage(name, player.getPlayerName());
+
             for (int i = 0; i < stats.length; i++)
                 m_logger.sendPrivateMessage(name, stats[i]);
         } else
@@ -892,10 +955,10 @@ public class MatchRound {
     }
 
     /**
-     * Method command_setTime.
-     * @param name
-     * @param string
-     */
+        Method command_setTime.
+        @param name
+        @param string
+    */
     public void command_setTime(String name, String[] parameters) {
         if (parameters.length > 0) {
             String string = parameters[0];
@@ -910,7 +973,7 @@ public class MatchRound {
                 } else {
                     setRaceTarget(m_rules.getInt("playofftarget") * 60); //mins to secs
                     m_logger.sendArenaMessage("Race set to: " + m_rules.getInt("playofftarget") + " mins");
-                    m_logger.sendPrivateMessage(name, "Needs to be between 5 mins and 40 mins - setting default race");                    
+                    m_logger.sendPrivateMessage(name, "Needs to be between 5 mins and 40 mins - setting default race");
                 }
             } else {
                 setRaceTarget(time.intValue() * 60); //mins to secs
@@ -929,28 +992,29 @@ public class MatchRound {
 
             if (m_team1.getTeamScore() % 60 < 10)
                 team1leadingZero = "0";
+
             if (m_team2.getTeamScore() % 60 < 10)
                 team2leadingZero = "0";
 
             m_logger.sendPrivateMessage(
-                    name,
-                    m_team1.getTeamName()
-                    + " vs. "
-                    + m_team2.getTeamName()
-                    + ": "
-                    + m_team1.getTeamScore() / 60
-                    + ":"
-                    + team1leadingZero
-                    + m_team1.getTeamScore() % 60
-                    + " - "
-                    + m_team2.getTeamScore() / 60
-                    + ":"
-                    + team2leadingZero
-                    + m_team2.getTeamScore() % 60);
+                name,
+                m_team1.getTeamName()
+                + " vs. "
+                + m_team2.getTeamName()
+                + ": "
+                + m_team1.getTeamScore() / 60
+                + ":"
+                + team1leadingZero
+                + m_team1.getTeamScore() % 60
+                + " - "
+                + m_team2.getTeamScore() / 60
+                + ":"
+                + team2leadingZero
+                + m_team2.getTeamScore() % 60);
         } else {
             m_logger.sendPrivateMessage(
-                    name,
-                    m_team1.getTeamName() + " vs. " + m_team2.getTeamName() + ": " + m_team1.getTeamScore() + " - " + m_team2.getTeamScore());
+                name,
+                m_team1.getTeamName() + " vs. " + m_team2.getTeamName() + ": " + m_team1.getTeamScore() + " - " + m_team2.getTeamScore());
         }
     }
 
@@ -958,6 +1022,7 @@ public class MatchRound {
     public void command_myfreq(String name, String[] parameters) {
         Player p = m_botAction.getPlayer(name);
         int nFrequency = 9999;
+
         if (p != null) {
             if ((p.getSquadName().equalsIgnoreCase(m_team1.getTeamName())) || (m_team1.getPlayer(name, true) != null) || (m_team1.isCaptain(name)))
                 nFrequency = m_team1.getFrequency();
@@ -986,10 +1051,13 @@ public class MatchRound {
         if (exists == -1) {
             m_notPlaying.add(name.toLowerCase());
             String[] tmp = { name };
+
             if ((m_team1.getPlayer(name, true) != null) && (m_fnRoundState == 1))
                 m_team1.command_remove(name, tmp);
+
             if ((m_team2.getPlayer(name, true) != null) && (m_fnRoundState == 1))
                 m_team2.command_remove(name, tmp);
+
             m_botAction.spec( name );
             m_botAction.spec( name );
             m_logger.sendPrivateMessage(name, "Not Playing mode turned on, captains will be unable to pick you");
@@ -997,7 +1065,8 @@ public class MatchRound {
         } else {
             m_notPlaying.remove(exists);
             m_logger.sendPrivateMessage(name, "notplaying mode turned off, captains will be able to pick you");
-            if( m_fnRoundState > 2 ){
+
+            if( m_fnRoundState > 2 ) {
                 m_logger.sendPrivateMessage( name, "If you wish to get back on the normal spec frequency, rejoin the arena" );
                 m_logger.setFreq( name, NOT_PLAYING_FREQ + 1 );
             } else {
@@ -1010,16 +1079,20 @@ public class MatchRound {
         ListIterator<String> i = m_notPlaying.listIterator();
         String a = "", pn;
         boolean first = true;
+
         while (i.hasNext()) {
             pn = m_botAction.getFuzzyPlayerName(i.next());
+
             if (pn != null) {
                 if (first)
                     first = false;
                 else
                     a = a + ", ";
+
                 a = a + pn;
             }
         }
+
         m_logger.sendPrivateMessage(name, "The following players are not playing this game:");
         m_logger.sendPrivateMessage(name, a);
     }
@@ -1027,6 +1100,7 @@ public class MatchRound {
     public void command_startpick(String name, String parameters[]) {
         //This is for the time race.  If the person hasn't set the time it is set to default
         String winby = m_rules.getString("winby");
+
         if (winby.equals("timerace")) // 5 mins and 30 mins in secs
         {
             if (!m_playoff && (m_raceTarget < 5 * 60 || m_raceTarget > 30 * 30)) {
@@ -1034,7 +1108,7 @@ public class MatchRound {
                 m_logger.sendArenaMessage("Race set to " + m_rules.getInt("defaulttarget") + " mins");
             } else if (m_playoff && (m_raceTarget < 5 * 60 || m_raceTarget > 40 * 30)) {
                 setRaceTarget(m_rules.getInt("playofftarget") * 60); //mins to secs
-                m_logger.sendArenaMessage("Race set to " + m_rules.getInt("playofftarget") + " mins");                            
+                m_logger.sendArenaMessage("Race set to " + m_rules.getInt("playofftarget") + " mins");
             }
         }
 
@@ -1089,6 +1163,7 @@ public class MatchRound {
         }
 
         MatchPlayer p = m_team1.getPlayer(report.getName(), true);
+
         if (p == null) {
             p = m_team2.getPlayer(report.getName(), true);
         }
@@ -1097,6 +1172,7 @@ public class MatchRound {
             if (!report.isBotRequest()) {
                 m_botAction.sendPrivateMessage(report.getRequester(), report.getLagReport());
             }
+
             if (p != null && m_botAction.getPlayer(report.getName()).getShipType() != 0 && p.getPlayerState() == MatchPlayer.IN_GAME) {
                 m_botAction.sendPrivateMessage(report.getName(), report.getLagReport());
                 p.setLagByBot(true);
@@ -1129,6 +1205,7 @@ public class MatchRound {
             } else {
                 m_botAction.sendSquadMessage(m_team1.getTeamName(), m_team2.getTeamName() + " has requested to add an extra player. Captains/Assistants reply with !addplayer to accept the request.");
             }
+
             return false;
         }
     }
@@ -1139,15 +1216,23 @@ public class MatchRound {
             if (m_scheduleTimer != null) {
                 m_botAction.cancelTask(m_scheduleTimer);
             };
+
             m_botAction.setTimer(0);
 
             m_logger.sendArenaMessage("Both teams are ready, game starts in 30 seconds", 2);
+
             m_logger.setDoors(255);
+
             m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
+
             m_team2.warpTo(m_rules.getInt("safe2x"), m_rules.getInt("safe2y"));
+
             m_botAction.move(0, 0);
+
             m_fnRoundState = 2;
+
             checkBlueout();
+
             m_secondWarp = new TimerTask() {
                 public void run() {
                     m_team1.warpTo(m_rules.getInt("safe1x"), m_rules.getInt("safe1y"));
@@ -1155,24 +1240,31 @@ public class MatchRound {
                 }
 
             };
+
             m_countdown10Seconds = new TimerTask() {
                 public void run() {
                     m_botAction.showObject(m_rules.getInt("obj_countdown10"));
                 };
             };
+
             m_countdown54321 = new TimerTask() {
                 public void run() {
                     m_botAction.showObject(m_rules.getInt("obj_countdown54321"));
                 };
             };
+
             m_startGame = new TimerTask() {
                 public void run() {
                     startGame();
                 };
             };
+
             m_botAction.scheduleTask(m_secondWarp, 10000);
+
             m_botAction.scheduleTask(m_countdown10Seconds, 20000);
+
             m_botAction.scheduleTask(m_countdown54321, 25000);
+
             m_botAction.scheduleTask(m_startGame, 30000);
         };
     };
@@ -1187,6 +1279,7 @@ public class MatchRound {
             m_generalTime = m_rules.getInt("time") * 60;
         else if (m_playoff && m_rules.getString("winby").equals("timerace"))
             m_generalTime = m_rules.getInt("playofftime") * 60;
+
         m_myObjects = m_botAction.getObjectSet();
         updateScores = new TimerTask() {
             public void run() {
@@ -1197,6 +1290,7 @@ public class MatchRound {
 
         if ((m_rules.getInt("safe1xout") != 0) && (m_rules.getInt("safe1yout") != 0)) {
             m_team1.warpTo(m_rules.getInt("safe1xout"), m_rules.getInt("safe1yout"));
+
             if ((m_rules.getInt("safe2xout") != 0) && (m_rules.getInt("safe2yout") != 0)) {
                 m_team2.warpTo(m_rules.getInt("safe2xout"), m_rules.getInt("safe2yout"));
             } else {
@@ -1209,13 +1303,21 @@ public class MatchRound {
             m_team2.warpTo(m_rules.getInt("safe2xout"), m_rules.getInt("safe2yout"));
             m_logger.setDoors(0);
         };
+
         m_team1.signalStartToPlayers();
+
         m_team2.signalStartToPlayers();
+
         m_botAction.setReliableKills(1);
+
         m_logger.scoreResetAll();
+
         m_logger.shipResetAll();
+
         m_logger.resetFlagGame();
+
         m_logger.sendArenaMessage("Go go go!", 104);
+
         m_botAction.showObject(m_rules.getInt("obj_gogogo"));
 
         m_timeStartedms = System.currentTimeMillis();
@@ -1236,6 +1338,7 @@ public class MatchRound {
                 int pathnr = 1, pathmax = m_rules.getInt("pathcount");
                 public void run() {
                     m_botAction.move(m_rules.getInt("path" + pathnr + "x") * 16, m_rules.getInt("path" + pathnr + "y") * 16);
+
                     if (pathnr == pathmax)
                         pathnr = 1;
                     else
@@ -1250,6 +1353,7 @@ public class MatchRound {
                 m_logger.setDoors(255);
             };
         };
+
         m_botAction.scheduleTask(m_closeDoors, 10000);
 
         if (m_rules.getInt("time") != 0) {
@@ -1257,16 +1361,19 @@ public class MatchRound {
                 m_botAction.setTimer(m_rules.getInt("time"));
             else if (m_playoff && m_rules.getString("winby").equals("timerace"))
                 m_botAction.setTimer(m_rules.getInt("playofftime"));
+
             m_endGame = new TimerTask() {
                 public void run() {
                     endGame();
                 };
             };
+
             if (!m_playoff || !m_rules.getString("winby").equals("timerace"))
                 m_botAction.scheduleTask(m_endGame, 60000 * m_rules.getInt("time"));
             else if (m_playoff && m_rules.getString("winby").equals("timerace"))
                 m_botAction.scheduleTask(m_endGame, 60000 * m_rules.getInt("playofftime"));
         };
+
         m_fnRoundState = 3;
     };
 
@@ -1283,9 +1390,12 @@ public class MatchRound {
 
         if (m_fnTeam1Score == m_fnTeam2Score) {
             String ondraw = m_rules.getString("ondraw");
+
             if (ondraw == null) ondraw = "quit";
+
             if ((ondraw.equalsIgnoreCase("extension")) && (!m_fbExtension) && (!m_team1.isForfeit())) {
                 int extTime = m_rules.getInt("extensiontime");
+
                 if (extTime != 0) {
                     m_logger.sendArenaMessage("The scores are tied. The game will be extended for " + extTime + " minutes.", 2);
                     m_generalTime = extTime * 60;
@@ -1325,25 +1435,26 @@ public class MatchRound {
 
                 if (m_team1.getTeamScore() % 60 < 10)
                     team1leadingZero = "0";
+
                 if (m_team2.getTeamScore() % 60 < 10)
                     team2leadingZero = "0";
 
                 m_logger.sendArenaMessage(
-                        "Result of "
-                                + m_team1.getTeamName()
-                                + " vs. "
-                                + m_team2.getTeamName()
-                                + ": "
-                                + m_fnTeam1Score / 60
-                                + ":"
-                                + team1leadingZero
-                                + m_team1.getTeamScore() % 60
-                                + " - "
-                                + m_fnTeam2Score / 60
-                                + ":"
-                                + team2leadingZero
-                                + m_team2.getTeamScore() % 60,
-                                5);
+                    "Result of "
+                    + m_team1.getTeamName()
+                    + " vs. "
+                    + m_team2.getTeamName()
+                    + ": "
+                    + m_fnTeam1Score / 60
+                    + ":"
+                    + team1leadingZero
+                    + m_team1.getTeamScore() % 60
+                    + " - "
+                    + m_fnTeam2Score / 60
+                    + ":"
+                    + team2leadingZero
+                    + m_team2.getTeamScore() % 60,
+                    5);
             } else
                 m_logger.sendArenaMessage("Result of " + m_team1.getTeamName() + " vs. " + m_team2.getTeamName() + ": " + m_fnTeam1Score + " - " + m_fnTeam2Score, 5);
 
@@ -1351,12 +1462,14 @@ public class MatchRound {
 
             if (m_fnTeam1Score > m_fnTeam2Score) {
                 m_fnRoundResult = 1;
+
                 if (m_rules.getInt("rounds") > 1)
                     m_logger.sendArenaMessage(m_team1.getTeamName() + " wins round " + m_fnRoundNumber + "!");
                 else
                     m_logger.sendArenaMessage(m_team1.getTeamName() + " wins this game!");
             } else if (m_fnTeam2Score > m_fnTeam1Score) {
                 m_fnRoundResult = 1;
+
                 if (m_rules.getInt("rounds") > 1)
                     m_logger.sendArenaMessage(m_team2.getTeamName() + " wins round " + m_fnRoundNumber + "!");
                 else
@@ -1386,11 +1499,13 @@ public class MatchRound {
                         m_myObjects.hideAllObjects();
                         m_botAction.setObjects();
                     }
+
                     m_generalTime = 0;
 
                     signalEndOfRound();
                 }
             };
+
             m_botAction.scheduleTask(m_signalEndOfRound, 10000);
         }
     }
@@ -1404,6 +1519,7 @@ public class MatchRound {
                 mvp = t1b;
             else
                 mvp = t2b;
+
             m_logger.sendArenaMessage("MVP: " + mvp.getPlayerName() + "!", 7);
         }
     }
@@ -1421,11 +1537,12 @@ public class MatchRound {
         if ((m_fnRoundState == 1) && (!m_team1.m_turn) && (!m_team2.m_turn)) {
             if (pr1 <= pr2)
                 m_team1.setTurn();
+
             if (pr2 < pr1)
                 m_team2.setTurn();
         }
     }
-    
+
     // schedule time is up. Start game when both rosters are ok, otherwise call forfeit
     public void scheduleTimeIsUp() {
         if (m_lineUpExtension) {
@@ -1447,6 +1564,7 @@ public class MatchRound {
 
         if (!t1a.equals("yes"))
             gameResult = 1;
+
         if (!t2a.equals("yes"))
             if (gameResult == 0)
                 gameResult = 2;
@@ -1500,6 +1618,7 @@ public class MatchRound {
 
     public void toggleBlueout(boolean blueout) {
         m_blueoutDesiredState = blueout;
+
         if((m_blueoutState == -1) || ((m_blueoutState == 0) && (m_blueoutDesiredState)) || ((m_blueoutState == 1) && (!m_blueoutDesiredState))) {
             if (m_blueoutDesiredState) {
                 m_logger.sendArenaMessage("Blueout has been enabled. Staff, don't speak in public from now on.");
@@ -1509,12 +1628,14 @@ public class MatchRound {
                 m_logger.sendArenaMessage("Blueout has been disabled. You can speak in public now.");
                 m_blueoutState = 0;
             }
+
             m_botAction.toggleBlueOut();
         }
     }
 
     public void requestBlueout(boolean blueout) {
         m_blueoutDesiredState = blueout;
+
         if (m_fnRoundState >= 2)
             toggleBlueout(m_blueoutDesiredState);
     }
@@ -1550,25 +1671,27 @@ public class MatchRound {
 
                 //Team 1
                 m_myObjects.showObject( 100 + team1Seconds % 10 );
-                m_myObjects.showObject( 110 + (team1Seconds - team1Seconds % 10)/10 );
+                m_myObjects.showObject( 110 + (team1Seconds - team1Seconds % 10) / 10 );
                 m_myObjects.showObject( 130 + team1Minutes % 10 );
-                m_myObjects.showObject( 140 + (team1Minutes - team1Minutes % 10)/10 );
+                m_myObjects.showObject( 140 + (team1Minutes - team1Minutes % 10) / 10 );
 
                 //Team 2
                 m_myObjects.showObject( 200 + team2Seconds % 10 );
-                m_myObjects.showObject( 210 + (team2Seconds - team2Seconds % 10)/10 );
+                m_myObjects.showObject( 210 + (team2Seconds - team2Seconds % 10) / 10 );
                 m_myObjects.showObject( 230 + team2Minutes % 10 );
-                m_myObjects.showObject( 240 + (team2Minutes - team2Minutes % 10)/10 );
-            } 
+                m_myObjects.showObject( 240 + (team2Minutes - team2Minutes % 10) / 10 );
+            }
             //Else display ld lj on normal scoreboard
             // Note: Scoreboard is not logical, scores for team 1 are object ids 200+, scores for team 2 are object ids 100+
             //       This is only caused in TWLD and TWLJ arenas as they are using the lvz 'twl.lvz'
-            else { 
+            else {
                 for (int i = team1Score.length() - 1; i > -1; i--)
                     m_myObjects.showObject(Integer.parseInt("" + team1Score.charAt(i)) + 200 + (team1Score.length() - 1 - i) * 10);
+
                 for (int i = team2Score.length() - 1; i > -1; i--)
                     m_myObjects.showObject(Integer.parseInt("" + team2Score.charAt(i)) + 100 + (team2Score.length() - 1 - i) * 10);
             }
+
             if (m_generalTime >= 0) {
                 int seconds = m_generalTime % 60;
                 int minutes = (m_generalTime - seconds) / 60;
@@ -1577,6 +1700,7 @@ public class MatchRound {
                 m_myObjects.showObject(710 + ((seconds - seconds % 10) / 10));
                 m_myObjects.showObject(700 + (seconds % 10));
             }
+
             do_showTeamNames(m_team1.getTeamName(), m_team2.getTeamName());
             m_botAction.setObjects();
         }
@@ -1585,12 +1709,15 @@ public class MatchRound {
     public void do_showTeamNames(String n1, String n2) {
         n1 = n1.toLowerCase();
         n2 = n2.toLowerCase();
+
         if (n1.equalsIgnoreCase("Freq 1")) {
             n1 = "freq1";
         }
+
         if (n2.equalsIgnoreCase("Freq 2")) {
             n2 = "freq2";
         }
+
         int i;
         String s1 = "", s2 = "";
 
@@ -1612,10 +1739,12 @@ public class MatchRound {
 
         for (i = 0; i < new_n.length(); i++) {
             t = new Integer(Integer.toString(((new_n.getBytes()[i]) - 97) + alph_offs) + Integer.toString(i + pos_offs)).intValue();
+
             if (t < -89) {
                 t = new Integer(Integer.toString(((new_n.getBytes()[i])) + alph_offs) + Integer.toString(i + pos_offs)).intValue();
                 t -= 220;
             }
+
             m_myObjects.showObject(t);
         }
 
@@ -1674,22 +1803,30 @@ public class MatchRound {
     public void cancel() {
         if (m_countdown10Seconds != null)
             m_botAction.cancelTask(m_countdown10Seconds);
+
         if (m_startGame != null)
             m_botAction.cancelTask(m_startGame);
+
         if (m_endGame != null) {
             m_botAction.showObject(m_rules.getInt("obj_gameover"));
             m_botAction.cancelTask(m_endGame);
         }
+
         if (m_raceTimer != null)
             m_botAction.cancelTask(m_raceTimer);
+
         if (m_scheduleTimer != null)
             m_botAction.cancelTask(m_scheduleTimer);
+
         if (m_signalEndOfRound != null)
             m_botAction.cancelTask(m_signalEndOfRound);
+
         if (m_announceMVP != null)
             m_botAction.cancelTask(m_announceMVP);
+
         if (m_closeDoors != null)
             m_botAction.cancelTask(m_closeDoors);
+
         if (m_moveAround != null)
             m_botAction.cancelTask(m_moveAround);
 
@@ -1707,33 +1844,33 @@ public class MatchRound {
     }
 
     /**
-     * Returns the m_raceTarget.
-     * @return int
-     */
+        Returns the m_raceTarget.
+        @return int
+    */
     public int getRaceTarget() {
         return m_raceTarget;
     }
 
     /**
-     * Sets the m_raceTarget.
-     * @param m_raceTarget The m_raceTarget to set
-     */
+        Sets the m_raceTarget.
+        @param m_raceTarget The m_raceTarget to set
+    */
     public void setRaceTarget(int raceTarget) {
         m_raceTarget = raceTarget;
     }
 
     /**
-     * This class is used to store event statistics about the current round
-     * It used JSONArray because it is already serializable, PHP-compatible and lightweight
-     * This information will be only used to produce a graphic
-     * 
-     * EventType number must be in sync with those on the website..
-     * Don't even change one.
-     * 
-     * If you need to add a new event, use the last number and do +1
-     * 
-     * See Arobas+
-     */
+        This class is used to store event statistics about the current round
+        It used JSONArray because it is already serializable, PHP-compatible and lightweight
+        This information will be only used to produce a graphic
+
+        EventType number must be in sync with those on the website..
+        Don't even change one.
+
+        If you need to add a new event, use the last number and do +1
+
+        See Arobas+
+    */
     @SuppressWarnings({ "unchecked", "serial" })
     public static class MatchRoundEvent extends JSONArray {
 

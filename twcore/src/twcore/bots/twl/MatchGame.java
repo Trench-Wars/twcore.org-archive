@@ -1,14 +1,14 @@
 package twcore.bots.twl;
 
-/* MatchGame.java
- *
- * Created on August 20, 2002, 8:46 PM
- */
+/*  MatchGame.java
+
+    Created on August 20, 2002, 8:46 PM
+*/
 
 /**
- *
- * @author  Administrator
- */
+
+    @author  Administrator
+*/
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -90,6 +90,7 @@ public class MatchGame {
         if ((m_rules.getInt("rosterjoined") == 1) || (m_rules.getInt("storegame") == 1)) {
             m_fnTeam1ID = getTeamID(m_fcTeam1Name);
             m_fnTeam2ID = getTeamID(m_fcTeam2Name);
+
             if (m_rules.getInt("rosterjoined") == 1) {
                 if ((m_fnTeam1ID == 0) || (m_fnTeam2ID == 0)) {
                     return;
@@ -103,16 +104,17 @@ public class MatchGame {
             } else {
                 createGameRecord();
             }
+
             if (m_rules.getInt("loggame") == 1) {
                 m_logger.activate(m_fnMatchID);
             }
         }
 
         /*
-		m_fcArena = m_rules.getString("arena");
-		if (m_fcArena == null) m_fcArena = "twd";
-		m_botAction.joinArena(m_fcArena);
-         */
+            m_fcArena = m_rules.getString("arena");
+            if (m_fcArena == null) m_fcArena = "twd";
+            m_botAction.joinArena(m_fcArena);
+        */
 
         TimerTask startup = new TimerTask() {
             public void run() {
@@ -126,13 +128,15 @@ public class MatchGame {
     public int getTeamID(String fcTeamName) {
         try {
             ResultSet rs =
-                    m_botAction.SQLQuery(
-                            dbConn,
-                            "SELECT fnTeamId FROM tblTeam WHERE tblTeam.fcTeamName = '" + Tools.addSlashesToString(fcTeamName) + "' AND (fdDeleted IS NULL or fdDeleted = 0)");
+                m_botAction.SQLQuery(
+                    dbConn,
+                    "SELECT fnTeamId FROM tblTeam WHERE tblTeam.fcTeamName = '" + Tools.addSlashesToString(fcTeamName) + "' AND (fdDeleted IS NULL or fdDeleted = 0)");
             int id = 0;
+
             if (rs.next()) {
                 id =  rs.getInt("fnTeamId");
             }
+
             m_botAction.SQLClose(rs);
             return id;
         } catch (Exception e) {
@@ -169,28 +173,32 @@ public class MatchGame {
             String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 
             String[] fields = {
-                    "fnMatchTypeID",
-                    "fnMatchStateID",
-                    "fnTeam1ID",
-                    "fcTeam1Name",
-                    "fnTeam2ID",
-                    "fcTeam2Name",
-                    "ftTimeStarted" };
+                "fnMatchTypeID",
+                "fnMatchStateID",
+                "fnTeam1ID",
+                "fcTeam1Name",
+                "fnTeam2ID",
+                "fcTeam2Name",
+                "ftTimeStarted"
+            };
             String[] values = {
-                    m_rules.getString("matchtype"),
-                    "2",
-                    Integer.toString(m_fnTeam1ID),
-                    Tools.addSlashesToString(m_fcTeam1Name),
-                    Integer.toString(m_fnTeam2ID),
-                    Tools.addSlashesToString(m_fcTeam2Name),
-                    time };
+                m_rules.getString("matchtype"),
+                "2",
+                Integer.toString(m_fnTeam1ID),
+                Tools.addSlashesToString(m_fcTeam1Name),
+                Integer.toString(m_fnTeam2ID),
+                Tools.addSlashesToString(m_fcTeam2Name),
+                time
+            };
             m_botAction.SQLInsertInto(dbConn, "tblTWL__Match", fields, values);
 
             //            ResultSet s = m_botAction.SQLQuery(dbConn, "select fnMatchID from tblMatch where ftTimeStarted = '"+time+"' and fcTeam1Name = '"+Tools.addSlashesToString(m_fcTeam1Name)+"' and fcTeam2Name = '"+Tools.addSlashesToString(m_fcTeam2Name)+"'");
             ResultSet s = m_botAction.SQLQuery(dbConn, "select MAX(fnMatchID) as fnMatchID from tblTWL__Match");
+
             if (s.next()) {
                 m_fnMatchID = s.getInt("fnMatchID");
             }
+
             m_botAction.SQLClose(s);
         } catch (Exception e) {
             Tools.printStackTrace("unable to insert game record: ", e);
@@ -202,15 +210,15 @@ public class MatchGame {
         try {
             String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
             m_botAction.SQLQuery(
-                    dbConn,
-                    "UPDATE tblTWL__Match SET fnMatchStateID = 3, fnTeam1Score="
-                            + m_fnTeam1Score
-                            + ", fnTeam2Score="
-                            + m_fnTeam2Score
-                            + ", ftTimeEnded='"
-                            + time
-                            + "' where fnMatchID = "
-                            + m_fnMatchID);
+                dbConn,
+                "UPDATE tblTWL__Match SET fnMatchStateID = 3, fnTeam1Score="
+                + m_fnTeam1Score
+                + ", fnTeam2Score="
+                + m_fnTeam2Score
+                + ", ftTimeEnded='"
+                + time
+                + "' where fnMatchID = "
+                + m_fnMatchID);
             m_gameStored = true;
         } catch (Exception e) {
             Tools.printStackTrace(e);
@@ -226,9 +234,10 @@ public class MatchGame {
             m_curRound.handleEvent(event);
         }
     }
-    
+
     public void handleEvent(FlagClaimed event) {
         m_logger.logEvent(event);
+
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
         }
@@ -240,6 +249,7 @@ public class MatchGame {
 
     public void handleEvent(FrequencyShipChange event) {
         m_logger.logEvent(event);
+
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
         }
@@ -247,6 +257,7 @@ public class MatchGame {
 
     public void handleEvent(FlagReward event) {
         m_logger.logEvent(event);
+
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
         }
@@ -254,6 +265,7 @@ public class MatchGame {
 
     public void handleEvent(Message event) {
         m_logger.logEvent(event);
+
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
         }
@@ -261,6 +273,7 @@ public class MatchGame {
 
     public void handleEvent(PlayerDeath event) {
         m_logger.logEvent(event);
+
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
         }
@@ -268,7 +281,8 @@ public class MatchGame {
 
     public void handleEvent(PlayerEntered event) {
         m_botAction.sendPrivateMessage(event.getPlayerID(), shortStatus());
-        if( m_curRound != null ){
+
+        if( m_curRound != null ) {
             m_curRound.handleEvent( event );
         }
     }
@@ -292,7 +306,7 @@ public class MatchGame {
 
         }
     }
-    
+
     public void handleEvent(ScoreReset event) {
         m_logger.logEvent(event);
     }
@@ -302,23 +316,23 @@ public class MatchGame {
             m_curRound.handleEvent(event);
         }
     }
-    
+
     public void handleEvent(TurretEvent event) {
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
         }
     }
-    
+
     /**
-     * @param event WeaponFired event
-     */
+        @param event WeaponFired event
+    */
     public void handleEvent(WeaponFired event) {
         //m_logger.logEvent(event); too much extra overhead for database
         if (m_curRound != null) {
             m_curRound.handleEvent(event);
         }
     }
-    
+
     public ArrayList<String> getHelpMessages(String name, boolean isStaff) {
         ArrayList<String> help = new ArrayList<String>();
 
@@ -361,50 +375,57 @@ public class MatchGame {
 
                         if (m_curRound.m_team1.getTeamScore() % 60 < 10)
                             team1leadingZero = "0";
+
                         if (m_curRound.m_team2.getTeamScore() % 60 < 10)
                             team2leadingZero = "0";
 
                         m_logger.sendPrivateMessage(
-                                name,
-                                "                   "
-                                        + m_curRound.m_team1.getTeamScore() / 60
-                                        + ":"
-                                        + team1leadingZero
-                                        + m_curRound.m_team1.getTeamScore() % 60
-                                        + "             -            "
-                                        + m_curRound.m_team2.getTeamScore() / 60
-                                        + ":"
-                                        + team2leadingZero
-                                        + m_curRound.m_team2.getTeamScore() % 60);
+                            name,
+                            "                   "
+                            + m_curRound.m_team1.getTeamScore() / 60
+                            + ":"
+                            + team1leadingZero
+                            + m_curRound.m_team1.getTeamScore() % 60
+                            + "             -            "
+                            + m_curRound.m_team2.getTeamScore() / 60
+                            + ":"
+                            + team2leadingZero
+                            + m_curRound.m_team2.getTeamScore() % 60);
                     } else
                         m_logger.sendPrivateMessage(
-                                name,
-                                "          "
-                                        + Tools.centerString(Integer.toString(m_curRound.m_team1.getTeamScore()), 25)
-                                        + "  -  "
-                                        + Tools.centerString(Integer.toString(m_curRound.m_team2.getTeamScore()), 25));
+                            name,
+                            "          "
+                            + Tools.centerString(Integer.toString(m_curRound.m_team1.getTeamScore()), 25)
+                            + "  -  "
+                            + Tools.centerString(Integer.toString(m_curRound.m_team2.getTeamScore()), 25));
         } else {
             MatchRound z;
-            if (m_rounds == null) { return; }
+
+            if (m_rounds == null) {
+                return;
+            }
+
             ListIterator<MatchRound> i = m_rounds.listIterator();
 
             while (i.hasNext()) {
                 z = i.next();
+
                 if ((z.m_fnRoundState == 3) || (z.m_fnRoundState == 4))
                     m_logger.sendPrivateMessage(
-                            name,
-                            "Round "
-                                    + Tools.formatString(Integer.toString(z.m_fnRoundNumber), 2)
-                                    + " :"
-                                    + Tools.centerString(Integer.toString(z.m_team1.getTeamScore()), 25)
-                                    + "  -  "
-                                    + Tools.centerString(Integer.toString(z.m_team2.getTeamScore()), 25));
+                        name,
+                        "Round "
+                        + Tools.formatString(Integer.toString(z.m_fnRoundNumber), 2)
+                        + " :"
+                        + Tools.centerString(Integer.toString(z.m_team1.getTeamScore()), 25)
+                        + "  -  "
+                        + Tools.centerString(Integer.toString(z.m_team2.getTeamScore()), 25));
             }
         }
 
         // 0 - none, 1 - arranging lineup, 2 - starting, 3 - playing, 4 - finished
 
         String extra = getRoundStateSummary();
+
         if (extra != null)
             m_logger.sendPrivateMessage(name, "- " + extra);
     }
@@ -413,7 +434,7 @@ public class MatchGame {
 
         if (!announced) {
             if (m_rules.getInt("matchtype") > MatchTypeID.NONE && m_rules.getInt("matchtype") < MatchTypeID.MAX) {
-                announced = true;				
+                announced = true;
                 m_botAction.sendZoneMessage("TWL Season 20: [" + m_rules.getString("name") + "] " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + " Type ?go " + m_botAction.getArenaName());
             } else {
                 m_botAction.sendPrivateMessage(name, "Only TWL games may be !zone'd");
@@ -425,27 +446,33 @@ public class MatchGame {
 
     public String getRoundStateSummary() {
         String append = null;
+
         if (m_curRound != null) {
             if (m_rules.getInt("maxrounds") == 1)
                 append = "We are currently ";
             else
                 append = "We are currently in round " + m_curRound.m_fnRoundNumber + ": ";
+
             switch (m_curRound.m_fnRoundState) {
             case 1 :
                 append = append + "arranging lineups";
                 break;
+
             case 2 :
                 append = append + "starting the game";
                 break;
+
             case 3 :
                 long minutesPlayed = (System.currentTimeMillis() - m_curRound.m_timeStartedms) / 60000;
                 append = append + "playing, " + minutesPlayed + " minutes played";
                 break;
+
             case 4 :
                 append = append + "ending the game";
                 break;
             }
         }
+
         return append;
     }
 
@@ -455,8 +482,10 @@ public class MatchGame {
         answer = "Welcome to " + m_rules.getString("name") + ", Teams: " + m_fcTeam1Name + " vs. " + m_fcTeam2Name + ".";
 
         String extra = getRoundStateSummary();
+
         if (extra != null) {
             answer = answer + " " + extra + ".";
+
             if ((m_curRound.m_fnRoundState == 3) || (m_curRound.m_fnRoundState == 4)) {
                 String winby = m_rules.getString("winby");
 
@@ -466,21 +495,22 @@ public class MatchGame {
 
                     if (m_curRound.m_team1.getTeamScore() % 60 < 10)
                         team1leadingZero = "0";
+
                     if (m_curRound.m_team2.getTeamScore() % 60 < 10)
                         team2leadingZero = "0";
 
                     answer =
-                            answer
-                            + " Score: "
-                            + (m_curRound.m_team1.getTeamScore() / 60)
-                            + ":"
-                            + team1leadingZero
-                            + m_curRound.m_team1.getTeamScore() % 60
-                            + " - "
-                            + (m_curRound.m_team2.getTeamScore() / 60)
-                            + ":"
-                            + team2leadingZero
-                            + m_curRound.m_team2.getTeamScore() % 60;
+                        answer
+                        + " Score: "
+                        + (m_curRound.m_team1.getTeamScore() / 60)
+                        + ":"
+                        + team1leadingZero
+                        + m_curRound.m_team1.getTeamScore() % 60
+                        + " - "
+                        + (m_curRound.m_team2.getTeamScore() / 60)
+                        + ":"
+                        + team2leadingZero
+                        + m_curRound.m_team2.getTeamScore() % 60;
                 } else
                     answer = answer + " Score: " + m_curRound.m_team1.getTeamScore() + " - " + m_curRound.m_team2.getTeamScore();
             }
@@ -496,8 +526,9 @@ public class MatchGame {
 
         if (m_rules.getInt("storegame") != 0)
             m_curRound.events.add(MatchRoundEvent.roundEnd());
-        
+
         int rounds = m_rules.getInt("rounds");
+
         if (m_curRound.m_fnTeam1Score > m_curRound.m_fnTeam2Score)
             m_fnTeam1Score++;
         else if (m_curRound.m_fnTeam2Score > m_curRound.m_fnTeam1Score)
@@ -506,8 +537,10 @@ public class MatchGame {
         if (m_fbAffectsEntireGame) {
             m_fnTeam1Score = 0;
             m_fnTeam2Score = 0;
+
             if (m_curRound.m_fnTeam1Score > m_curRound.m_fnTeam2Score)
                 m_fnTeam1Score = (rounds + 1) / 2;
+
             if (m_curRound.m_fnTeam2Score > m_curRound.m_fnTeam1Score)
                 m_fnTeam2Score = (rounds + 1) / 2;
         }
@@ -517,6 +550,7 @@ public class MatchGame {
                 // Announce winner
                 m_logger.sendArenaMessage(" ------- GAME OVER ------- ", 5);
                 m_logger.sendArenaMessage(m_fcTeam1Name + " vs. " + m_fcTeam2Name + ": " + m_fnTeam1Score + " - " + m_fnTeam2Score);
+
                 if (m_fnTeam1Score > m_fnTeam2Score) {
                     m_logger.sendArenaMessage(m_fcTeam1Name + " wins this game!");
                 } else if (m_fnTeam2Score > m_fnTeam1Score) {
@@ -524,8 +558,10 @@ public class MatchGame {
                 } else
                     m_logger.sendArenaMessage("Draw. The game is declared void");
             }
+
             if ((m_rules.getInt("storegame") == 1) && (m_fnTeam1Score != m_fnTeam2Score))
                 storeGameResult();
+
             m_curRound.cancel();
             m_gameState = KILL_ME_PLEASE;
         } else if ((m_curRound.m_fnRoundNumber < m_rules.getInt("maxrounds")) && (!m_fbAffectsEntireGame)) {

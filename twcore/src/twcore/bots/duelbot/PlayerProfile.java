@@ -11,53 +11,89 @@ public class PlayerProfile
     int lastDeath = 0;
     String playerName;
 
-    public PlayerProfile(){
+    public PlayerProfile() {
     }
 
     public PlayerProfile( String name ) {
- 		playerName = name;
+        playerName = name;
     }
 
     public PlayerProfile( String name, int s ) {
-    	playerName = name;
-    	ship = s;
+        playerName = name;
+        ship = s;
     }
 
     public PlayerProfile( String name, int s, int f ) {
-    	playerName = name;
-    	ship = s;
-    	freq = f;
+        playerName = name;
+        ship = s;
+        freq = f;
     }
 
-    public void addKill()   { kills++; }
-    public void removeKill() { kills--; }
-    public int  getKills()  { return kills; }
+    public void addKill()   {
+        kills++;
+    }
+    public void removeKill() {
+        kills--;
+    }
+    public int  getKills()  {
+        return kills;
+    }
 
     public void addDeath()  {
-    	deaths++;
-    	lastDeath = (int)(System.currentTimeMillis() / 1000);
+        deaths++;
+        lastDeath = (int)(System.currentTimeMillis() / 1000);
     }
-    public void removeDeath() { deaths--; }
-    public int  getDeaths() { return deaths; }
+    public void removeDeath() {
+        deaths--;
+    }
+    public int  getDeaths() {
+        return deaths;
+    }
 
-    public int timeFromLastDeath() { return (int)(System.currentTimeMillis() / 1000) - lastDeath; }
-    public void setTimer() { lastDeath = (int)(System.currentTimeMillis() / 1000); }
+    public int timeFromLastDeath() {
+        return (int)(System.currentTimeMillis() / 1000) - lastDeath;
+    }
+    public void setTimer() {
+        lastDeath = (int)(System.currentTimeMillis() / 1000);
+    }
 
-    public void setShip( int s ) { ship = s; }
-    public int  getShip()   { return ship; }
+    public void setShip( int s ) {
+        ship = s;
+    }
+    public int  getShip()   {
+        return ship;
+    }
 
-    public void setFreq( int f ) { freq = f; }
-    public int  getFreq()   { return freq; }
+    public void setFreq( int f ) {
+        freq = f;
+    }
+    public int  getFreq()   {
+        return freq;
+    }
 
-    public void setTime( int t ) { time = t; }
-    public int  getTime()   { return time; }
+    public void setTime( int t ) {
+        time = t;
+    }
+    public int  getTime()   {
+        return time;
+    }
 
-    public void setData( int location, int value ) { data[location] = value; }
-    public void incData( int location ) { data[location]++; }
-    public void decData( int location ) { data[location]--; }
-    public int  getData( int location ) { return data[location]; }
+    public void setData( int location, int value ) {
+        data[location] = value;
+    }
+    public void incData( int location ) {
+        data[location]++;
+    }
+    public void decData( int location ) {
+        data[location]--;
+    }
+    public int  getData( int location ) {
+        return data[location];
+    }
 
-    public String getName() { return playerName; }
+    public String getName() {
+        return playerName;
+    }
 
 
 }

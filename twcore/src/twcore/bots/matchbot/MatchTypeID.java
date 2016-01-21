@@ -2,7 +2,7 @@ package twcore.bots.matchbot;
 
 public abstract class MatchTypeID {
     // From tblMatchType, 1/7/14, qan
-    
+
     public static final int NONE                        = 0;
     public static final int WARBIRD_NOT_DD              = 1;
     public static final int JAVELIN_NOT_JD              = 2;

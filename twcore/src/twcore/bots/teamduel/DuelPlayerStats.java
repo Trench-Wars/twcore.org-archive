@@ -85,11 +85,11 @@ public class DuelPlayerStats {
     public void setFreq(int freq) {
         m_freq = freq;
     }
-    
+
     public int[] getSafeCoords() {
         return m_safeCoords;
     }
-    
+
     public int[] getCoords() {
         return m_coords;
     }
@@ -118,15 +118,15 @@ public class DuelPlayerStats {
         m_deaths++;
         m_timeOfLastDeath = (int) (System.currentTimeMillis() / 1000);
     }
-    
+
     public int getTimeOfLastDeath() {
         return m_timeOfLastDeath;
     }
-    
+
     public void setLastReturn(int time) {
         m_timeOfLastReturn = time;
     }
-    
+
     public int getTimeFromLastReturn() {
         return (int)(System.currentTimeMillis() / 1000) - m_timeOfLastReturn;
     }
@@ -166,23 +166,27 @@ public class DuelPlayerStats {
     public int getLagouts() {
         return m_lagouts;
     }
-    
+
     public boolean isOut() {
         return m_isOut;
     }
-    
+
     public void setOut() {
         m_isOut = true;
     }
 
-    public void setTime( int t ) { m_time = t; }
-    
-    public int  getTime()   { return m_time; }
-    
+    public void setTime( int t ) {
+        m_time = t;
+    }
+
+    public int  getTime()   {
+        return m_time;
+    }
+
     public void setSpawn(int t) {
         m_timeOfLastSpawn = t;
     }
-    
+
     public int getLastSpawn() {
         return m_timeOfLastSpawn;
     }

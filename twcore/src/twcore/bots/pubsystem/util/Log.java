@@ -9,40 +9,40 @@ import twcore.core.util.Tools;
 
 public class Log {
 
-	private FileWriter writer;
-	
-	public Log(BotAction botAction, String filename) {
+    private FileWriter writer;
 
-	    if (botAction.getBotSettings().getString("log_path") != null)
-	    {
-	    	try {
-			    File file = new File(botAction.getBotSettings().getString("log_path"));
-			    writer = new FileWriter(new File(file, filename), true);
-			    write(Tools.getTimeStamp() + " --- Bot Reinstantiation ---");
-			} catch (IOException e) {
-				Tools.printStackTrace(e);
-			} 
-			
-	    }
-		
-	}
-	
-	public void close() {
-		try {
-			writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    public Log(BotAction botAction, String filename) {
 
-	public void write(String text) {
-		if (writer != null)
-		try {
-			writer.write(text + "\r\n");
-			writer.flush();
-		} catch (IOException e) {
-			Tools.printStackTrace(e);
-		}
-	}
-	
+        if (botAction.getBotSettings().getString("log_path") != null)
+        {
+            try {
+                File file = new File(botAction.getBotSettings().getString("log_path"));
+                writer = new FileWriter(new File(file, filename), true);
+                write(Tools.getTimeStamp() + " --- Bot Reinstantiation ---");
+            } catch (IOException e) {
+                Tools.printStackTrace(e);
+            }
+
+        }
+
+    }
+
+    public void close() {
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void write(String text) {
+        if (writer != null)
+            try {
+                writer.write(text + "\r\n");
+                writer.flush();
+            } catch (IOException e) {
+                Tools.printStackTrace(e);
+            }
+    }
+
 }

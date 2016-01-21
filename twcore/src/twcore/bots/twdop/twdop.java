@@ -107,18 +107,19 @@ public class twdop extends SubspaceBot {
             // !help
             if (message.startsWith("!help")) {
                 String[] help = { "-----------------------[ TWDOp Bot ]-----------------------",
-                        " !status                           - Recalls DB status and TWDOp count",
-                        " !report <player>:<comment>        - Claims a call for helping <player> with <comment>", "   or !r <player>:<comment>",
-                        " !addnote <player>:<comment>       - Insert a note for this player",
-                        " !listnotes <name>                 - List the notes assosiated with <name>",
-                        " !delnote <id>                     - Delete the note assosiated with <id>",
+                                  " !status                           - Recalls DB status and TWDOp count",
+                                  " !report <player>:<comment>        - Claims a call for helping <player> with <comment>", "   or !r <player>:<comment>",
+                                  " !addnote <player>:<comment>       - Insert a note for this player",
+                                  " !listnotes <name>                 - List the notes assosiated with <name>",
+                                  " !delnote <id>                     - Delete the note assosiated with <id>",
 
-                };
+                                };
 
                 String[] smodHelp = { " !die                               - Disconnects TWDOp",
-                        " !update                            - Reloads TWDOps for use.",
-                        " !claimsfrom <TWD Op>:<#>           - Displays the last <#> calls reported by <TWD Op>.", "   or !claims",
-                        " !claimsfor <player>:<#>            - Displays the last <#> calls reported about <player>.", "   or !calls" };
+                                      " !update                            - Reloads TWDOps for use.",
+                                      " !claimsfrom <TWD Op>:<#>           - Displays the last <#> calls reported by <TWD Op>.", "   or !claims",
+                                      " !claimsfor <player>:<#>            - Displays the last <#> calls reported about <player>.", "   or !calls"
+                                    };
 
                 m_botAction.smartPrivateMessageSpam(senderName, help);
 
@@ -126,45 +127,53 @@ public class twdop extends SubspaceBot {
                     m_botAction.smartPrivateMessageSpam(senderName, smodHelp);
                 }
             }
+
             if (m_botAction.getOperatorList().isSmod(senderName)) {
                 if (message.equalsIgnoreCase("!die")) {
                     moduleHandler.unloadAllModules();
                     m_botAction.die("!die by " + senderName );
                 }
+
                 if (message.equalsIgnoreCase("!update")) {
                     updateTWDOps();
                     m_botAction.sendChatMessage("Reloading TWDOps at " + senderName + "'s request.");
                 }
             }
+
             if (message.equalsIgnoreCase("!status")) {
                 m_botAction.sendChatMessage("[ONLINE]");
                 m_botAction.sendChatMessage("[TWDOps] - " + twdops.size() + " TWDOp access.");
                 dbcheck();
             }
+
             if (message.startsWith("!addnote ")) {
                 String[] msg = message.substring(9).split(":");
+
                 if (msg.length < 2) {
                     m_botAction.sendChatMessage("Usage: !addnote player:msg");
                     return;
                 }
+
                 String note = msg[1];
                 String player = msg[0];
 
                 try {
                     m_botAction.SQLQueryAndClose(DATABASE, "INSERT INTO tblTWDNote (fcUserName, fcNote, fcStaffer, fdCreated) VALUES ('"
-                            + Tools.addSlashesToString(player) + "', '" + Tools.addSlashesToString(note) + "', '"
-                            + Tools.addSlashesToString(senderName) + "', NOW())");
+                                                 + Tools.addSlashesToString(player) + "', '" + Tools.addSlashesToString(note) + "', '"
+                                                 + Tools.addSlashesToString(senderName) + "', NOW())");
                     m_botAction.sendChatMessage("Note saved successfully for player " + player);
                 } catch (SQLException e) {
                     m_botAction.sendChatMessage("Error! Please report to botdev: " + e);
                     Tools.printStackTrace(e);
                 }
             }
+
             if (message.startsWith("!listnotes ")) {
                 String player = message.substring(11);
+
                 try {
                     ResultSet result = m_botAction.SQLQuery(DATABASE, "SELECT fnID, fcNote, fcStaffer, fdCreated FROM tblTWDNote WHERE fcUserName = '"
-                            + Tools.addSlashesToString(player) + "' ORDER BY fdCreated DESC");
+                                                            + Tools.addSlashesToString(player) + "' ORDER BY fdCreated DESC");
                     m_botAction.sendSmartPrivateMessage(senderName, "The format of the listing notes is ID) Note - staffer - date created.");
 
                     while (result.next()) {
@@ -183,9 +192,11 @@ public class twdop extends SubspaceBot {
                     Tools.printStackTrace(e);
                 }
             }
-            if (message.startsWith("!delnote ")){
+
+            if (message.startsWith("!delnote ")) {
                 String id = message.substring(9);
-                if(Tools.isAllDigits(id)){
+
+                if(Tools.isAllDigits(id)) {
                     try {
                         m_botAction.SQLQueryAndClose(DATABASE, "DELETE FROM tblTWDNote WHERE fnID = '" + Tools.addSlashesToString(id) + "'");
                         m_botAction.sendChatMessage("Note ID " + id + " has been removed.");
@@ -194,7 +205,7 @@ public class twdop extends SubspaceBot {
                         Tools.printStackTrace(e);
                     }
                 }
-                
+
             }
 
         }

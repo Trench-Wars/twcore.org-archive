@@ -20,16 +20,16 @@ import twcore.core.events.Message;
 import twcore.core.util.Tools;
 
 /**
- * This module reports bad commands (and player kicks for message flooding) that are shown on the *log
- * This module also logs all *log lines to a file. The functionality is copied from the mrarrogant bot.
- * 
- * @author MMaverick
- */
+    This module reports bad commands (and player kicks for message flooding) that are shown on the *log
+    This module also logs all *log lines to a file. The functionality is copied from the mrarrogant bot.
+
+    @author MMaverick
+*/
 public class staffbot_badcommand_savelog extends Module {
-    
+
     public static final int CHECK_LOG_TIME = 30 * 1000;
     public static final int COMMAND_CLEAR_TIME = 60 * 60 * 1000;
-    
+
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy EEE MMM dd HH:mm:ss", Locale.US);
     private SimpleDateFormat fileNameFormat;
     private Vector<CommandLog> commandQueue = new Vector<CommandLog>();
@@ -38,20 +38,21 @@ public class staffbot_badcommand_savelog extends Module {
     private Date lastLogDate;
     private int year;
     private boolean moduleEnabled = false;
-    
+
     // TimerTasks
     private CheckLogTask checkLogTask = new CheckLogTask();
-    
+
     // Bad command relay ignoring capabilities
     private HashSet<String> bcIgnoreList;
-    
+
     @Override
     public void cancel() {
         moduleEnabled = false;
+
         try {
             logFile.close();
         } catch(Exception e) {}
-        
+
         bcIgnoreList.clear();
         m_botAction.cancelTask(checkLogTask);
     }
@@ -61,9 +62,9 @@ public class staffbot_badcommand_savelog extends Module {
         BotSettings botSettings = m_botAction.getBotSettings();
         fileNameFormat = new SimpleDateFormat("'" + botSettings.getString("logpath") + "/'ddMMMyyyy'.log'");
         logFileName = fileNameFormat.format(new Date());
-        
+
         bcIgnoreList = new HashSet<String>();
-        
+
         try {
             logFile = new FileWriter(new File(logFileName), true);
         } catch(IOException ioe) {
@@ -72,86 +73,89 @@ public class staffbot_badcommand_savelog extends Module {
             this.cancel();
             return;
         }
-        
+
         m_botAction.scheduleTaskAtFixedRate(checkLogTask, 0, CHECK_LOG_TIME);
         moduleEnabled = true;
     }
 
-	@Override
-	public void requestEvents(EventRequester eventRequester) {
-		eventRequester.request(EventRequester.MESSAGE);
-	}
-	
-	@Override
-	public void handleEvent(Message event) {
-	    if (!moduleEnabled)
-	        return;
-	    
-	    String message = event.getMessage();
-	    String name = event.getMessager();
-	    if(event.getMessager() == null) {
-	        name = m_botAction.getPlayerName(event.getPlayerID());
-	    }
-	    
-	    if(event.getMessageType() == Message.ARENA_MESSAGE &&
-	            !message.startsWith("Ping:") &&         // Exclude all the info from *info
-	            !message.startsWith("LOSS: S2C:") &&
-	            !message.startsWith("S2C:") &&
-	            !message.startsWith("C2S CURRENT: Slow:") &&
-	            !message.startsWith("S2C CURRENT: Slow:") &&
-	            !message.startsWith("TIME: Session:") &&
-	            !message.startsWith("Bytes/Sec:") &&
-	            message.length() > 20) {
-	        
-	        // Check if the log line is already processed by using the date at the beginning of the line
-	        Date date = null;
-	        try {
-	            date = dateFormat.parse(year + " " + message.substring(0, 19));
-	        } catch(ParseException pe) {}
-	        
-	        if(date != null) {
+    @Override
+    public void requestEvents(EventRequester eventRequester) {
+        eventRequester.request(EventRequester.MESSAGE);
+    }
+
+    @Override
+    public void handleEvent(Message event) {
+        if (!moduleEnabled)
+            return;
+
+        String message = event.getMessage();
+        String name = event.getMessager();
+
+        if(event.getMessager() == null) {
+            name = m_botAction.getPlayerName(event.getPlayerID());
+        }
+
+        if(event.getMessageType() == Message.ARENA_MESSAGE &&
+                !message.startsWith("Ping:") &&         // Exclude all the info from *info
+                !message.startsWith("LOSS: S2C:") &&
+                !message.startsWith("S2C:") &&
+                !message.startsWith("C2S CURRENT: Slow:") &&
+                !message.startsWith("S2C CURRENT: Slow:") &&
+                !message.startsWith("TIME: Session:") &&
+                !message.startsWith("Bytes/Sec:") &&
+                message.length() > 20) {
+
+            // Check if the log line is already processed by using the date at the beginning of the line
+            Date date = null;
+
+            try {
+                date = dateFormat.parse(year + " " + message.substring(0, 19));
+            } catch(ParseException pe) {}
+
+            if(date != null) {
                 if(lastLogDate == null)
                     lastLogDate = date;
-                
+
                 // Fri May 01 01:06:44:  Played kicked off for message flooding: nliE
                 // Ext: MMaverick (#robopark): *arena jkshdfs
-                
+
                 // Sat Jul 25 18:09:29:  Ext: Played kicked off for message flooding: Velcromancer
 
                 if(date.after(lastLogDate)) {
                     String logmessage = message.substring(22);  // Remove the timestamp
-                    
+
                     if(logmessage.startsWith("Ext: ")) {
-                        handleLogCommand(date, logmessage.substring(5));  
+                        handleLogCommand(date, logmessage.substring(5));
                     }
+
                     if(logmessage.startsWith("Played kicked off for message flooding:") ||
-                       logmessage.startsWith("Ext: Played kicked off for message flooding:")) {
-                        m_botAction.sendChatMessage(2,logmessage.replaceFirst("Played", "Player")); // Fix typo
+                            logmessage.startsWith("Ext: Played kicked off for message flooding:")) {
+                        m_botAction.sendChatMessage(2, logmessage.replaceFirst("Played", "Player")); // Fix typo
                     }
-                    
+
                     writeLog(message, date);
                     lastLogDate = date;
                 }
-	        }
-	    }
-	    
-	    if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ) {
-	            
-	        // SMod+ commands
+            }
+        }
+
+        if( event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE ) {
+
+            // SMod+ commands
             if (m_botAction.getOperatorList().isSmod(name)) {
 
                 // !help
                 if (message.toLowerCase().startsWith("!help")) {
                     final String[] helpSmod = {
-                            "----------------------[ Log: SMod+ ]-----------------------",
-                            " Saves commands up to " + ((COMMAND_CLEAR_TIME / 1000) / 60)
-                                    + " minutes and watches for bad commands.",
-                            " !log [time/minutes]           - Displays last commands of last specified minutes.",
-                            " !logfrom <name>[:cmd][:time]  - Displays last commands from <name>.",
-                            " !logto <name>[:cmd][:time]    - Displays last commands to <name>.",
-                            " !bcignore <name>              - Toggles relaying bad commands by <name> to smod chat. (Chat only command)",
-                            " !bcignorelist                 - Lists all staffers whose bad commands are not being relayed to smod chat."
-                            };
+                        "----------------------[ Log: SMod+ ]-----------------------",
+                        " Saves commands up to " + ((COMMAND_CLEAR_TIME / 1000) / 60)
+                        + " minutes and watches for bad commands.",
+                        " !log [time/minutes]           - Displays last commands of last specified minutes.",
+                        " !logfrom <name>[:cmd][:time]  - Displays last commands from <name>.",
+                        " !logto <name>[:cmd][:time]    - Displays last commands to <name>.",
+                        " !bcignore <name>              - Toggles relaying bad commands by <name> to smod chat. (Chat only command)",
+                        " !bcignorelist                 - Lists all staffers whose bad commands are not being relayed to smod chat."
+                    };
 
                     m_botAction.smartPrivateMessageSpam(name, helpSmod);
                 }
@@ -174,7 +178,7 @@ public class staffbot_badcommand_savelog extends Module {
                     } catch (NumberFormatException e) {
                     }
 
-                    m_botAction.sendSmartPrivateMessage(name, "Command log of the past " + time + " minute(s):   ("+commandQueue.size()+" commands total)");
+                    m_botAction.sendSmartPrivateMessage(name, "Command log of the past " + time + " minute(s):   (" + commandQueue.size() + " commands total)");
                     displayLog(name, "", "", "", time);
                 }
 
@@ -193,28 +197,31 @@ public class staffbot_badcommand_savelog extends Module {
                     int time = 10;
 
                     switch (argTokens.length) {
-                        case 3:
+                    case 3:
+                        command = argTokens[1];
+                        time = Integer.parseInt(argTokens[2]);
+                        break;
+
+                    case 2:
+                        if (argTokens[1].startsWith("*")) {
                             command = argTokens[1];
-                            time = Integer.parseInt(argTokens[2]);
-                            break;
-                        case 2:
-                            if (argTokens[1].startsWith("*")) {
-                                command = argTokens[1];
-                            } else {
-                                try {
-                                    time = Integer.parseInt(argTokens[1]);
-                                } catch(NumberFormatException e) {}
-                            }
-                            break;
+                        } else {
+                            try {
+                                time = Integer.parseInt(argTokens[1]);
+                            } catch(NumberFormatException e) {}
+                        }
+
+                        break;
                     }
+
                     if (!command.startsWith("*") && !command.equals("")) {
                         m_botAction.sendSmartPrivateMessage(name, "Please use the following format: !LogFrom <PlayerName>:<Command>:<Minutes>");
                         return;
                     }
 
-                    displayLog(name,fromPlayer, "", command, time);
+                    displayLog(name, fromPlayer, "", command, time);
                 }
-                
+
                 // !logto
                 if (message.toLowerCase().startsWith("!logto ")) {
                     // !logto <name>[:cmd][:time] - Displays last commands to
@@ -232,19 +239,24 @@ public class staffbot_badcommand_savelog extends Module {
                     int time = 10;
 
                     switch (argTokens.length) {
-                        case 3:
+                    case 3:
+                        command = argTokens[1];
+
+                        try {
+                            time = Integer.parseInt(argTokens[2]);
+                        } catch (NumberFormatException e) {}
+
+                        break;
+
+                    case 2:
+                        if (argTokens[1].startsWith("*"))
                             command = argTokens[1];
-                            try {
-                                time = Integer.parseInt(argTokens[2]);
-                            } catch (NumberFormatException e) {}
-                            break;
-                        case 2:
-                            if (argTokens[1].startsWith("*"))
-                                command = argTokens[1];
-                            else
-                                time = Integer.parseInt(argTokens[1]);
-                            break;
+                        else
+                            time = Integer.parseInt(argTokens[1]);
+
+                        break;
                     }
+
                     if (!command.startsWith("*") && !command.equals("")) {
                         m_botAction.sendSmartPrivateMessage(name, "Please use the following format: !LogTo <PlayerName>:<Command>:<Minutes>");
                         return;
@@ -253,44 +265,44 @@ public class staffbot_badcommand_savelog extends Module {
                     displayLog(name, "", toPlayer, command, time);
                 }
             }
-	    }
-	    
-	    if(event.getMessageType() == Message.CHAT_MESSAGE)
-	    {
-	    	if(m_botAction.getOperatorList().isSmod(name)) {
-	    		if(message.toLowerCase().startsWith("!bcignore ")) {
-	    			handleBadCommandIgnore(name, message.substring(10));
-	    		}
-	    		else if(message.equalsIgnoreCase("!bcignorelist")) {
-	    			m_botAction.sendChatMessage(2, "Ignoring bad commands from: ");
-	    			
-	    			if(bcIgnoreList.size() == 0)
-	    				m_botAction.sendChatMessage(2, "  *(None)");
-	    			
-	    			for(String ignored:bcIgnoreList)
-	    				m_botAction.sendChatMessage(2, "  *" + ignored);
-	    			
-	    		}
-	    	}
-	    }
-	}
-	
-	private void handleBadCommandIgnore(String name, String toIgnore) {
-		if(toIgnore == null)
-			return;
-		
-		toIgnore = toIgnore.toLowerCase();
-		
-		if(bcIgnoreList.contains(toIgnore))	{
-			bcIgnoreList.remove(toIgnore);
-			m_botAction.sendChatMessage(2, "Bad Command Relaying ENABLED for " + toIgnore);
-		} else {
-			bcIgnoreList.add(toIgnore);
-			m_botAction.sendChatMessage(2, "Bad Command Relaying DISABLED for " + toIgnore);
-		}		
-	}		
-	
-	private void displayLog(String commander, String fromPlayer, String toPlayer, String command, int time) {
+        }
+
+        if(event.getMessageType() == Message.CHAT_MESSAGE)
+        {
+            if(m_botAction.getOperatorList().isSmod(name)) {
+                if(message.toLowerCase().startsWith("!bcignore ")) {
+                    handleBadCommandIgnore(name, message.substring(10));
+                }
+                else if(message.equalsIgnoreCase("!bcignorelist")) {
+                    m_botAction.sendChatMessage(2, "Ignoring bad commands from: ");
+
+                    if(bcIgnoreList.size() == 0)
+                        m_botAction.sendChatMessage(2, "  *(None)");
+
+                    for(String ignored : bcIgnoreList)
+                        m_botAction.sendChatMessage(2, "  *" + ignored);
+
+                }
+            }
+        }
+    }
+
+    private void handleBadCommandIgnore(String name, String toIgnore) {
+        if(toIgnore == null)
+            return;
+
+        toIgnore = toIgnore.toLowerCase();
+
+        if(bcIgnoreList.contains(toIgnore)) {
+            bcIgnoreList.remove(toIgnore);
+            m_botAction.sendChatMessage(2, "Bad Command Relaying ENABLED for " + toIgnore);
+        } else {
+            bcIgnoreList.add(toIgnore);
+            m_botAction.sendChatMessage(2, "Bad Command Relaying DISABLED for " + toIgnore);
+        }
+    }
+
+    private void displayLog(String commander, String fromPlayer, String toPlayer, String command, int time) {
         Date lastDate = new Date(this.lastLogDate.getTime() - time * 60 * 1000);
         int displayed = 0;
 
@@ -304,158 +316,175 @@ public class staffbot_badcommand_savelog extends Module {
         if (displayed == 0)
             m_botAction.sendSmartPrivateMessage(commander, "No commands matching your search criteria were recorded.");
     }
-	
-	/**
-	 * This method handles a log command.
-	 *
-	 * @param date is the date that the command was issued.
-	 * @param command is the command that was issued.
-	 */
-	private void handleLogCommand(Date date, String logMessage) {
-	    String arena = getArena(logMessage);
-	    String fromPlayer = getFromPlayer(logMessage);
-	    String toPlayer = getToPlayer(logMessage);
-	    String command = getCommand(logMessage);
-	    
-	    CommandLog commandLog;
 
-	    if (fromPlayer != null && command != null && opList.isZH(fromPlayer)) {
-	        commandLog = new CommandLog(date, arena, fromPlayer, toPlayer, command);
-	      
-	        if (isBadCommand(arena, fromPlayer, toPlayer, command) && !bcIgnoreList.contains(fromPlayer.toLowerCase())) {
-	            m_botAction.sendChatMessage(2, "Illegal command: " + commandLog.toString());
-	        }
-	        commandQueue.add(commandLog);
-	    }
-	  }
-	  
     /**
-     * This method gets the sender of a command.
-     *
-     * @param message is the message to parse.
-     * @return the sender of the command is returned.
-     */
-	private String getFromPlayer(String message) {
-	    int endIndex = message.indexOf(" (");
-	    if(endIndex == -1)
-	        return null;
-	    return message.substring(0, endIndex);
-	}
+        This method handles a log command.
 
-	/**
-	 * This method gets the player that the command is destined for.  If there is
-	 * no target of the command, then an empty string is returned.
-	 *
-	 * @param message is the log message to parse.
-	 * @return the name of the target of the command is returned.  If there is
-	 * no target then an empty string is returned.
-	 */
-	private String getToPlayer(String message) {
-	    int beginIndex = 0;
-	    int endIndex;
+        @param date is the date that the command was issued.
+        @param command is the command that was issued.
+    */
+    private void handleLogCommand(Date date, String logMessage) {
+        String arena = getArena(logMessage);
+        String fromPlayer = getFromPlayer(logMessage);
+        String toPlayer = getToPlayer(logMessage);
+        String command = getCommand(logMessage);
 
-	    for(;;) {
-	      beginIndex = message.indexOf(") to ", beginIndex);
-	      if(beginIndex == -1)
-	        return "";
-	      beginIndex += 5;
-	      endIndex = message.indexOf(":", beginIndex);
-	      if(endIndex != -1)
-	        break;
-	    }
-	    return message.substring(beginIndex, endIndex);
-	}
-	
+        CommandLog commandLog;
 
-	/**
-	 * This method returns the arena name from the log message.
-	 *
-	 * @param message is the log message to parse.
-	 * @return the arena name is returned.
-	 */
-	public String getArena(String message) {
-	    int beginIndex = message.indexOf(" (");
-	    int endIndex;
+        if (fromPlayer != null && command != null && opList.isZH(fromPlayer)) {
+            commandLog = new CommandLog(date, arena, fromPlayer, toPlayer, command);
 
-	    if(beginIndex == -1)
-	      return null;
-	    beginIndex += 2;
-	    endIndex = message.indexOf(")", beginIndex);
-	    if(endIndex == -1)
-	      return null;
-	    return message.substring(beginIndex, endIndex);
-	}
+            if (isBadCommand(arena, fromPlayer, toPlayer, command) && !bcIgnoreList.contains(fromPlayer.toLowerCase())) {
+                m_botAction.sendChatMessage(2, "Illegal command: " + commandLog.toString());
+            }
 
-	private String getCommand(String message) {
-	    int beginIndex = message.lastIndexOf(": *");
+            commandQueue.add(commandLog);
+        }
+    }
 
-	    if(beginIndex == -1)
-	      return null;
-	    return message.substring(beginIndex + 2);
-	}
-    
-	/**
-	 * Checks if a command is "dirty" ... shipresets now included if not in a private arena,
-	 * if done in pub to anyone, or if sent privately to oneself in any public arena.
-	 * @param arena
-	 * @param fromPlayer
-	 * @param toPlayer
-	 * @param command
-	 * @return
-	 */
-	private boolean isBadCommand(String arena, String fromPlayer, String toPlayer, String command) {
-	    if (command.startsWith("*kill") || command.startsWith("*shutup") )
-	        return true;
-	    if (command.startsWith("*shipreset")) {
-	        if (arena.startsWith("#"))
-	            return false;
-	        if (arena.startsWith("Public "))
-	            return true;
-	        if (fromPlayer.equals(toPlayer))
-	            return true;
-	    }
-	    return false;
-	}
-      
     /**
-     * This method clears commands older than COMMAND_CLEAR_TIME
-     */
-	private void clearOldCommands() {
+        This method gets the sender of a command.
+
+        @param message is the message to parse.
+        @return the sender of the command is returned.
+    */
+    private String getFromPlayer(String message) {
+        int endIndex = message.indexOf(" (");
+
+        if(endIndex == -1)
+            return null;
+
+        return message.substring(0, endIndex);
+    }
+
+    /**
+        This method gets the player that the command is destined for.  If there is
+        no target of the command, then an empty string is returned.
+
+        @param message is the log message to parse.
+        @return the name of the target of the command is returned.  If there is
+        no target then an empty string is returned.
+    */
+    private String getToPlayer(String message) {
+        int beginIndex = 0;
+        int endIndex;
+
+        for(;;) {
+            beginIndex = message.indexOf(") to ", beginIndex);
+
+            if(beginIndex == -1)
+                return "";
+
+            beginIndex += 5;
+            endIndex = message.indexOf(":", beginIndex);
+
+            if(endIndex != -1)
+                break;
+        }
+
+        return message.substring(beginIndex, endIndex);
+    }
+
+
+    /**
+        This method returns the arena name from the log message.
+
+        @param message is the log message to parse.
+        @return the arena name is returned.
+    */
+    public String getArena(String message) {
+        int beginIndex = message.indexOf(" (");
+        int endIndex;
+
+        if(beginIndex == -1)
+            return null;
+
+        beginIndex += 2;
+        endIndex = message.indexOf(")", beginIndex);
+
+        if(endIndex == -1)
+            return null;
+
+        return message.substring(beginIndex, endIndex);
+    }
+
+    private String getCommand(String message) {
+        int beginIndex = message.lastIndexOf(": *");
+
+        if(beginIndex == -1)
+            return null;
+
+        return message.substring(beginIndex + 2);
+    }
+
+    /**
+        Checks if a command is "dirty" ... shipresets now included if not in a private arena,
+        if done in pub to anyone, or if sent privately to oneself in any public arena.
+        @param arena
+        @param fromPlayer
+        @param toPlayer
+        @param command
+        @return
+    */
+    private boolean isBadCommand(String arena, String fromPlayer, String toPlayer, String command) {
+        if (command.startsWith("*kill") || command.startsWith("*shutup") )
+            return true;
+
+        if (command.startsWith("*shipreset")) {
+            if (arena.startsWith("#"))
+                return false;
+
+            if (arena.startsWith("Public "))
+                return true;
+
+            if (fromPlayer.equals(toPlayer))
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+        This method clears commands older than COMMAND_CLEAR_TIME
+    */
+    private void clearOldCommands() {
         CommandLog commandLog;
         Date commandDate;
-        
+
         if(this.lastLogDate == null)
             return;
-        
+
         Date removeDate = new Date(this.lastLogDate.getTime() - COMMAND_CLEAR_TIME);
 
         while(!commandQueue.isEmpty())
         {
-          commandLog = commandQueue.get(0);
-          commandDate = commandLog.getDate();
-          if(removeDate.before(commandDate))
-            break;
-          commandQueue.remove(0);
+            commandLog = commandQueue.get(0);
+            commandDate = commandLog.getDate();
+
+            if(removeDate.before(commandDate))
+                break;
+
+            commandQueue.remove(0);
         }
     }
-	
-	/**
-	 * Writes a line to the log
-	 * 
-	 * @param line
-	 * @param date
-	 */
-	private void writeLog(String line, Date date) {
-	    try {
+
+    /**
+        Writes a line to the log
+
+        @param line
+        @param date
+    */
+    private void writeLog(String line, Date date) {
+        try {
             String newFileName = fileNameFormat.format(date);
 
             // Date changed, start logging to a new file
             if (!logFileName.equals(newFileName)) {
                 logFileName = newFileName;
-                
+
                 // Close current file
                 logFile.close();
-                
+
                 // Open new file
                 File file = new File(newFileName);
                 logFile = new FileWriter(file, true);
@@ -469,16 +498,16 @@ public class staffbot_badcommand_savelog extends Module {
         }
     }
 
-	  
-	
-	/**
-	 * CheckLogTask performes the following commands:
-	 *  - Saves the current year
-	 *  - Issues the *log commmand to view the latest log lines
-	 *  - Clears old commands from the cache
-	 */
-	private class CheckLogTask extends TimerTask {
-	    
+
+
+    /**
+        CheckLogTask performes the following commands:
+        - Saves the current year
+        - Issues the *log commmand to view the latest log lines
+        - Clears old commands from the cache
+    */
+    private class CheckLogTask extends TimerTask {
+
         public void run() {
             GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
             year = calendar.get(GregorianCalendar.YEAR);
@@ -488,7 +517,7 @@ public class staffbot_badcommand_savelog extends Module {
         }
     }
 
-	private class CommandLog {
+    private class CommandLog {
         private Date date;
         private String arena;
         private String fromPlayer;
@@ -507,32 +536,33 @@ public class staffbot_badcommand_savelog extends Module {
             return date;
         }
 
-        /* Unused, commented it for now.
-        public String getArena() {
+        /*  Unused, commented it for now.
+            public String getArena() {
             return arena;
-        }
+            }
 
-        public String getFromPlayer() {
+            public String getFromPlayer() {
             return fromPlayer;
-        }
+            }
 
-        public String getToPlayer() {
+            public String getToPlayer() {
             return toPlayer;
-        }
+            }
 
-        public String getCommand() {
+            public String getCommand() {
             return command;
-        }
-         */
+            }
+        */
         public String toString() {
             if (toPlayer.equals(""))
                 return date + ":  " + fromPlayer + " (" + arena + ") " + command;
+
             return date + ":  " + fromPlayer + " (" + arena + ") to " + toPlayer + ": " + command;
         }
 
         public boolean isMatch(Date currentDate, String fromPlayerMask, String toPlayerMask, String commandMask) {
             return currentDate.before(date) && contains(fromPlayer, fromPlayerMask) && contains(toPlayer, toPlayerMask)
-                    && contains(command, commandMask);
+                   && contains(command, commandMask);
         }
 
         private boolean contains(String string1, String string2) {

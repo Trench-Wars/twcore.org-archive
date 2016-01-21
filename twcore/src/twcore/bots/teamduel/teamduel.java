@@ -41,13 +41,13 @@ import twcore.core.lvz.Objset;
 import twcore.core.util.Tools;
 
 /**
- * 
- * TeamDuelBot is an adaptation of MatchBots and DuelBot 
- * It is responsible for managing team duels held in duel2
- * 
- * @author WingZero
- *
- */
+
+    TeamDuelBot is an adaptation of MatchBots and DuelBot
+    It is responsible for managing team duels held in duel2
+
+    @author WingZero
+
+*/
 public class teamduel extends SubspaceBot {
     CommandInterpreter m_commandInterpreter;
     final String mySQLHost = "website";
@@ -87,7 +87,7 @@ public class teamduel extends SubspaceBot {
     // Contains the list of players with !notplaying ON
     HashSet<String> notPlaying = new HashSet<String>();
     // Contains the list of players currently playing
-    HashMap <String, Duel> playing = new HashMap<String, Duel>(); 
+    HashMap <String, Duel> playing = new HashMap<String, Duel>();
     // Contains a list of players (took out idle times cuz not used) and idle times
     HashMap<String, DuelPlayer> players = new HashMap<String, DuelPlayer>();
     // Contains a list of unregistered players and their userIDs
@@ -127,17 +127,17 @@ public class teamduel extends SubspaceBot {
         events.request(EventRequester.PLAYER_LEFT);
         events.request(EventRequester.PLAYER_ENTERED);
         events.request(EventRequester.ARENA_JOINED);
-        
+
         opList = m_botAction.getOperatorList();
 
         m_commandInterpreter = new CommandInterpreter(m_botAction);
         registerCommands();
-        /* not yet
-        TimerTask check = new TimerTask() {
+        /*  not yet
+            TimerTask check = new TimerTask() {
             public void run() {
                 check();
             }
-        };
+            };
         */
         //m_botAction.scheduleTaskAtFixedRate(check, 1000, Tools.TimeInMillis.MINUTE);
     }
@@ -146,9 +146,9 @@ public class teamduel extends SubspaceBot {
         int acceptedMessages = Message.PRIVATE_MESSAGE;
 
         /********* Player Commands *********/
-        m_commandInterpreter.registerCommand("!about", acceptedMessages, this, "do_showAbout"); 
-        m_commandInterpreter.registerCommand("!challenge", acceptedMessages, this, "do_teamChallenge"); 
-        m_commandInterpreter.registerCommand("!ch", acceptedMessages, this, "do_teamChallenge"); 
+        m_commandInterpreter.registerCommand("!about", acceptedMessages, this, "do_showAbout");
+        m_commandInterpreter.registerCommand("!challenge", acceptedMessages, this, "do_teamChallenge");
+        m_commandInterpreter.registerCommand("!ch", acceptedMessages, this, "do_teamChallenge");
         m_commandInterpreter.registerCommand("!removechallenge", acceptedMessages, this, "do_removeChallenge");
         m_commandInterpreter.registerCommand("!rc", acceptedMessages, this, "do_removeChallenge");
         m_commandInterpreter.registerCommand("!agree", acceptedMessages, this, "do_teamAccept");
@@ -160,7 +160,7 @@ public class teamduel extends SubspaceBot {
         m_commandInterpreter.registerCommand("!duels", acceptedMessages, this, "do_showDuels");
         m_commandInterpreter.registerCommand("!teams", acceptedMessages, this, "do_showTeams");
         m_commandInterpreter.registerCommand("!me", acceptedMessages, this, "do_showMe");
-        m_commandInterpreter.registerCommand("!lagout", acceptedMessages, this, "do_lagOut"); 
+        m_commandInterpreter.registerCommand("!lagout", acceptedMessages, this, "do_lagOut");
         m_commandInterpreter.registerCommand("!cancel", acceptedMessages, this, "do_cancelDuel");
         m_commandInterpreter.registerCommand("!signup", acceptedMessages, this, "do_signUp");
         m_commandInterpreter.registerCommand("!register", acceptedMessages, this, "do_registerTeam");
@@ -201,12 +201,12 @@ public class teamduel extends SubspaceBot {
         m_commandInterpreter.registerCommand("!addhiddenop", acceptedMessages, this, "do_addHiddenOp");
         m_commandInterpreter.registerCommand("!removehiddenop", acceptedMessages, this, "do_removeHiddenOp");
 
-        m_commandInterpreter.registerDefaultCommand(Message.ARENA_MESSAGE, this, "do_checkArena");     
+        m_commandInterpreter.registerDefaultCommand(Message.ARENA_MESSAGE, this, "do_checkArena");
     }
-    
+
     /**
-     * Event handling
-     */
+        Event handling
+    */
     public void handleEvent(LoggedOn event) {
         // join initial arena
         m_botSettings = m_botAction.getBotSettings();
@@ -220,13 +220,16 @@ public class teamduel extends SubspaceBot {
 
         // Create new box Objects
         int boxCount = m_botSettings.getInt("BoxCount");
+
         for (int i = 1; i <= boxCount; i++) {
             String boxset[] = m_botSettings.getString("Box" + i).split(",");
             String warps[] = m_botSettings.getString("Warp" + i).split(",");
             String area[] = m_botSettings.getString("Area" + i).split(",");
+
             if (boxset.length == 17)
                 duelBoxes.put("" + i, new DuelBox(boxset, warps, area, i));
         }
+
         // Reads in general settings for dueling
         s_season = m_botSettings.getInt("Season");
         s_spawn = m_botSettings.getInt("SpawnAfter");
@@ -257,31 +260,35 @@ public class teamduel extends SubspaceBot {
 
     public void handleEvent(PlayerEntered event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
+
         if (name == null || name.length() < 1)
             name = event.getPlayerName();
-        
+
         Player p = m_botAction.getPlayer(event.getPlayerID());
+
         if (p == null)
             p = m_botAction.getPlayer(event.getPlayerName());
+
         if (p.getShipType() != Tools.Ship.SPECTATOR) {
             m_botAction.spec(name);
             m_botAction.spec(name);
         }
-        
+
         if (laggers.containsKey(name.toLowerCase()))
             m_botAction.sendPrivateMessage(name, "To get back in your duel, PM me with !lagout");
-        else 
+        else
             m_botAction.sendPrivateMessage(name, greet);
-        
+
         // make SURE there is a UserID available in tblUser if not, create one
         int id = sql_getUserID(name);
-        
+
         DuelPlayer dp = sql_buildPlayer(name, id);
+
         if (dp != null) {
             players.put(name.toLowerCase(), dp);
             do_addListTeams(dp);
         } else
-            newbies.put(name.toLowerCase(), id);        
+            newbies.put(name.toLowerCase(), id);
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -294,36 +301,42 @@ public class teamduel extends SubspaceBot {
 
         if (playing.containsKey(name.toLowerCase()) && !laggers.containsKey(name.toLowerCase()))
             handleLagout(name.toLowerCase());
-        
+
         if (!invites.isEmpty()) {
             if (invites.containsKey(name.toLowerCase())) {
                 TeamInvite invite = invites.remove(name.toLowerCase());
-                m_botAction.cancelTask(invite);                
+                m_botAction.cancelTask(invite);
                 m_botAction.sendPrivateMessage(invite.getInvitee(), "Team invitation from " + invite.getInviter() + " has been cancelled; the inviter left arena.");
             }
+
             Iterator<TeamInvite> i = invites.values().iterator();
+
             while (i.hasNext()) {
                 TeamInvite invite = i.next();
+
                 if (name.equalsIgnoreCase(invite.getInvitee())) {
                     m_botAction.cancelTask(invite);
                     invites.remove(invite);
-                    m_botAction.sendPrivateMessage(invite.getInviter(), "Your team invitation to " + invite.getInvitee() + " has been cancelled; the invitee left arena.");                    
+                    m_botAction.sendPrivateMessage(invite.getInviter(), "Your team invitation to " + invite.getInvitee() + " has been cancelled; the invitee left arena.");
                 }
             }
         }
     }
-    
+
     public void handleEvent(PlayerDeath event) {
         Player p1 = m_botAction.getPlayer(event.getKilleeID());
         Player p2 = m_botAction.getPlayer(event.getKillerID());
+
         if (p1 == null || p2 == null)
             return;
+
         String name = p1.getPlayerName();
         String killer = p2.getPlayerName();
+
         if (!playing.isEmpty() && playing.containsKey(name.toLowerCase())) {
             Duel duel = playing.get(name.toLowerCase());
-            int spawndx = (int) (System.currentTimeMillis()/1000) - duel.getPlayer(name).getLastSpawn();
-            int deathdx = (int) (System.currentTimeMillis()/1000) - duel.getPlayer(killer).getTimeOfLastDeath();
+            int spawndx = (int) (System.currentTimeMillis() / 1000) - duel.getPlayer(name).getLastSpawn();
+            int deathdx = (int) (System.currentTimeMillis() / 1000) - duel.getPlayer(killer).getTimeOfLastDeath();
             int team = duel.getPlayerNumber(name);
             String[] killers;
             String[] names;
@@ -332,6 +345,7 @@ public class teamduel extends SubspaceBot {
             int killerFreq;
             int nameFreq;
             int maxDeaths = duel.toWin();
+
             if (team == 1) {
                 names = duel.getChallenger();
                 killers = duel.getChallenged();
@@ -353,7 +367,7 @@ public class teamduel extends SubspaceBot {
                 // is killed player out?
                 if (nameStats.getDeaths() >= maxDeaths) {
                     m_botAction.sendOpposingTeamMessageByFrequency(killerFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);
-                    m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);                
+                    m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);
                     nameStats.setOut();
                     playing.remove(name.toLowerCase());
                     m_botAction.spec(name);
@@ -362,38 +376,43 @@ public class teamduel extends SubspaceBot {
                 }
 
                 // update scorereports
-                do_score(duel, 0);                
+                do_score(duel, 0);
             } else {
                 int s_extra = 0;
+
                 if (duel.getDivisionID() == 2)
                     s_extra = 2;
+
                 // check for Double Kill
                 if (duel.getNoCount() && deathdx < s_noCount && killerStats.getLastKiller().equalsIgnoreCase(name)) {
                     if (!killDelays.isEmpty() && killDelays.containsKey(killer.toLowerCase())) {
                         m_botAction.cancelTask(killDelays.remove(killer.toLowerCase()));
                     }
+
                     killerStats.removeDeath();
                     nameStats.removeKill();
                     m_botAction.sendPrivateMessage(killer, "Double Kill, doesn't count.");
                     m_botAction.sendPrivateMessage(name, "Double Kill, doesn't count.");
-                    
+
                     int scoreK = duel.getPlayer(names[0]).getDeaths() + duel.getPlayer(names[1]).getDeaths();
                     int scoreD = duel.getPlayer(killers[0]).getDeaths() + duel.getPlayer(killers[1]).getDeaths();
                     m_botAction.sendOpposingTeamMessageByFrequency(killerFreq, "Score: " + scoreK + "-" + scoreD, 26);
                     m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, "Score: " + scoreD + "-" + scoreK, 26);
-                    
+
                     if (!playing.isEmpty() && playing.containsKey(name.toLowerCase())) {
                         m_botAction.shipReset(name);
                         int[] coord = nameStats.getSafeCoords();
                         m_botAction.warpTo(name, coord[0], coord[1]);
-                        
+
                         coord = nameStats.getCoords();
                         SpawnDelay warp = new SpawnDelay(name, coord[0], coord[1], System.currentTimeMillis());
+
                         try {
                             spawnDelays.put(name.toLowerCase(), warp);
                             m_botAction.scheduleTask(warp, s_spawn * 1000);
                         } catch (Exception e) { }
                     }
+
                     return;
                 }
 
@@ -401,9 +420,10 @@ public class teamduel extends SubspaceBot {
                     killerStats.addSpawn();
                     nameStats.addSpawned();
                     nameStats.setLastDeath();
+
                     if (killerStats.getSpawns() >= s_spawnLimit) {
                         m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, killer + " is out due to spawn kill abuse.", 26);
-                        m_botAction.sendOpposingTeamMessageByFrequency(killerFreq, killer + " is out due to spawn kill abuse.", 26); 
+                        m_botAction.sendOpposingTeamMessageByFrequency(killerFreq, killer + " is out due to spawn kill abuse.", 26);
                         killerStats.setDeaths(duel.toWin());
                         killerStats.setOut();
                         playing.remove(killer.toLowerCase());
@@ -426,6 +446,7 @@ public class teamduel extends SubspaceBot {
                         m_botAction.shipReset(name);
                         int[] coord = playing.get(name.toLowerCase()).getPlayer(name).getSafeCoords();
                         m_botAction.warpTo(name, coord[0], coord[1]);
+
                         try {
                             killDelays.put(name.toLowerCase(), new KillDelay(name, killer, nameStats, killerStats, names, killers, duel));
                             m_botAction.scheduleTask(killDelays.get(name.toLowerCase()), s_noCount * 1000);
@@ -433,8 +454,10 @@ public class teamduel extends SubspaceBot {
                             spawnDelays.put(name.toLowerCase(), new SpawnDelay(name, coord[0], coord[1], System.currentTimeMillis()));
                             m_botAction.scheduleTask(spawnDelays.get(name.toLowerCase()), (s_noCount + s_spawn) * 1000);
                         } catch (Exception e) { }
+
                         return;
                     }
+
                     nameStats.setLastKiller(killer);
                     nameStats.addDeath();
                     killerStats.addKill();
@@ -445,11 +468,12 @@ public class teamduel extends SubspaceBot {
                 // is killed player out?
                 if (nameStats.getDeaths() >= maxDeaths) {
                     m_botAction.sendOpposingTeamMessageByFrequency(killerFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);
-                    m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);                
+                    m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);
                     nameStats.setOut();
                     playing.remove(name.toLowerCase());
                     m_botAction.spec(name);
                     m_botAction.spec(name);
+
                     if (duel.getPlayerNumber(name) == 1)
                         m_botAction.setFreq(name, duel.getBoxFreq());
                     else
@@ -464,22 +488,25 @@ public class teamduel extends SubspaceBot {
                     duel.toggleCancelGame(name);
                     m_botAction.sendPrivateMessage(name, "Your cancel request has been voided because " + killer + " killed you.");
                 }
+
                 if (duel.getCancelState(killer)) {
                     duel.toggleCancelGame(killer);
                     m_botAction.sendPrivateMessage(killer, "Your cancel request has been voided becase you killed " + name + ".");
                 }
             }
+
             // redoBox(duel.getDivisionID(), duel.getBoxNumber(), duel.getPlayerOne().getDeaths() + duel.getPlayerTwo().getDeaths(), duel.getPlayerThree().getDeaths() + duel.getPlayerFour().getDeaths());
         }
-        
+
         if (!playing.isEmpty() && playing.containsKey(name.toLowerCase())) {
             DuelPlayerStats stats = playing.get(name.toLowerCase()).getPlayer(name);
             int[] coord = stats.getSafeCoords();
             m_botAction.warpTo(name, coord[0], coord[1]);
             m_botAction.shipReset(name);
-            
+
             coord = stats.getCoords();
             SpawnDelay warp = new SpawnDelay(name, coord[0], coord[1], System.currentTimeMillis());
+
             try {
                 spawnDelays.put(name, warp);
                 m_botAction.scheduleTask(warp, s_spawn * 1000);
@@ -489,24 +516,25 @@ public class teamduel extends SubspaceBot {
 
     public void handleEvent(PlayerPosition event) {
         Player ptest = m_botAction.getPlayer(event.getPlayerID());
+
         /*
-         * Sometimes a player leaves the arena just after a position packet is
-         * received; while the position event is distributed, the PlayerLeft
-         * event is given to Arena, causing all information about the player to
-         * be wiped from record. This also occurs frequently with the
-         * PlayerDeath event. Moral: check for null.
-         */
+            Sometimes a player leaves the arena just after a position packet is
+            received; while the position event is distributed, the PlayerLeft
+            event is given to Arena, causing all information about the player to
+            be wiped from record. This also occurs frequently with the
+            PlayerDeath event. Moral: check for null.
+        */
         if (ptest == null)
             return;
 
         String name = ptest.getPlayerName();
-            
+
         if (playing.isEmpty() || !playing.containsKey(name.toLowerCase()))
             return;
 
         // Get the associated duel
         Duel duel = playing.get(name.toLowerCase());
-        
+
         int x = event.getXLocation() / 16;
         int y = event.getYLocation() / 16;
 
@@ -521,6 +549,7 @@ public class teamduel extends SubspaceBot {
             if (!duel.isLocked()) {
                 if (ptest.getFrequency() != player.getFreq())
                     m_botAction.setFreq(name, player.getFreq());
+
                 int[] coords = player.getSafeCoords();
                 m_botAction.warpTo(name, coords[0], coords[1]);
                 return;
@@ -533,17 +562,18 @@ public class teamduel extends SubspaceBot {
                 int team = duel.getPlayerNumber(name);
                 int warperFreq = player.getFreq();
                 int otherFreq;
+
                 if (team == 1)
                     otherFreq = duel.getChallengedFreq();
-                else 
+                else
                     otherFreq = duel.getChallengerFreq();
-                
+
                 if (ptest.getFrequency() != warperFreq)
                     m_botAction.setFreq(name, warperFreq);
 
                 if (duel.hasStarted() && player.getWarps() > 1) {
                     m_botAction.sendOpposingTeamMessageByFrequency(warperFreq, name + " is out due to warp abuse.", 26);
-                    m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, name + " is out due to warp abuse.", 26); 
+                    m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, name + " is out due to warp abuse.", 26);
                     player.setDeaths(duel.toWin());
                     player.setOut();
                     playing.remove(name.toLowerCase());
@@ -553,10 +583,13 @@ public class teamduel extends SubspaceBot {
                     do_score(duel, 2);
                     return;
                 }
+
                 m_botAction.sendPrivateMessage(name, "Warping is not allowed. Do not warp again else you will forfeit your duel.");
+
                 if (duel.isLocked() && m_botAction.getPlayer(name).getShipType() != ship) {
                     player.setLastWarp((int) (System.currentTimeMillis() / 1000));
                     m_botAction.setShip(name, ship);
+
                     if (!duel.hasStarted()) {
                         int[] coords = player.getSafeCoords();
                         m_botAction.warpTo(name, coords[0], coords[1]);
@@ -565,8 +598,10 @@ public class teamduel extends SubspaceBot {
                         WarpPoint p = duel.getRandomWarpPoint();
                         m_botAction.warpTo(name, p.getXCoord(), p.getYCoord());
                     }
+
                     return;
                 }
+
                 if (duel.hasStarted()) {
                     WarpPoint p = duel.getRandomWarpPoint();
                     m_botAction.warpTo(name, p.getXCoord(), p.getYCoord());
@@ -583,6 +618,7 @@ public class teamduel extends SubspaceBot {
 
         // Get the player name for this event
         String name = m_botAction.getPlayerName(event.getPlayerID());
+
         // Make sure the player is playing and in spectator mode
         if (!playing.isEmpty() && !playing.containsKey(name.toLowerCase()) && event.getShipType() != 0) {
             m_botAction.spec(name);
@@ -592,13 +628,13 @@ public class teamduel extends SubspaceBot {
 
         if (playing.isEmpty() || !playing.containsKey(name.toLowerCase()))
             return;
-        
+
         // Get the associated duel for this player
         Duel duel = playing.get(name.toLowerCase());
 
         DuelPlayerStats player = duel.getPlayer(name);
         int ship = event.getShipType();
-        
+
         if (ship != 0) {
             if ((laggers.isEmpty() || !laggers.containsKey(name.toLowerCase())) && !duel.isLocked()) {
                 if (ship == 6) {
@@ -606,12 +642,13 @@ public class teamduel extends SubspaceBot {
                 } else
                     player.setShip(event.getShipType());
             }
+
             return;
         }
-        
+
         handleLagout(name);
     }
-    
+
     public void handleLagout(String name) {
 
         // Get the associated duel for this player
@@ -623,10 +660,11 @@ public class teamduel extends SubspaceBot {
         String[] others;
         String[] names;
         int team = duel.getPlayerNumber(name);
+
         if (team == 1) {
             names = duel.getChallenger();
             others = duel.getChallenged();
-            
+
         } else {
             names = duel.getChallenged();
             others = duel.getChallenger();
@@ -634,16 +672,18 @@ public class teamduel extends SubspaceBot {
 
         if (duel.hasStarted())
             player.addLagout();
-        
+
         if (player.getLagouts() >= s_lagLimit) {
             int laggerFreq = player.getFreq();
             int otherFreq;
+
             if (team == 1)
                 otherFreq = duel.getChallengedFreq();
             else
                 otherFreq = duel.getChallengerFreq();
+
             m_botAction.sendOpposingTeamMessageByFrequency(laggerFreq, name + " is out due to lagouts.", 26);
-            m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, name + " is out due to lagouts.", 26); 
+            m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, name + " is out due to lagouts.", 26);
             m_botAction.sendPrivateMessage(name, "You have forfeited because you have no more lagouts left.");
             player.setDeaths(duel.toWin());
             player.setOut();
@@ -652,88 +692,95 @@ public class teamduel extends SubspaceBot {
             m_botAction.spec(name);
             m_botAction.setFreq(name, laggerFreq);
             do_score(duel, 3);
+
             if (!laggers.isEmpty() && laggers.containsKey(name.toLowerCase())) {
                 m_botAction.cancelTask(laggers.get(name.toLowerCase()));
                 laggers.remove(name.toLowerCase());
             }
+
             return;
         }
 
         m_botAction.sendPrivateMessage(others[0], "Your opponent has lagged out or specced, if he/she does not return in 1 minute will forfeit.");
         m_botAction.sendPrivateMessage(others[1], "Your opponent has lagged out or specced, if he/she does not return in 1 minute will forfeit.");
+
         if (name.equalsIgnoreCase(names[0]))
             m_botAction.sendPrivateMessage(names[1], "Your partner has lagged out and has 1 minute to return or will forfeit");
         else if (name.equalsIgnoreCase(names[1]))
             m_botAction.sendPrivateMessage(names[0], "Your partner has lagged out and has 1 minute to return or will forfeit");
+
         m_botAction.sendPrivateMessage(name, "You have 1 minute to return to your duel or you forfeit (!lagout)");
 
         if (!laggers.isEmpty() && laggers.containsKey(name.toLowerCase())) {
             TimerTask t = laggers.remove(name.toLowerCase());
+
             try {
                 m_botAction.cancelTask(t);
             } catch (IllegalStateException e) {
                 t = null;
             }
         }
+
         laggers.put(name.toLowerCase(), new Lagger(name, duel));
         m_botAction.scheduleTask(laggers.get(name.toLowerCase()), 60000);
     }
-    
+
     /**
-     * Player Command Executions
-     */
+        Player Command Executions
+    */
 
     public void do_showHelp(String name, String message) {
-            String help[] = {
-                "--Player commands-----------------------------------------------------------------------------",
-                "| !h                                 - condensed command list                                 |",
-                "| !signup                            - signs you up for the dueling league                    |",
-                "| !divisions                         - shows the list of playable divisions                   |",
-                "|*!register <partner>:<division#>    - registers you and your partner as a team in <division#>|",
-                "| !cancelinvite <name>               - cancels team invite to <name> or cancell all if blank  |",
-                "| !join <name>                       - accepts a team invite request from <name>              |",
-                "|*!quit <division#>                  - disables your team in <division#>  (quit team)         |",
-                "| !rules                             - shows your current rules                               |",
-                "| !rules <deaths>                    - sets the default death limit for all challenges(NC off)|",
-                "| !rules <deaths>:nc                 - sets death limit and turns no count double kills on    |",
-                "| !challenge <teamID>                - challenges <teamID> to a duel if your partner agrees   |",
-                "|*!challenge <teamID>:<BoxTypeID>    - challenges <teamID> to a duel in box type <BoxTypeID>  |",
-                "|                                       if your partner agrees *details listed below          |",
-                "| !agree <teamID>                    - accepts a challenge request from your partner and then |",
-                "|                                       challenges <teamID> to a duel                         |",
-                "| !accept <teamID>                   - accepts a challenge from <teamID>                      |",
-                "|                                       your partner must also accept to begin the duel       |",
-                "| !removechallenge <teamID>          - removes the challenge issued to <teamID>               |",
-                "| !notplaying                        - toggles on/off notplaying                              |",
-                "| !lagout                            - puts you back in to your duel                          |",
-                "| !cancel                            - toggles your decision to cancel your duel              |",
-                "| !lag <name>                        - returns the lag of player <name>                       |",
-                "| !ops                               - shows list of league operators                         |",
-                "| !score <box#> or <player>          - shows the score of a duel # or a player                |",
-                "| !duels                             - shows the current duels being played                   |",
-                "| !teams                             - shows a list of teams available for challenges         |",
-                "| !me                                - shows a list of teams you're on                        |",
-                "| !enable                            - enables your username                                  |",
-                "| !disable                           - disables your username (and all teams you were in)     |",
-                "| !rank                              - displays your ranks for all leagues                    |",
-                "| !rank <name>                       - displays <name>'s ranks for all leagues                |",
-                "|*DIVISIONS: 1-Warbird 2-Javelin 3-Spider 4-Lancaster 5-Mixed                                 |",
-                "|  - your <partner> must be present in the arena in order for you to issue the team invite    |",
-                "|  - your <partner> must be eligible for the invite (not banned or disabled & no team for div)|",
-                "|  - you may register 1 team per division                                                     |",
-                "|  - team invites time out after 1 minute                                                     |",
-                "|*CHALLENGES: you are required to have a team in the division of the team you are challenging |",
-                "|  - your <partner> must be present in the arena in order for you to issue the challenge      |",
-                "|  - all participants must have !notplaying off (meaning their team shows on !teams)          |",
-                "|*MIXED DIVISION: you will be able to choose a ship to play in right before the duel begins   |",
-                "|*BOX TYPE ID: Type 1 is the Warbird style box and Type 2 is the Javelin style box            |",
-                "|  - Any division may specify a box type EXCEPT for Javelin. Jav duels are always in Type 2   |",
-                "|  - If you do not specify a box type, the default will be used which is 1 except for jav     |",
-                "| FOR A MORE CONCISE COMMAND LIST USE !h                                                      |",
-                "`---------------------------------------------------------------------------------------------"
+        String help[] = {
+            "--Player commands-----------------------------------------------------------------------------",
+            "| !h                                 - condensed command list                                 |",
+            "| !signup                            - signs you up for the dueling league                    |",
+            "| !divisions                         - shows the list of playable divisions                   |",
+            "|*!register <partner>:<division#>    - registers you and your partner as a team in <division#>|",
+            "| !cancelinvite <name>               - cancels team invite to <name> or cancell all if blank  |",
+            "| !join <name>                       - accepts a team invite request from <name>              |",
+            "|*!quit <division#>                  - disables your team in <division#>  (quit team)         |",
+            "| !rules                             - shows your current rules                               |",
+            "| !rules <deaths>                    - sets the default death limit for all challenges(NC off)|",
+            "| !rules <deaths>:nc                 - sets death limit and turns no count double kills on    |",
+            "| !challenge <teamID>                - challenges <teamID> to a duel if your partner agrees   |",
+            "|*!challenge <teamID>:<BoxTypeID>    - challenges <teamID> to a duel in box type <BoxTypeID>  |",
+            "|                                       if your partner agrees *details listed below          |",
+            "| !agree <teamID>                    - accepts a challenge request from your partner and then |",
+            "|                                       challenges <teamID> to a duel                         |",
+            "| !accept <teamID>                   - accepts a challenge from <teamID>                      |",
+            "|                                       your partner must also accept to begin the duel       |",
+            "| !removechallenge <teamID>          - removes the challenge issued to <teamID>               |",
+            "| !notplaying                        - toggles on/off notplaying                              |",
+            "| !lagout                            - puts you back in to your duel                          |",
+            "| !cancel                            - toggles your decision to cancel your duel              |",
+            "| !lag <name>                        - returns the lag of player <name>                       |",
+            "| !ops                               - shows list of league operators                         |",
+            "| !score <box#> or <player>          - shows the score of a duel # or a player                |",
+            "| !duels                             - shows the current duels being played                   |",
+            "| !teams                             - shows a list of teams available for challenges         |",
+            "| !me                                - shows a list of teams you're on                        |",
+            "| !enable                            - enables your username                                  |",
+            "| !disable                           - disables your username (and all teams you were in)     |",
+            "| !rank                              - displays your ranks for all leagues                    |",
+            "| !rank <name>                       - displays <name>'s ranks for all leagues                |",
+            "|*DIVISIONS: 1-Warbird 2-Javelin 3-Spider 4-Lancaster 5-Mixed                                 |",
+            "|  - your <partner> must be present in the arena in order for you to issue the team invite    |",
+            "|  - your <partner> must be eligible for the invite (not banned or disabled & no team for div)|",
+            "|  - you may register 1 team per division                                                     |",
+            "|  - team invites time out after 1 minute                                                     |",
+            "|*CHALLENGES: you are required to have a team in the division of the team you are challenging |",
+            "|  - your <partner> must be present in the arena in order for you to issue the challenge      |",
+            "|  - all participants must have !notplaying off (meaning their team shows on !teams)          |",
+            "|*MIXED DIVISION: you will be able to choose a ship to play in right before the duel begins   |",
+            "|*BOX TYPE ID: Type 1 is the Warbird style box and Type 2 is the Javelin style box            |",
+            "|  - Any division may specify a box type EXCEPT for Javelin. Jav duels are always in Type 2   |",
+            "|  - If you do not specify a box type, the default will be used which is 1 except for jav     |",
+            "| FOR A MORE CONCISE COMMAND LIST USE !h                                                      |",
+            "`---------------------------------------------------------------------------------------------"
 
-            };
+        };
         m_botAction.privateMessageSpam( name, help );
+
         if(leagueOps.containsKey(name.toLowerCase()) || leagueHeadOps.containsKey(name.toLowerCase()) || hiddenOps.containsKey(name.toLowerCase())) {
             String help2[] = {
                 " ",
@@ -753,14 +800,15 @@ public class teamduel extends SubspaceBot {
                 "|      !shutdowndie  (prevents new games, kills bot when no duels are active)                 |",
                 "| * New bans automatically include the date at the beginning of the comment (not old)         |",
                 "`---------------------------------------------------------------------------------------------"
-                };
-            
+            };
+
             // hidden commands: (probably hidden because they are very error sensitive and powerful)
             // !limit        - sets BotAction.setMessageLimit(msgsPerMin)
             // !version      - returns 1.40
-            
+
             m_botAction.privateMessageSpam( name, help2 );
         }
+
         if(leagueHeadOps.containsKey(name.toLowerCase())) {
             String help3[] = {
                 " ",
@@ -771,8 +819,8 @@ public class teamduel extends SubspaceBot {
                 "| !removehiddenop <name>              - Removes <name> to the Hidden Operators list (!ops)    |",
                 "| !setgreet <greeting>                - Changes the arena greeting to <greeting>              |",
                 "`---------------------------------------------------------------------------------------------"
-                };
-            
+            };
+
             m_botAction.privateMessageSpam( name, help3 );
         }
     }
@@ -823,21 +871,21 @@ public class teamduel extends SubspaceBot {
 
         };
         m_botAction.privateMessageSpam(name, about);
-        
+
     }
-    
+
     public void do_showDivisions(String name, String message) {
         String divisions[] = {
-                "--League Divisions--",
-                "| # | Name          |",
-                "|---|---------------|",
-                "| 1 | Warbird       |",
-                "| 2 | Javelin       |",
-                "| 3 | Spider        |",
-                "| 4 | Lancaster     |",
-                "| 5 | Mixed         |",
-                "`---\\ aka Freestyle |",
-                "     `--------------"
+            "--League Divisions--",
+            "| # | Name          |",
+            "|---|---------------|",
+            "| 1 | Warbird       |",
+            "| 2 | Javelin       |",
+            "| 3 | Spider        |",
+            "| 4 | Lancaster     |",
+            "| 5 | Mixed         |",
+            "`---\\ aka Freestyle |",
+            "     `--------------"
         };
         m_botAction.privateMessageSpam( name, divisions );
     }
@@ -846,20 +894,24 @@ public class teamduel extends SubspaceBot {
         do_updateOps();
         String hops = "Head League Operators: ";
         Iterator<String> it1 = leagueHeadOps.values().iterator();
+
         while (it1.hasNext()) {
             if (it1.hasNext())
                 hops += (String) it1.next() + ", ";
             else
                 hops += (String) it1.next();
         }
+
         String ops = "League Operators: ";
         Iterator<String> it2 = leagueOps.values().iterator();
+
         while (it2.hasNext()) {
             if (it2.hasNext())
                 ops += (String) it2.next() + ", ";
             else
                 ops += (String) it2.next();
         }
+
         hops = hops.substring(0, hops.length() - 2);
         ops = ops.substring(0, ops.length() - 2);
         m_botAction.sendPrivateMessage(name, hops);
@@ -868,37 +920,43 @@ public class teamduel extends SubspaceBot {
         if (leagueHeadOps.containsKey(name.toLowerCase())) {
             String hidden = "Hidden Ops (visible only to HeadOps): ";
             Iterator<String> it3 = hiddenOps.values().iterator();
+
             while (it3.hasNext()) {
                 if (it3.hasNext())
                     hidden += (String) it3.next() + ", ";
                 else
                     hidden += (String) it3.next();
             }
+
             hidden = hidden.substring(0, hidden.length() - 2);
             m_botAction.sendPrivateMessage(name, hidden);
         }
     }
-    
+
     public void do_showTeams(String name, String message) {
         if (message != null && message.length() > 0) {
             do_showYou(name, message);
             return;
         }
-        
+
         if (teamList.isEmpty()) {
             m_botAction.sendPrivateMessage(name, "No teams available.");
         } else {
             ArrayList<ArrayList<String>> messages = new ArrayList<ArrayList<String>>(5);
+
             for (int i = 0; i < 5; i++) {
                 messages.add(i, new ArrayList<String>());
             }
+
             m_botAction.sendPrivateMessage(name, "The following teams are available for challenges (if list is blank then all teams are notplaying):");
             m_botAction.sendPrivateMessage(name, "--Teams------------------------------------------------");
             m_botAction.sendPrivateMessage(name, "| ID# | Division | Partners                            |");
             m_botAction.sendPrivateMessage(name, "|-----|----------|-------------------------------------|");
             Iterator<DuelTeam> it = teamList.values().iterator();
+
             while (it.hasNext()) {
                 DuelTeam team = it.next();
+
                 if (!team.getNotPlaying() && !name.equalsIgnoreCase(team.getNames()[0]) && !name.equalsIgnoreCase(team.getNames()[1])) {
                     int index = team.getDivision() - 1;
                     ArrayList<String> temp = messages.get(index);
@@ -906,21 +964,25 @@ public class teamduel extends SubspaceBot {
                     messages.set(index, temp);
                 }
             }
+
             for (int x = 0; x < 5; x++) {
                 ArrayList<String> print = messages.get(x);
+
                 if (!print.isEmpty()) {
                     String[] division = print.toArray(new String[print.size()]);
                     m_botAction.privateMessageSpam(name, division);
                 }
             }
+
             m_botAction.sendPrivateMessage(name, "`------------------------------------------------------");
         }
-        
+
     }
 
     public void do_showScore(String name, String message) {
         String player = m_botAction.getFuzzyPlayerName(message);
         int i = -1;
+
         if (player == null) {
             try {
                 i = Integer.parseInt(message);
@@ -928,6 +990,7 @@ public class teamduel extends SubspaceBot {
                 m_botAction.sendPrivateMessage(name, "Can't read a player name or box # from your input.  Please check the name/number and try again.");
                 return;
             }
+
             if (duels.containsKey(new Integer(i))) {
                 m_botAction.sendPrivateMessage(name, duels.get(new Integer(Integer.parseInt(message))).showScore());
             } else {
@@ -941,62 +1004,72 @@ public class teamduel extends SubspaceBot {
             }
         }
     }
-    
+
     public void do_showDuels(String name, String message) {
         if (duels.isEmpty()) {
             m_botAction.sendPrivateMessage(name, "No duels are being played.");
         } else {
             Iterator<Duel> it = duels.values().iterator();
             ArrayList<ArrayList<String>> duellist = new ArrayList<ArrayList<String>>();
+
             for (int i = 0; i < 6; i++) {
                 duellist.add(i, new ArrayList<String>());
             }
+
             while (it.hasNext()) {
                 Duel duel = it.next();
                 ArrayList<String> division = duellist.get(duel.getDivisionID());
                 division.add(duel.toString());
                 duellist.set(duel.getDivisionID(), division);
             }
+
             if (!duellist.isEmpty()) {
                 m_botAction.sendPrivateMessage(name, "--Duels----------------------------------------------------------------------------");
                 m_botAction.sendPrivateMessage(name, "| Box | Division | Teams                                                           |");
                 m_botAction.sendPrivateMessage(name, "|-----|----------|-----------------------------------------------------------------|");
+
                 for (int i = 1; i <= 5; i++) {
                     ArrayList<String> div = duellist.get(i);
                     String[] msg = div.toArray(new String[div.size()]);
-                    m_botAction.privateMessageSpam(name, msg);                
+                    m_botAction.privateMessageSpam(name, msg);
                 }
+
                 m_botAction.sendPrivateMessage(name, "`----------------------------------------------------------------------------------");
             }
         }
     }
-    
+
     public void do_showLag(String name, String message) {
         String player = m_botAction.getFuzzyPlayerName(message);
+
         if (player == null) {
             m_botAction.sendPrivateMessage(name, "Unable to find player.");
             return;
         }
+
         if (!from.equals("")) {
             m_botAction.sendPrivateMessage(name, "Please try again in a few seconds.");
             return;
         }
+
         from = player;
         to = name;
         m_botAction.sendUnfilteredPrivateMessage(player, "*lag");
-    }    
-    
+    }
+
     public void do_showYou(String name, String message) {
         DuelPlayer dp = players.get(message.toLowerCase());
+
         if (dp == null) {
             m_botAction.sendPrivateMessage(name, "Loading player information...");
             dp = sql_buildPlayer(message);
         }
+
         if (dp == null) {
             m_botAction.sendPrivateMessage(name, "Player, " + message + " not found.");
             return;
         }
-        
+
         if (!dp.isBanned()) {
             if (dp.isEnabled()) {
                 if (dp.hasTeams()) {
@@ -1004,21 +1077,25 @@ public class teamduel extends SubspaceBot {
                     ArrayList<String> msgs = new ArrayList<String>();
                     //TeamsTeamsTeamsTeamsTeamsTeamsTeamsTeamsTeamsTeams
                     String title = "--" + message + "'s Teams";
+
                     while (title.length() < 45)
                         title += "-";
+
                     msgs.add(title);
                     msgs.add("| ID# | Division | Partner                   |");
                     msgs.add("|-----|----------|---------------------------");
+
                     for (int i = 1; i <= 5; i++) {
                         if (teams[i] > -1) {
                             int teamID = teams[i];
                             String divisionName = getDivision(i);
                             String partner = dp.getPartner(i);
                             String msg = "|";
+
                             if (teamID / 10 > 0) {
                                 if (teamID / 100 > 0) {
                                     if (teamID / 1000 > 0) {
-                                        msg += " " + teamID + "|"; 
+                                        msg += " " + teamID + "|";
                                     } else
                                         msg += "  " + teamID + " |";
                                 } else
@@ -1026,7 +1103,7 @@ public class teamduel extends SubspaceBot {
                             } else // "| ID#  | Division | Partners"
                                 msg += "   " + teamID + " |";
 
-                            if (i == 1 || i == 2) 
+                            if (i == 1 || i == 2)
                                 msg += " " + divisionName + "  | ";
                             else if (i == 3)
                                 msg += "  " + divisionName + "  | ";
@@ -1034,30 +1111,35 @@ public class teamduel extends SubspaceBot {
                                 msg += " " + divisionName + "| ";
                             else if (i == 5)
                                 msg += "  " + divisionName + "   | ";
+
                             msg += partner;
 
-                            while (msg.length() < 45) 
+                            while (msg.length() < 45)
                                 msg += " ";
+
                             msg += "|";
                             msgs.add(msg);
                         }
-                    } 
+                    }
+
                     m_botAction.privateMessageSpam(name, msgs.toArray(new String[msgs.size()]));
                     m_botAction.sendPrivateMessage(name, "`--------------------------------------------");
                 } else
                     m_botAction.sendPrivateMessage(name, dp.getName() + " is not currently on any teams.");
-            } else 
+            } else
                 m_botAction.sendPrivateMessage(name, dp.getName() + " is not enabled.");
         } else
             m_botAction.sendPrivateMessage(name, dp.getName() + " is not allowed to play in this league.");
     }
-    
+
     public void do_showMe(String name, String message) {
         DuelPlayer dp = players.get(name.toLowerCase());
+
         if (dp == null) {
             m_botAction.sendPrivateMessage(name, "Unable to retreive your team information. You must be signed up and registered to a team.");
             return;
         }
+
         if (!dp.isBanned()) {
             if (dp.isEnabled()) {
                 if (dp.hasTeams()) {
@@ -1067,16 +1149,18 @@ public class teamduel extends SubspaceBot {
                     msgs.add("--My Teams-----------------------------------");
                     msgs.add("| ID# | Division | Partner                   |");
                     msgs.add("|-----|----------|---------------------------");
+
                     for (int i = 1; i <= 5; i++) {
                         if (teams[i] > -1) {
                             int teamID = teams[i];
                             String divisionName = getDivision(i);
                             String partner = dp.getPartner(i);
                             String msg = "|";
+
                             if (teamID / 10 > 0) {
                                 if (teamID / 100 > 0) {
                                     if (teamID / 1000 > 0) {
-                                        msg += " " + teamID + "|"; 
+                                        msg += " " + teamID + "|";
                                     } else
                                         msg += "  " + teamID + " |";
                                 } else
@@ -1084,7 +1168,7 @@ public class teamduel extends SubspaceBot {
                             } else // "| ID#  | Division | Partners"
                                 msg += "   " + teamID + " |";
 
-                            if (i == 1 || i == 2) 
+                            if (i == 1 || i == 2)
                                 msg += " " + divisionName + "  | ";
                             else if (i == 3)
                                 msg += "  " + divisionName + "  | ";
@@ -1092,24 +1176,27 @@ public class teamduel extends SubspaceBot {
                                 msg += " " + divisionName + "| ";
                             else if (i == 5)
                                 msg += "  " + divisionName + "   | ";
+
                             msg += partner;
 
-                            while (msg.length() < 45) 
+                            while (msg.length() < 45)
                                 msg += " ";
+
                             msg += "|";
                             msgs.add(msg);
                         }
-                    } 
+                    }
+
                     m_botAction.privateMessageSpam(name, msgs.toArray(new String[msgs.size()]));
                     m_botAction.sendPrivateMessage(name, "`--------------------------------------------");
                 } else
                     m_botAction.sendPrivateMessage(name, "You are not currently on any teams. Find a partner and use !reg partner:division");
-            } else 
+            } else
                 m_botAction.sendPrivateMessage(name, "You must be enabled in order to be on a team.");
         } else
             m_botAction.sendPrivateMessage(name, "You have been banned from this league.");
     }
-    
+
     public void do_signUp(String name, String message) {
         aliasChecker = "";
         aliasCheck = false;
@@ -1120,35 +1207,42 @@ public class teamduel extends SubspaceBot {
         // !register PArtners NAme:1
         String[] vars = message.split(":");
         vars[0] = m_botAction.getFuzzyPlayerName(vars[0]);
+
         if (vars[0] == null) {
             m_botAction.sendPrivateMessage(name, "Error sending team invite: player must be in this arena");
             return;
         }
+
         DuelPlayer part = players.get(vars[0].toLowerCase());
         DuelPlayer dp = players.get(name.toLowerCase());
+
         if (dp == null) {
             m_botAction.sendPrivateMessage(name, "You must use !signup to signup to play before you can register a team.");
             return;
         }
+
         int typeID = -1;
+
         if (dp.isEnabled()) {
             if (!dp.isBanned()) {
                 if (vars.length == 2) {
                     if (do_partnerCheck(name, vars[0])) {
                         try {
                             typeID = Integer.parseInt(vars[1]);
+
                             if (dp.getTeam(typeID) == -1) {
                                 if (part.getTeam(typeID) == -1) {
                                     if (!invites.isEmpty() && invites.containsKey(name.toLowerCase())) {
                                         m_botAction.sendPrivateMessage(name, "You are only allowed to send one team invite at a time.");
                                         return;
                                     }
+
                                     TeamInvite invite = new TeamInvite(name, vars[0], typeID);
                                     invites.put(name.toLowerCase(), invite);
                                     m_botAction.scheduleTask(invite, 60000);
                                 } else
                                     m_botAction.sendPrivateMessage(name, part.getName() + " is all ready registered for a team in that division.");
-                            } else 
+                            } else
                                 m_botAction.sendPrivateMessage(name, "You are all ready registered for a team in that division.");
                         } catch (NumberFormatException e) {
                             m_botAction.sendPrivateMessage(name, vars[1] + " is not a valid division ID number.");
@@ -1159,12 +1253,12 @@ public class teamduel extends SubspaceBot {
                     m_botAction.sendPrivateMessage(name, "Please use the following syntax: !register <Partner Name>:<Division ID#>");
                     m_botAction.sendPrivateMessage(name, "Division ID#s: 1-Warbird 2-Javelin 3-Spider 4-Lancaster 5-Mixed");
                 }
-            } else 
+            } else
                 m_botAction.sendPrivateMessage(name, "You have been banned from this league.");
-        } else 
+        } else
             m_botAction.sendPrivateMessage(name, "Your name must be enabled in order to register a team.");
     }
-    
+
     public void do_cancelTeamInvite(String name, String message) {
         if (!invites.isEmpty()) {
             if (invites.containsKey(name.toLowerCase())) {
@@ -1175,13 +1269,15 @@ public class teamduel extends SubspaceBot {
         } else
             m_botAction.sendPrivateMessage(name, "No team invitations found.");
     }
-    
+
     public void do_joinTeam(String name, String message) {
         if (invites.isEmpty() || m_botAction.getFuzzyPlayerName(message) == null) {
             m_botAction.sendPrivateMessage(name, "Error joining team: player team invite not found");
             return;
         }
+
         TeamInvite invite = null;
+
         if (invites.containsKey(message.toLowerCase())) {
             invite = invites.remove(message.toLowerCase());
             m_botAction.cancelTask(invite);
@@ -1189,6 +1285,7 @@ public class teamduel extends SubspaceBot {
             DuelPlayer pee = players.get(name.toLowerCase());
             int div = invite.division;
             int id = sql_createTeam(per, pee, div);
+
             if (id > 0) {
                 per.setTeams(id, div);
                 pee.setTeams(id, div);
@@ -1200,7 +1297,7 @@ public class teamduel extends SubspaceBot {
 
                 if (!teamList.containsKey(id))
                     do_refreshArena();
-                
+
             } else {
                 m_botAction.sendPrivateMessage(invite.inviter, "Team creation failed. Please contact an Operator.");
                 m_botAction.sendPrivateMessage(invite.invitee, "Team creation failed. Please contact an Operator.");
@@ -1215,29 +1312,37 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage);
             return;
         }
+
         DuelPlayer dp = null;
+
         if (!players.isEmpty())
             dp = players.get(name.toLowerCase());
+
         if (dp == null) {
             m_botAction.sendPrivateMessage(name, "You must be signed up and registered to challenge teams.");
             return;
         }
+
         int challengedTeam = -1;
         int boxType = -1;
+
         try {
             if (message.indexOf(':') > 0) {
                 boxType = Integer.parseInt(message.substring(message.indexOf(':') + 1));
                 message = message.substring(0, message.indexOf(':'));
+
                 if (boxType != -1 && boxType != 1 && boxType != 2) {
                     m_botAction.sendPrivateMessage(name, "Invalid box type. The only acceptable box types are 1 and 2");
                     return;
                 }
             }
+
             challengedTeam = Integer.parseInt(message);
         } catch (Exception e) {
             m_botAction.sendPrivateMessage(name, "Incorrect syntax, please use the following: !challenge <teamID> or !challenge <teamID>:<boxtype#>");
             return;
         }
+
         // Player banned check
         if (dp.isBanned()) {
             m_botAction.sendPrivateMessage(name, "You have been banned from this league.");
@@ -1249,119 +1354,133 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you have not signed up or have disabled this name.");
             return;
         }
+
         // Notplaying challenger check
         if (!notPlaying.isEmpty() && notPlaying.contains(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you have enabled 'notplaying', toggle it off with !notplaying.");
             return;
         }
+
         DuelTeam challed = null;
+
         if (!teamList.isEmpty())
             challed = teamList.get(challengedTeam);
+
         if (challed == null) {
             m_botAction.sendPrivateMessage(name, "Invalid team, please select from the list of available teams by using !teams");
-            return;            
+            return;
         }
 
         int division = challed.getDivision();
+
         if (boxType == 1 && division == 2) {
             m_botAction.sendPrivateMessage(name, "Javelin Division is only playable in box type 2. Box type changed to type 2.");
             boxType = 2;
         } else if (boxType == 2 && division == 1) {
             m_botAction.sendPrivateMessage(name, "Warbird Division is only playable in box type 1. Box type changed to type 1.");
-            boxType = 1;            
+            boxType = 1;
         }
-        
-        if (boxType == -1){
+
+        if (boxType == -1) {
             if (division == 2)
                 boxType = 2;
             else
                 boxType = 1;
         }
-        
+
         int challengerTeam = dp.getTeam(division);
+
         if (challengerTeam < 0) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you do not have a team in this division.");
             return;
         }
-        
+
         if (!teamList.containsKey(challengerTeam)) {
             m_botAction.sendPrivateMessage(name, "Your team for the " + getDivision(division) + " division was not found. Both you and your partner must be present. If this is a mistake, please re-enter the arena or contact a TWEL Op.");
             return;
         }
+
         DuelTeam challer = teamList.get(challengerTeam);
         String[] challenger = challer.getNames();
+
         if (!notPlaying.isEmpty() && (notPlaying.contains(challenger[0].toLowerCase()) || notPlaying.contains(challenger[1].toLowerCase()))) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, your partner has enabled 'notplaying', have him toggle it off in order to challenge.");
-            return;            
+            return;
         }
+
         if (challed.getNotPlaying()) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, your opponent has enabled 'notplaying'.");
-            return;             
+            return;
         }
-        
+
         if (challengerTeam == challengedTeam) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you cannot challenge yourself.");
             return;
         }
-        
+
         if (playing.containsKey(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you are already dueling.");
             return;
         }
+
         if (challed.getNowPlaying()) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge that team is already dueling.");
             return;
         }
+
         if (!boxOpen(boxType)) {
             m_botAction.sendPrivateMessage(name, "There is currently no duel box open for that division or box, please challenge again when a box opens up.");
             return;
         }
-        
+
         if (sql_gameLimitReached(challengerTeam, challengedTeam, division)) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you are only allowed "
-                    + s_duelLimit
-                    + " duels against a team every "
-                    + s_duelDays
-                    + " day(s).");
+                                           + s_duelLimit
+                                           + " duels against a team every "
+                                           + s_duelDays
+                                           + " day(s).");
             return;
         }
-        
+
         if (!challenges.isEmpty() && challenges.containsKey("" + challengerTeam + ":" + challengedTeam))
             challenges.remove("" + challengerTeam + ":" + challengedTeam);
-        
+
         String partner = "";
-        
-        String[] challenged = challed.getNames();        
-        
+
+        String[] challenged = challed.getNames();
+
         if (name.equalsIgnoreCase(challenger[0]))
             partner = challenger[1];
         else
             partner = challenger[0];
+
         TeamChallenge teamChall = new TeamChallenge(challengerTeam, challengedTeam, division, boxType, name, partner);
         String type = getDivision(division);
         m_botAction.sendPrivateMessage(name, "You have sent a challenge request to your partner, " + partner + ". He must !agree " + challengedTeam + " in order for the challenge to be issued.");
         m_botAction.sendPrivateMessage(partner, "Your partner, " + name + ", wants to send a " + type + " challenge to " + challenged[0] + " and " + challenged[1] + " in box type " + boxType + ". If you want to send this challenge, PM me with !agree " + challengedTeam);
-        teamChallenges.put("" + challengerTeam + ":" + challengedTeam, teamChall);           
+        teamChallenges.put("" + challengerTeam + ":" + challengedTeam, teamChall);
     }
-    
+
     public void do_issueChallenge(int challengerTeam, int challengedTeam, String initiater, int division, int boxType) {
         if (players.isEmpty() || teamList.isEmpty()) {
             m_botAction.sendPrivateMessage(initiater, "Error issuing challenge, please try again otherwise, contact a TWEL Op");
             return;
         }
+
         String[] challenger = teamList.get(challengerTeam).getNames();
-        String[] challenged = teamList.get(challengedTeam).getNames();  
-        
+        String[] challenged = teamList.get(challengedTeam).getNames();
+
         DuelPlayer[] challengerPlayers = new DuelPlayer[2];
         DuelPlayer[] challengedPlayers = new DuelPlayer[2];
-        
+
         challengerPlayers[0] = players.get(challenger[0].toLowerCase());
         challengerPlayers[1] = players.get(challenger[1].toLowerCase());
         challengedPlayers[0] = players.get(challenged[0].toLowerCase());
-        challengedPlayers[1] = players.get(challenged[1].toLowerCase());      
-              
+        challengedPlayers[1] = players.get(challenged[1].toLowerCase());
+
         DuelPlayer challengingPlayer = players.get(initiater.toLowerCase());
         String rules;
+
         if (challengingPlayer.getNoCount())
             rules = "Rules: " + challengingPlayer.getDeaths() + " death elimination, no count double kills, box type " + boxType;
         else
@@ -1375,27 +1494,31 @@ public class teamduel extends SubspaceBot {
         lag2[1] = challengedPlayers[1].getAverageLag();
         String[] avgLag1 = new String[2];
         String[] avgLag2 = new String[2];
+
         if (lag1[0] > 0)
             avgLag1[0] = String.valueOf(lag1[0]);
         else
             avgLag1[0] = "Unknown";
+
         if (lag1[1] > 0)
             avgLag1[1] = String.valueOf(lag1[1]);
         else
             avgLag1[1] = "Unknown";
+
         if (lag2[0] > 0)
             avgLag2[0] = String.valueOf(lag2[0]);
         else
             avgLag2[0] = "Unknown";
+
         if (lag2[1] > 0)
             avgLag2[1] = String.valueOf(lag2[1]);
         else
             avgLag2[1] = "Unknown";
-        
+
         challenges.put("" + challengerTeam + ":" + challengedTeam, new DuelChallenge(challengerTeam, challengedTeam, challenger, challenged, challengingPlayer, division, boxType));
-        
+
         String type = getDivision(division);
-        
+
         m_botAction.sendPrivateMessage(challenger[0], "Your challenge has been sent to Team #" + challengedTeam + " (" + challenged[0] + " and " + challenged[1] + ").");
         m_botAction.sendPrivateMessage(challenger[1], "Your challenge has been sent to Team #" + challengedTeam + " (" + challenged[0] + " and " + challenged[1] + ").");
         m_botAction.sendPrivateMessage(challenger[0], challenged[0] + "'s average lag: " + avgLag2[0]);
@@ -1413,59 +1536,63 @@ public class teamduel extends SubspaceBot {
         m_botAction.sendPrivateMessage(challenged[0], rules);
         m_botAction.sendPrivateMessage(challenged[1], rules);
     }
-    
+
     public void do_teamAccept(String name, String message) {
         if (shutDown) {
             m_botAction.sendPrivateMessage(name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage);
             return;
         }
-        
+
         if (players.isEmpty() || teamList.isEmpty()) {
             m_botAction.sendPrivateMessage(name, "There are no eligble teams.");
             return;
         }
-        
+
         if (players.isEmpty() || !players.containsKey(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Player information not found.");
             return;
         }
-            
+
         DuelPlayer dp = players.get(name.toLowerCase());
+
         if (teamChallenges.isEmpty()) {
             m_botAction.sendPrivateMessage(name, "Error: no team challenges found.");
             return;
         }
+
         int challengedTeam = -1;
+
         try {
             challengedTeam = Integer.parseInt(message);
         } catch (NumberFormatException e) {
             m_botAction.sendPrivateMessage(name, "Incorrect syntax, please use the following: !agree <teamID>");
-            return;            
+            return;
         }
-        
+
         if (dp == null) {
             m_botAction.sendPrivateMessage(name, "You must !signup first and register a team");
             return;
         }
-        
+
         if (dp.isBanned()) {
             m_botAction.sendPrivateMessage(name, "You have been banned from this league.");
             return;
         }
-        
+
         // Signed up check
         if (!dp.isEnabled()) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you have not signed up or have disabled this name.");
             return;
         }
-        
+
         if (!notPlaying.isEmpty() && notPlaying.contains(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you have enabled 'notplaying', toggle it off with !notplaying.");
             return;
         }
-        
+
         int division = -1;
         DuelTeam challed;
+
         if (teamList.containsKey(challengedTeam)) {
             challed = teamList.get(challengedTeam);
             division = challed.getDivision();
@@ -1473,39 +1600,43 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge. Team " + challengedTeam + " is not present in this arena.");
             return;
         }
+
         int challengerTeam = dp.getTeam(division);
+
         if (!teamList.containsKey(challengerTeam)) {
             m_botAction.sendPrivateMessage(name, "Your partner must have left the arena. Both players must be present to challenge.");
             return;
         }
+
         String key = "" + challengerTeam + ":" + challengedTeam;
-        
+
         if (teamChallenges.isEmpty() || !teamChallenges.containsKey(key)) {
             m_botAction.sendPrivateMessage(name, "Your partner has not tried to challenge the team you specified.");
             return;
         }
-        
+
         if (!name.equalsIgnoreCase(teamChallenges.get(key).getPartner())) {
             m_botAction.sendPrivateMessage(name, "You are not " + teamChallenges.get(key).getPartner() + "!");
             return;
         }
-        
+
         if (teamList.containsKey(challengedTeam) && teamList.get(challengedTeam).getNotPlaying()) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, the opposing team is !notplaying.");
-            return;            
+            return;
         }
-        
+
         if (teamList.containsKey(challengedTeam) && teamList.get(challengedTeam).getNowPlaying()) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, the opposing team is all ready playing.");
-            return;            
+            return;
         }
-        
+
         TeamChallenge teamChall = teamChallenges.remove("" + challengerTeam + ":" + challengedTeam);
-        
+
         if (teamChall.getElapsedTime() > s_challengeTime) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, the challenge has expired.");
             return;
-        }        
+        }
+
         do_issueChallenge(teamChall.getChallengers(), teamChall.getChallenged(), teamChall.getChallenger(), division, teamChall.getBoxType());
     }
 
@@ -1514,44 +1645,49 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Currently in 'ShutDown' mode, no new duels may begin at this time: " + shutDownMessage);
             return;
         }
+
         if (players.isEmpty() || challenges.isEmpty()) {
             m_botAction.sendPrivateMessage(name, "No challenge found.");
             return;
         }
-        
+
         DuelPlayer dp;
+
         if (players.containsKey(name.toLowerCase()))
             dp = players.get(name.toLowerCase());
         else {
             m_botAction.sendPrivateMessage(name, "Error: you were not found on the player list. You must be signed up and registered with a team to accept challenges.");
             return;
         }
+
         int challengerTeam = -1;
+
         try {
             challengerTeam = Integer.parseInt(message);
         } catch (NumberFormatException e) {
             m_botAction.sendPrivateMessage(name, "Incorrect syntax, please use the following: !accept <teamID>");
             return;
         }
-        
+
         if (dp.isBanned()) {
             m_botAction.sendPrivateMessage(name, "You have been banned from this league.");
             return;
         }
-        
+
         // Signed up check
         if (!dp.isEnabled()) {
             m_botAction.sendPrivateMessage(name, "Unable to issue challenge, you have not signed up or have disabled this name.");
             return;
         }
-        
+
         if (!notPlaying.isEmpty() && notPlaying.contains(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, you have enabled 'notplaying', toggle it off with !notplaying.");
             return;
         }
-        
+
         int division = -1;
         DuelTeam challer;
+
         if (teamList.containsKey(challengerTeam)) {
             challer = teamList.get(challengerTeam);
             division = challer.getDivision();
@@ -1559,45 +1695,57 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, team " + message + " is not present in this arena.");
             return;
         }
+
         int challengedTeam = dp.getTeam(division);
+
         if (!teamList.containsKey(challengedTeam)) {
             m_botAction.sendPrivateMessage(name, "Your partner must have left the arena. Both players must be present to accept a challenge.");
             return;
         }
-        
+
         String key = "" + challengerTeam + ":" + challengedTeam;
+
         if (!challenges.containsKey(key)) {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, team " + challengerTeam + " has not challenged you");
             return;
         }
+
         if (teamList.get(challengerTeam).getNotPlaying()) {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, team " + challengerTeam + " has enabled notplaying.");
             return;
         }
+
         if (!playing.isEmpty() && playing.containsKey(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, you are already dueling.");
             return;
         }
+
         if (teamList.get(challengerTeam).getNowPlaying()) {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, team " + challengerTeam + " is already dueling.");
             return;
         }
+
         DuelChallenge thisChallenge = challenges.get(key);
-        
+
         boolean[] accepted = thisChallenge.getAccepted();
+
         if (thisChallenge.getElapsedTime() > s_challengeTime) {
             challenges.remove(key);
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, the challenge has expired.");
             return;
         }
+
         DuelBox thisBox = getDuelBox(thisChallenge.getBoxType());
+
         // Add queue system for dueling
         if (thisBox == null) {
             m_botAction.sendPrivateMessage(name, "Unable to accept challenge, all duel boxes are full.");
             return;
         }
+
         String[] challenger = thisChallenge.getChallenger();
         String[] challenged = thisChallenge.getChallenged();
+
         if (name.equalsIgnoreCase(challenged[0]) && accepted[0] && !accepted[1]) {
             m_botAction.sendPrivateMessage(name, "You have all ready accepted this challenge. Your partner must accept it as well.");
             return;
@@ -1618,24 +1766,26 @@ public class teamduel extends SubspaceBot {
             thisChallenge.acceptOne();
             thisChallenge.acceptTwo();
         }
-        
+
         if (!challenges.isEmpty()) {
-            /* first attempt
-            Set<String> list = challenges.keySet();
-            for (String ch : list) {
+            /*  first attempt
+                Set<String> list = challenges.keySet();
+                for (String ch : list) {
                 if (!ch.equals(key) && ch.startsWith("" + challengerTeam) || ch.startsWith("" + challengedTeam) || ch.endsWith("" + challengerTeam) || ch.endsWith("" + challengedTeam))
                     challenges.remove(ch);
-            }
+                }
             */
             LinkedList<String> keys = new LinkedList<String>();
             Iterator<DuelChallenge> it = challenges.values().iterator();
+
             while (it.hasNext()) {
                 DuelChallenge dc = it.next();
+
                 if (dc.getChallengedTeam() == challengedTeam && dc.getChallengerTeam() == challengerTeam);
                 else if (dc.getChallengedTeam() == challengedTeam || dc.getChallengedTeam() == challengerTeam || dc.getChallengerTeam() == challengedTeam || dc.getChallengerTeam() == challengerTeam)
                     keys.add(dc.getKey());
             }
-            
+
             for (String k : keys)
                 challenges.remove(k);
         }
@@ -1653,63 +1803,75 @@ public class teamduel extends SubspaceBot {
 
     public void do_removeChallenge(String name, String message) {
         int challengedTeam = -1;
+
         try {
             challengedTeam = Integer.parseInt(message);
         } catch (NumberFormatException e) {
             m_botAction.sendPrivateMessage(name, "Invalid syntax, please use the following syntax: !removechallenge <teamID>");
             return;
         }
+
         if (!teamList.isEmpty() && teamList.containsKey(challengedTeam)) {
             DuelTeam challed = teamList.get(challengedTeam);
             int div = challed.getDivision();
             int challengerTeam = players.get(name.toLowerCase()).getTeam(div);
             String key = "" + challengerTeam + ":" + challengedTeam;
+
             if (challenges.containsKey(key) && teamChallenges.containsKey(key)) {
                 teamChallenges.remove(key);
                 challenges.remove(key);
             } else if (challenges.containsKey(key) && !teamChallenges.containsKey(key)) {
-                challenges.remove(key);                
+                challenges.remove(key);
             } else if (!challenges.containsKey(key) && teamChallenges.containsKey(key)) {
-                teamChallenges.remove(key);                
+                teamChallenges.remove(key);
             } else {
                 m_botAction.sendPrivateMessage(name, "Unable to remove challenge, no such challenge exists.");
-                return;                
+                return;
             }
         } else {
             int division = sql_getTeamDivision(challengedTeam);
             int challengerTeam = sql_getTeams(name).get(division);
             String key = "" + challengerTeam + ":" + challengedTeam;
-            if (teamChallenges.remove(key) == null && challenges.remove(key) == null) 
+
+            if (teamChallenges.remove(key) == null && challenges.remove(key) == null)
                 m_botAction.sendPrivateMessage(name, "No challenge found");
         }
+
         m_botAction.sendPrivateMessage(name, "Your challenge to team " + challengedTeam + " has been removed.");
     }
 
     public void do_setRules(String name, String message) {
         if (players.isEmpty())
             return;
+
         DuelPlayer player;
+
         if (!players.containsKey(name.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "You must be signed up first! Use !signup");
             return;
         }
+
         player = players.get(name.toLowerCase());
         int deaths = 5;
         boolean nc = true;
+
         if (message.isEmpty()) {
-            if (player.getNoCount()) 
+            if (player.getNoCount())
                 m_botAction.sendPrivateMessage(name, "Max deaths is " + player.getDeaths() + " and no count double kills (NC) is on");
             else
                 m_botAction.sendPrivateMessage(name, "Max deaths is " + player.getDeaths() + " and no count double kills (NC) is off");
+
             return;
         } else if (message.indexOf(':') > 0) {
             String vars = message.substring(0, message.indexOf(':'));
+
             try {
                 deaths = Integer.parseInt(vars);
             } catch (Exception e) {
                 m_botAction.sendPrivateMessage(name, "Invalid syntax, please use !rules <deaths> or !rules <deaths>:nc");
                 return;
             }
+
             nc = true;
         } else {
             try {
@@ -1718,12 +1880,16 @@ public class teamduel extends SubspaceBot {
                 m_botAction.sendPrivateMessage(name, "Invalid syntax, please use !rules <deaths> or !rules <deaths>:nc");
                 return;
             }
+
             nc = false;
         }
+
         player.setDeaths(deaths);
-        player.setNoCount(nc);        
+        player.setNoCount(nc);
+
         if (nc) {
             String query = "UPDATE tblDuel__2player SET fnGameDeaths = " + deaths + ", fnNoCount = 1 WHERE fnEnabled = 1 AND fnUserID = " + player.getID();
+
             try {
                 m_botAction.SQLQueryAndClose(mySQLHost, query);
                 m_botAction.sendPrivateMessage(name, "Max deaths set to " + deaths + " and no count double kills (NC) set on");
@@ -1733,6 +1899,7 @@ public class teamduel extends SubspaceBot {
             }
         } else {
             String query = "UPDATE tblDuel__2player SET fnGameDeaths = " + deaths + ", fnNoCount = 0 WHERE fnEnabled = 1 AND fnUserID = " + player.getID();
+
             try {
                 m_botAction.SQLQueryAndClose(mySQLHost, query);
                 m_botAction.sendPrivateMessage(name, "Max deaths set to " + deaths + " and no count double kills (NC) set off");
@@ -1742,30 +1909,36 @@ public class teamduel extends SubspaceBot {
             }
         }
     }
-    
+
     public void do_setNotPlaying(String name, String message) {
         if (!notPlaying.isEmpty() && notPlaying.contains(name.toLowerCase())) {
             notPlaying.remove(name.toLowerCase());
+
             if (!teamList.isEmpty() && players.containsKey(name.toLowerCase())) {
                 DuelPlayer dp = players.get(name.toLowerCase());
                 int[] teams = dp.getTeams();
                 String[] partners = dp.getPartners();
+
                 for (int i = 1; i < 6; i++) {
                     if (teamList.containsKey(teams[i])) {
                         DuelTeam team = teamList.get(teams[i]);
+
                         if (!notPlaying.contains(partners[i].toLowerCase()))
                             team.setNotPlayingOff();
                         else
                             team.setNotPlayingOn();
+
                         teamList.put(teams[i], team);
                     }
                 }
             }
+
             m_botAction.sendPrivateMessage(name, "NotPlaying has been turned off.");
         } else {
             if (players.containsKey(name.toLowerCase())) {
                 DuelPlayer dp = players.get(name.toLowerCase());
                 int[] teams = dp.getTeams();
+
                 for (int i = 1; i < 6; i++) {
                     if (teamList.containsKey(teams[i])) {
                         DuelTeam team = teamList.get(teams[i]);
@@ -1774,26 +1947,31 @@ public class teamduel extends SubspaceBot {
                     }
                 }
             }
-            notPlaying.add(name.toLowerCase());       
-            m_botAction.sendPrivateMessage(name, "NotPlaying mode has been turned on. Send !notplaying again to toggle it off.");     
+
+            notPlaying.add(name.toLowerCase());
+            m_botAction.sendPrivateMessage(name, "NotPlaying mode has been turned on. Send !notplaying again to toggle it off.");
         }
     }
-    
+
     public void do_disableName(String name, String message) {
         DuelPlayer dp = players.get(name.toLowerCase());
+
         if (dp != null) {
             if (!dp.isEnabled()) {
                 m_botAction.sendSmartPrivateMessage(name, "This account is already disabled or does not exist.");
                 return;
             }
+
             if (dp.isBanned()) {
                 m_botAction.sendPrivateMessage(name, "You have been banned from this league.");
                 return;
             }
+
             dp.disable();
             sql_disableUser(dp.getID());
         } else
             sql_disableUser(sql_getUserID(name));
+
         m_botAction.sendSmartPrivateMessage(name, "Your username has been disabled and removed from every division.");
         m_botAction.sendSmartPrivateMessage(name, "To reenable this account use !enable, please note all other accounts must be disabled first.");
     }
@@ -1803,6 +1981,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "You must be signed up first.");
             return;
         }
+
         DuelPlayer dp = players.get(name.toLowerCase());
 
         if (dp.isEnabled()) {
@@ -1813,29 +1992,35 @@ public class teamduel extends SubspaceBot {
 
         try {
             ResultSet info = sql_getPlayerInfo(dp.getID());
+
             if (!info.next()) {
                 m_botAction.sendSmartPrivateMessage(name, "Problem accessing info from database.  Please make sure you have done !signup before !enable.");
                 m_botAction.SQLClose(info);
                 return;
             }
+
             String IP = info.getString("fcIP");
             int MID = info.getInt("fnMID");
             m_botAction.SQLClose(info);
             ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON P.fnUserID = U.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '"
-                    + IP + "' AND P.fnMID = " + MID);
+                                                    + IP + "' AND P.fnMID = " + MID);
             boolean okToEnable = canEnableNames.remove(name.toLowerCase());
+
             if (result.next() && !okToEnable) {
                 String extras = "";
+
                 do {
                     extras += " " + result.getString("U.fcUserName") + " ";
                 } while (result.next());
+
                 m_botAction.sendSmartPrivateMessage(name, "To enable this name you must disable: ("
-                        + extras + ")");
+                                                    + extras + ")");
                 m_botAction.sendSmartPrivateMessage(name, "If a mistake has been made and these are not your names, please contact a TWEL Op.");
             } else {
                 sql_enableUser(dp.getID());
                 m_botAction.sendSmartPrivateMessage(name, "Your name has been enabled to play.");
             }
+
             m_botAction.SQLClose(result);
         } catch (Exception e) {
             // This exception is caught frequently. Removed stack trace print
@@ -1849,19 +2034,23 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "You are not playing a duel.");
             return;
         }
+
         Duel duel = playing.get(name.toLowerCase());
         int team = duel.getPlayerNumber(name);
         String[] others;
         String[] names;
+
         if (team == 1) {
             names = duel.getChallenger();
             others = duel.getChallenged();
-            
+
         } else {
             names = duel.getChallenged();
             others = duel.getChallenger();
         }
+
         boolean state = duel.toggleCancelGame(name);
+
         if (state && duel.getCancelState(others[0])) {
             m_botAction.sendPrivateMessage(names[0], "Your duel has been cancelled.", 103);
             m_botAction.sendPrivateMessage(names[1], "Your duel has been cancelled.", 103);
@@ -1882,24 +2071,29 @@ public class teamduel extends SubspaceBot {
             m_botAction.spec(others[0]);
             m_botAction.spec(others[1]);
             m_botAction.spec(others[1]);
+
             if (!laggers.isEmpty()) {
                 if (laggers.containsKey(names[0].toLowerCase())) {
                     m_botAction.cancelTask(laggers.get(names[0].toLowerCase()));
                     laggers.remove(names[0].toLowerCase());
                 }
+
                 if (laggers.containsKey(names[1].toLowerCase())) {
                     m_botAction.cancelTask(laggers.get(names[1].toLowerCase()));
                     laggers.remove(names[1].toLowerCase());
                 }
+
                 if (laggers.containsKey(others[0].toLowerCase())) {
                     m_botAction.cancelTask(laggers.get(others[0].toLowerCase()));
                     laggers.remove(others[0].toLowerCase());
                 }
+
                 if (laggers.containsKey(others[1].toLowerCase())) {
                     m_botAction.cancelTask(laggers.get(others[1].toLowerCase()));
                     laggers.remove(others[1].toLowerCase());
                 }
             }
+
             clearScoreboard(duel);
         } else if (state) {
             m_botAction.sendPrivateMessage(names[0], "Your team has opted to end this duel. Your opponent must also use !cancel to cancel the duel.");
@@ -1920,6 +2114,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "You are not playing a duel.");
             return;
         }
+
         if (m_botAction.getPlayer(name).getShipType() > 0) {
             m_botAction.sendPrivateMessage(name, "You are already in. ");
             return;
@@ -1930,9 +2125,10 @@ public class teamduel extends SubspaceBot {
 
         // Get the stats object associated with this player
         DuelPlayerStats playerStats = duel.getPlayer(name);
-        
+
         String[] names;
         String[] others;
+
         if (duel.getPlayerNumber(name) == 1) {
             names = duel.getChallenger();
             others = duel.getChallenged();
@@ -1940,21 +2136,23 @@ public class teamduel extends SubspaceBot {
             others = duel.getChallenger();
             names = duel.getChallenged();
         }
-        
+
         playerStats.setLastReturn((int)(System.currentTimeMillis() / 1000));
+
         if (name.equalsIgnoreCase(names[0]))
             m_botAction.sendPrivateMessage(names[1], "Your partner has returned from lagging out.");
         else
-            m_botAction.sendPrivateMessage(names[0], "Your partner has returned from lagging out.");            
-        
+            m_botAction.sendPrivateMessage(names[0], "Your partner has returned from lagging out.");
+
         m_botAction.sendPrivateMessage(others[0], name + " has returned from lagging out.");
         m_botAction.sendPrivateMessage(others[1], name + " has returned from lagging out.");
-        
+
         m_botAction.sendPrivateMessage(name, "You have " + (s_lagLimit - playerStats.getLagouts()) + " lagouts remaining.");
 
         // Put the player back into the game
         m_botAction.setShip(name, playerStats.getShip());
         m_botAction.setFreq(name, playerStats.getFreq());
+
         if (!duel.hasStarted()) {
             int[] coords = playerStats.getSafeCoords();
             m_botAction.warpTo(name, coords[0], coords[1]);
@@ -1966,12 +2164,14 @@ public class teamduel extends SubspaceBot {
         // Remove any lag timers for this player
         if (!laggers.isEmpty() && laggers.containsKey(name.toLowerCase()))
             m_botAction.cancelTask(laggers.remove(name.toLowerCase()));
+
         // setScoreboard(duel, 0);
     }
 
     public void do_quitDivision(String name, String message) {
         int division = -1;
         int team = -1;
+
         try {
             division = Integer.parseInt(message);
         } catch (NumberFormatException e) {
@@ -1979,71 +2179,87 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Division IDs: 1-Warbird 2-Javelin 3-Spider 4-Lancaster 5-Mixed");
             return;
         }
-        
+
         DuelPlayer dp = null;
+
         if (!players.isEmpty())
             dp = players.get(name.toLowerCase());
-        
+
         if (dp == null) {
             m_botAction.sendPrivateMessage(name, "You must be signed up and registered on a team in that division first.");
             return;
         }
-        
+
         if ((division > 0 && division < 6) || division == 7) {
             if (division == 7)
                 division = 4;
+
             team = dp.getTeam(division);
+
             if (team == -1) {
                 m_botAction.sendPrivateMessage(name, "You are not on a team in division " + division);
                 return;
             }
+
             try {
                 m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2league SET fnStatus = 0 " +
-                        "WHERE fnSeason = " + s_season + 
-                        " AND fnStatus = 1 AND fnLeagueTypeID = " + division + " AND fnTeamID = " + team);
+                                             "WHERE fnSeason = " + s_season +
+                                             " AND fnStatus = 1 AND fnLeagueTypeID = " + division + " AND fnTeamID = " + team);
                 m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2team SET fnStatus = 0 " +
-                        "WHERE fnSeason = " + s_season + 
-                        " AND fnStatus = 1 AND fnLeagueTypeID = " + division + " AND fnTeamID = " + team);
+                                             "WHERE fnSeason = " + s_season +
+                                             " AND fnStatus = 1 AND fnLeagueTypeID = " + division + " AND fnTeamID = " + team);
             } catch (Exception e) { }
+
             m_botAction.sendPrivateMessage(name, "Your team has been removed from division " + division + ".");
+
             if (!players.isEmpty() && players.containsKey(dp.getPartner(division).toLowerCase()))
                 players.get(dp.getPartner(division).toLowerCase()).quitTeam(division);
-                
+
             dp.quitTeam(division);
         } else
             m_botAction.sendPrivateMessage(name, "Please provide an appropriate divisionID: 1-Warbird 2-Javelin 3-Spider 4-Lancaster 5-Mixed");
+
         do_teamList();
     }
-    
+
     public void do_showRank(String name, String message) {
         String player = name;
+
         if(message != null && !(message.equals("") || message.equals(" "))) {
             player = message;
         }
+
         int id = -1;
+
         if (!players.isEmpty() && players.containsKey(player.toLowerCase()))
             id = players.get(player.toLowerCase()).getID();
         else
             id = sql_getUserID(player);
-        
+
         m_botAction.SQLBackgroundQuery(mySQLHost, "Rank:" + name + ":" + player, "SELECT fnTeamID, fnLeagueTypeID, fnRating FROM tblDuel__2team T WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND (T.fnUser1ID = " + id + " OR fnUser2ID = " + id + ") ORDER BY fnLeagueTypeID");
     }
-    
+
     public void handleEvent(SQLResultEvent event) {
         String[] id = event.getIdentifier().split(":");
+
         if (id[0].equals("Rank")) {
             String title = "--Ratings------------------";
             String name = id[1];
             String target = id[2];
             boolean ranked = false;
+
             if(name.equals(target)) {
                 title = "--" + target;
+
                 while (title.length() < 27)
-                    title+= "-";
+                    title += "-";
             }
+
             ArrayList<String> info = new ArrayList<String>();
+
             try {
                 ResultSet rank = event.getResultSet();
+
                 while (rank.next()) {
                     ranked = true;
                     int teamID = rank.getInt("fnTeamID");
@@ -2054,40 +2270,46 @@ public class teamduel extends SubspaceBot {
                     if (teamID / 10 > 0) {
                         if (teamID / 100 > 0) {
                             if (teamID / 1000 > 0) {
-                                team += "  " + teamID + "|"; 
+                                team += "  " + teamID + "|";
                             } else
                                 team += "   " + teamID + " |";
                         } else
                             team += "   " + teamID + " |";
                     } else // "| ID#  | Division | Partners"
                         team += "    " + teamID + " |";
-                    if (div== 1 || div== 2) 
+
+                    if (div == 1 || div == 2)
                         team += " " + getDivision(div) + "  | ";
-                    else if (div== 3)
+                    else if (div == 3)
                         team += "  " + getDivision(div) + "  | ";
-                    else if (div== 4 || div== 7)
+                    else if (div == 4 || div == 7)
                         team += " " + getDivision(div) + "| ";
-                    else if (div== 5)
+                    else if (div == 5)
                         team += "  " + getDivision(div) + "   | ";
+
                     if (rating / 10 > 0) {
                         if (rating / 100 > 0) {
                             if (rating / 1000 > 0) {
-                                team += " " + rating + ""; 
+                                team += " " + rating + "";
                             } else
                                 team += "  " + rating + " ";
                         } else
                             team += "  " + rating + " ";
                     } else // "| Team | Division | Rating |"
                         team += "   " + rating + " ";
+
                     while (team.length() < 27)
                         team += " ";
+
                     team += "|";
                     info.add(team);
                 }
             } catch (Exception e) {
                 Tools.printStackTrace("Background handle failure.", e);
             }
+
             m_botAction.SQLClose(event.getResultSet());
+
             if (ranked) {
                 m_botAction.sendPrivateMessage(name, title);
                 m_botAction.sendPrivateMessage(name, "| Team | Division | Rating |");
@@ -2095,19 +2317,20 @@ public class teamduel extends SubspaceBot {
                 m_botAction.privateMessageSpam(name, info.toArray(new String[info.size()]));
                 m_botAction.sendPrivateMessage(name, "`--------------------------");
             }
+
             if (!ranked) {
                 m_botAction.sendPrivateMessage(name, "No team information found for " + target);
             }
         }
     }
-    
-    
+
+
     /**
-     * Operator Command Executions
-     * 
-     * @param name
-     * @param message
-     */
+        Operator Command Executions
+
+        @param name
+        @param message
+    */
 
     public void do_setGreetMessage(String name, String message) {
         if (!leagueHeadOps.containsKey(name.toLowerCase()))
@@ -2120,9 +2343,12 @@ public class teamduel extends SubspaceBot {
     public void do_allowUser(String name, String message) {
         if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
+
         DuelPlayer dp;
+
         if (!players.isEmpty() && players.containsKey(message.toLowerCase())) {
             dp = players.get(message.toLowerCase());
+
             if (dp.isEnabled())
                 m_botAction.sendSmartPrivateMessage(name, "This user is already enabled to play.");
             else {
@@ -2141,24 +2367,29 @@ public class teamduel extends SubspaceBot {
             return;
 
         String pieces[] = message.split(":", 2);
+
         if (pieces.length != 2) {
             m_botAction.sendPrivateMessage(name, "Please provide a ban comment (!banuser name:comment).");
             return;
         }
 
         String player = m_botAction.getFuzzyPlayerName(pieces[0]);
+
         if (player == null)
             player = pieces[0];
+
         if (!players.isEmpty() && players.containsKey(player.toLowerCase())) {
             DuelPlayer dp = players.get(player.toLowerCase());
+
             if (dp.isBanned()) {
                 m_botAction.sendPrivateMessage(name, player + " has all ready been banned.");
                 return;
-            }   
+            }
+
             if (sql_banPlayer(dp.getID(), banDate.format(System.currentTimeMillis()) + pieces[1])) {
                 dp.ban();
                 m_botAction.sendPrivateMessage(name, player + " has been banned.");
-            } 
+            }
         } else if (sql_banPlayer(player, banDate.format(System.currentTimeMillis()) + pieces[1]))
             m_botAction.sendPrivateMessage(name, player + " has been banned.");
         else
@@ -2170,11 +2401,13 @@ public class teamduel extends SubspaceBot {
             return;
 
         String player = m_botAction.getFuzzyPlayerName(message);
+
         if (player == null)
             player = message;
-        
+
         if (!players.isEmpty() && players.containsKey(player.toLowerCase())) {
             DuelPlayer dp = players.get(player.toLowerCase());
+
             if (sql_unbanPlayer(dp.getID())) {
                 m_botAction.sendPrivateMessage(name, player + " has been unbanned.");
                 dp.unban();
@@ -2193,10 +2426,13 @@ public class teamduel extends SubspaceBot {
             return;
 
         m_botAction.sendPrivateMessage(name, "Banned players: ");
+
         try {
             ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT B.*, U.fcUserName FROM tblDuel__2ban B JOIN tblUser U ON U.fnUserID = B.fnUserID");
+
             while (results.next())
                 m_botAction.sendPrivateMessage(name, results.getString("U.fcUserName"));
+
             m_botAction.SQLClose(results);
         } catch (Exception e) {
             Tools.printStackTrace(e);
@@ -2208,20 +2444,26 @@ public class teamduel extends SubspaceBot {
             return;
 
         String pieces[] = message.split(":", 2);
+
         if (pieces.length != 2) {
             m_botAction.sendPrivateMessage(name, "Please provide a ban comment (!banuser name:comment).");
             return;
         }
 
         String player = m_botAction.getFuzzyPlayerName(pieces[0]);
+
         if (player == null)
             player = pieces[0];
+
         int id = -1;
+
         if (!players.isEmpty() && players.containsKey(player.toLowerCase()))
             id = players.get(player.toLowerCase()).getID();
         else
             id = sql_getUserID(player);
+
         String comment = pieces[1];
+
         try {
             String lastCom = "";
             String banOnDate = "";
@@ -2230,8 +2472,10 @@ public class teamduel extends SubspaceBot {
             if (getTime.next()) {
                 lastCom = getTime.getString("fcComment");
                 m_botAction.SQLClose(getTime);
+
                 if ('.' == lastCom.charAt(2) && '.' == lastCom.charAt(5))
                     banOnDate = lastCom.substring(0, 8) + " - ";
+
                 if (banOnDate.length() > 0) {
                     comment = banOnDate + Tools.addSlashesToString(pieces[1]);
                     m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2ban SET fcComment = '" + comment + "' WHERE fnUserID = " + id);
@@ -2240,7 +2484,7 @@ public class teamduel extends SubspaceBot {
                     comment = Tools.addSlashesToString(comment);
                     m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2ban SET fcComment = '" + comment + "' WHERE fnUserID = " + id);
                     m_botAction.sendPrivateMessage(name, "Set " + player
-                            + "'s ban comment to: " + comment);
+                                                   + "'s ban comment to: " + comment);
                 }
             } else {
                 m_botAction.SQLClose(getTime);
@@ -2256,15 +2500,18 @@ public class teamduel extends SubspaceBot {
             return;
 
         String player = m_botAction.getFuzzyPlayerName(message);
+
         if (player == null)
             player = message;
 
         try {
             ResultSet results = m_botAction.SQLQuery(mySQLHost, "SELECT fcComment FROM tblDuel__2ban WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + player + "' ORDER BY fnUserID ASC LIMIT 1)");
+
             if (results.next()) {
                 m_botAction.sendPrivateMessage(name, "Ban comment: " + results.getString("fcComment"));
             } else
                 m_botAction.sendPrivateMessage(name, "That player is not banned.");
+
             m_botAction.SQLClose(results);
         } catch (Exception e) {
             Tools.printStackTrace(e);
@@ -2274,15 +2521,17 @@ public class teamduel extends SubspaceBot {
     public void do_aliasCheck(String name, String message) {
         if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
-        
+
         boolean useName = false;
         int id = -1;
         DuelPlayer dp = null;
+
         if (!players.isEmpty() && players.containsKey(message.toLowerCase())) {
             dp = players.get(message.toLowerCase());
             id = dp.getID();
         } else if (!newbies.isEmpty() && newbies.containsKey(message.toLowerCase())) {
             id = newbies.get(message.toLowerCase());
+
             if (id < 1)
                 useName = true;
         } else {
@@ -2293,26 +2542,32 @@ public class teamduel extends SubspaceBot {
             int MID = -1;
             String IP = "";
             ResultSet info;
+
             if (!useName)
                 info = sql_getPlayerInfo(id);
             else
                 info = sql_getPlayerInfo(message);
+
             if (info.next()) {
                 MID = info.getInt("fnMID");
                 IP = info.getString("fcIP");
+
                 if (info.getInt("fnEnabled") == 1)
                     m_botAction.sendSmartPrivateMessage(name, "This name is enabled for play.");
+
                 m_botAction.SQLClose(info);
                 aliasChecker = name;
-                do_getAliases(message, IP, MID);                
+                do_getAliases(message, IP, MID);
             } else {
                 message = m_botAction.getFuzzyPlayerName(message);
+
                 if (message != null) {
                     aliasCheck = true;
                     aliasChecker = name;
                     m_botAction.sendUnfilteredPrivateMessage(message, "*info");
                 } else
                     m_botAction.sendSmartPrivateMessage(name, "Player must be in this arena if not signed up.");
+
                 m_botAction.SQLClose(info);
                 return;
             }
@@ -2320,38 +2575,50 @@ public class teamduel extends SubspaceBot {
             Tools.printStackTrace(e);
         }
     }
-    
+
     public void do_getAliases(String name, String IP, int MID) {
         try {
             ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '" + IP + "' AND P.fnMID = " + MID);
+
             if (result.next()) {
                 String extras = "";
+
                 do {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
+
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same IP and MID: " + extras.substring(0, extras.length() - 2));
             } else
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "No IP/MID matches for player " + name);
+
             m_botAction.SQLClose(result);
             result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fcIP = '" + IP + "'");
+
             if (result.next()) {
                 String extras = "";
+
                 do {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
+
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same IP: " + extras.substring(0, extras.length() - 2));
             } else
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "No IP matches for player " + name);
+
             m_botAction.SQLClose(result);
             result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND P.fnMID = " + MID);
+
             if (result.next()) {
                 String extras = "";
+
                 do {
                     extras += "" + result.getString("U.fcUserName") + ", ";
                 } while (result.next());
+
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered with the same MID: " + extras.substring(0, extras.length() - 2));
             } else
                 m_botAction.sendSmartPrivateMessage(aliasChecker, "No MID matches for player " + name);
+
             m_botAction.SQLClose(result);
             aliasChecker = "";
         } catch (Exception e) {
@@ -2365,20 +2632,26 @@ public class teamduel extends SubspaceBot {
     public void do_opDisableName(String name, String message) {
         if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
+
         String player = m_botAction.getFuzzyPlayerName(message);
+
         if (player == null)
             player = message;
+
         int id = -1;
-        
+
         DuelPlayer dp = null;
+
         if (!players.isEmpty())
             dp = players.get(player.toLowerCase());
+
         if (dp == null) {
             id = sql_getUserID(player);
         } else {
             id = dp.getID();
             dp.disable();
         }
+
         sql_disableUser(id);
         m_botAction.sendSmartPrivateMessage(name, player + " disabled.");
     }
@@ -2386,10 +2659,13 @@ public class teamduel extends SubspaceBot {
     public void do_setMessageLimit(String name, String message) {
         if (!(leagueOps.containsKey(name.toLowerCase())) || !leagueHeadOps.containsKey(name.toLowerCase()) || !hiddenOps.containsKey(name.toLowerCase()))
             return;
+
         int limit = MSG_LIMIT;
+
         try {
             limit = Integer.parseInt(message);
         } catch (Exception e) { }
+
         m_botAction.setMessageLimit(limit);
     }
 
@@ -2399,12 +2675,13 @@ public class teamduel extends SubspaceBot {
                 && !hiddenOps.containsKey(name.toLowerCase())
                 && !m_botAction.getOperatorList().isSmod(name.toLowerCase()))
             return;
+
         m_botAction.sendPrivateMessage(name, "Have a nice day, goodbye!");
         // Removes the bot from the server.
         TimerTask die = new TimerTask() {
             @Override
             public void run() {
-                m_botAction.die("!die initiated");                
+                m_botAction.die("!die initiated");
             }
         };
         m_botAction.scheduleTask(die, 300);
@@ -2416,7 +2693,9 @@ public class teamduel extends SubspaceBot {
                 && !hiddenOps.containsKey(name.toLowerCase())
                 && !m_botAction.getOperatorList().isSmod(name))
             return;
+
         shutDownMessage = message;
+
         if (shutDown) {
             m_botAction.sendPrivateMessage(name, "Shutdown mode turned off.");
             shutDown = false;
@@ -2432,7 +2711,9 @@ public class teamduel extends SubspaceBot {
                 && !hiddenOps.containsKey(name.toLowerCase())
                 && !m_botAction.getOperatorList().isSmod(name))
             return;
+
         shutDownMessage = message;
+
         if (shutDownDie) {
             m_botAction.sendPrivateMessage(name, "Shutdown+Die mode turned off.");
             shutDown = false;
@@ -2441,6 +2722,7 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Shutdown+Die mode turned on.");
             shutDown = true;
             shutDownDie = true;
+
             if (duels.size() == 0) {
                 m_botAction.sendArenaMessage("Shutting down for core maintenance.", 1);
                 TimerTask dieTask = new TimerTask() {
@@ -2452,7 +2734,7 @@ public class teamduel extends SubspaceBot {
             }
         }
     }
-    
+
     public void do_addOp(String name, String message) {
         if (!leagueHeadOps.containsKey(name.toLowerCase()))
             return;
@@ -2461,11 +2743,14 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(name, "Add Op: " + message + " failed, operator all ready exists");
             return;
         }
+
         String ops = m_botSettings.getString("LeagueOps");
+
         if (ops.length() < 1)
             m_botSettings.put("LeagueOps", message);
         else
             m_botSettings.put("LeagueOps", ops + "," + message);
+
         m_botAction.sendPrivateMessage(name, "Add Op: " + message + " successful");
         m_botSettings.save();
         do_updateOps();
@@ -2474,28 +2759,30 @@ public class teamduel extends SubspaceBot {
     public void do_removeOp(String name, String message) {
         if (!leagueHeadOps.containsKey(name.toLowerCase()))
             return;
+
         String ops = m_botSettings.getString("LeagueOps");
         int spot = ops.indexOf(message);
+
         if (spot == 0 && ops.length() == message.length()) {
             ops = "";
             m_botAction.sendPrivateMessage(name, "Remove Op: " + message
-                    + " successful");
+                                           + " successful");
         } else if (spot == 0 && ops.length() > message.length()) {
             ops = ops.substring(message.length() + 1);
             m_botAction.sendPrivateMessage(name, "Remove Op: " + message
-                    + " successful");
+                                           + " successful");
         } else if (spot > 0 && spot + message.length() < ops.length()) {
             ops = ops.substring(0, spot)
-                    + ops.substring(spot + message.length() + 1);
+                  + ops.substring(spot + message.length() + 1);
             m_botAction.sendPrivateMessage(name, "Remove Op: " + message
-                    + " successful");
+                                           + " successful");
         } else if (spot > 0 && spot == ops.length() - message.length()) {
             ops = ops.substring(0, spot - 1);
             m_botAction.sendPrivateMessage(name, "Remove Op: " + message
-                    + " successful");
+                                           + " successful");
         } else {
             m_botAction.sendPrivateMessage(name, "Remove Op: " + message
-                    + " failed, operator doesn't exist");
+                                           + " failed, operator doesn't exist");
         }
 
         m_botSettings.put("LeagueOps", ops);
@@ -2509,16 +2796,19 @@ public class teamduel extends SubspaceBot {
 
         if (hiddenOps.containsKey(message.toLowerCase())) {
             m_botAction.sendPrivateMessage(name, "Add Hidden Op: " + message
-                    + " failed, operator all ready exists");
+                                           + " failed, operator all ready exists");
             return;
         }
+
         String ops = m_botSettings.getString("HiddenOps");
+
         if (ops.length() < 1)
             m_botSettings.put("HiddenOps", message);
         else
             m_botSettings.put("HiddenOps", ops + "," + message);
+
         m_botAction.sendPrivateMessage(name, "Add Hidden Op: " + message
-                + " successful");
+                                       + " successful");
         m_botSettings.save();
         do_updateOps();
     }
@@ -2526,92 +2816,106 @@ public class teamduel extends SubspaceBot {
     public void do_removeHiddenOp(String name, String message) {
         if (!leagueHeadOps.containsKey(name.toLowerCase()))
             return;
+
         String ops = m_botSettings.getString("HiddenOps");
         int spot = ops.indexOf(message);
+
         if (spot == 0 && ops.length() == message.length()) {
             ops = "";
             m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message
-                    + " successful");
+                                           + " successful");
         } else if (spot == 0 && ops.length() > message.length()) {
             ops = ops.substring(message.length() + 1);
             m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message
-                    + " successful");
+                                           + " successful");
         } else if (spot > 0 && spot + message.length() < ops.length()) {
             ops = ops.substring(0, spot)
-                    + ops.substring(spot + message.length() + 1);
+                  + ops.substring(spot + message.length() + 1);
             m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message
-                    + " successful");
+                                           + " successful");
         } else if (spot > 0 && spot == ops.length() - message.length()) {
             ops = ops.substring(0, spot - 1);
             m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message
-                    + " successful");
+                                           + " successful");
         } else {
             m_botAction.sendPrivateMessage(name, "Remove Hidden Op: " + message
-                    + " failed, operator doesn't exist");
+                                           + " failed, operator doesn't exist");
         }
 
         m_botSettings.put("HiddenOps", ops);
         m_botSettings.save();
         do_updateOps();
     }
-    
+
     public void do_opRefreshArena(String name, String message) {
-        if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase())) 
+        if (!leagueOps.containsKey(name.toLowerCase()) && !leagueHeadOps.containsKey(name.toLowerCase()) && !hiddenOps.containsKey(name.toLowerCase()))
             return;
+
         if (!duels.isEmpty()) {
             m_botAction.sendPrivateMessage(name, "Refresh not recomended with duels in progress. Have players re-enter the arena instead.");
             return;
         }
+
         players.clear();
         Iterator<Player> it = m_botAction.getPlayerIterator();
+
         while (it.hasNext()) {
             Player player = it.next();
             String pname = player.getPlayerName();
+
             if (player.getFrequency() != 9999) {
                 m_botAction.setShip(pname, 1);
                 m_botAction.spec(pname);
                 m_botAction.spec(pname);
             }
+
             do_addListPlayer(player);
         }
+
         do_teamList();
-        
+
         m_botAction.sendPrivateMessage(name, "Arena refreshed. If problems persist, make players leave then reenter arena OR restart the bot.");
     }
 
     /**
-     * Bot Command Executions
-     * 
-     * @param name
-     * @param message
-     */
+        Bot Command Executions
+
+        @param name
+        @param message
+    */
 
     public void do_initialScan() {
         players.clear();
         Iterator<Player> it = m_botAction.getPlayerIterator();
+
         while (it.hasNext()) {
             Player player = it.next();
             String name = player.getPlayerName();
             // make SURE there is a UserID available in tblUser
-            
+
             if (player.getFrequency() != 9999) {
                 m_botAction.setShip(name, 1);
                 m_botAction.spec(name);
                 m_botAction.spec(name);
             }
+
             do_addListPlayer(player);
         }
+
         do_teamList();
     }
-    
+
     public boolean do_partnerCheck(String name, String part) {
         if (name.equalsIgnoreCase(part)) {
             m_botAction.sendPrivateMessage(name, "One man teams are not allowed!");
             return false;
         }
+
         DuelPlayer dp = null;
+
         if (!players.isEmpty())
             dp = players.get(part.toLowerCase());
+
         if (m_botAction.getFuzzyPlayerName(part) == null || dp == null) {
             m_botAction.sendPrivateMessage(name, part + " must be in this arena and signed up in order to join your team.");
             return false;
@@ -2624,33 +2928,40 @@ public class teamduel extends SubspaceBot {
         } else
             return true;
     }
-    
+
     public void do_addListPlayer(DuelPlayer dp) {
         players.put(dp.getName().toLowerCase(), dp);
-   }
-    
+    }
+
     public void do_addListPlayer(Player p) {
         String name = p.getPlayerName();
-        if (name == null) 
+
+        if (name == null)
             return;
+
         if (!opList.isBotExact(name)) {
             DuelPlayer dp = sql_buildPlayer(name);
+
             if (dp != null)
                 players.put(name.toLowerCase(), dp);
             else
                 newbies.put(name.toLowerCase(), sql_getUserID(name));
         }
-   }
+    }
 
     public void do_addListTeams(String name) {
-        if (players.isEmpty() || (!newbies.isEmpty() &&newbies.containsKey(name.toLowerCase()))) 
+        if (players.isEmpty() || (!newbies.isEmpty() && newbies.containsKey(name.toLowerCase())))
             return;
+
         DuelPlayer player;
+
         if (!players.containsKey(name.toLowerCase()))
             return;
+
         player = players.get(name.toLowerCase());
         int[] teams = player.getTeams();
         String[] partners = player.getPartners();
+
         for (int i = 1; i <= 5; i++) {
             if (teams[i] > -1) {
                 if (players.containsKey(partners[i].toLowerCase())) {
@@ -2663,6 +2974,7 @@ public class teamduel extends SubspaceBot {
     public void do_addListTeams(DuelPlayer player) {
         int[] teams = player.getTeams();
         String[] partners = player.getPartners();
+
         for (int i = 1; i <= 5; i++) {
             if (teams[i] > -1) {
                 if (!players.isEmpty() && players.containsKey(partners[i].toLowerCase())) {
@@ -2671,9 +2983,10 @@ public class teamduel extends SubspaceBot {
             }
         }
     }
-    
+
     public void do_removeListTeams(DuelPlayer player) {
         int[] teams = player.getTeams();
+
         for (int i = 1; i <= 5; i++)
             if (teams[i] > -1) {
                 if (teamList.containsKey(teams[i])) {
@@ -2682,68 +2995,76 @@ public class teamduel extends SubspaceBot {
                 }
             }
     }
-    
+
     public void do_teamList() {
         teamList.clear();
+
         if (!players.isEmpty()) {
             Iterator<DuelPlayer> it = players.values().iterator();
+
             while (it.hasNext())
                 do_addListTeams(it.next());
         }
     }
-    
+
     public void do_refreshArena() {
         players.clear();
         Iterator<Player> it = m_botAction.getPlayerIterator();
+
         while (it.hasNext())
             do_addListPlayer(it.next());
+
         do_teamList();
     }
-    
-    /* REMOVED - not using idle times currenlty
-    public long do_getIdleTime(String name) {
+
+    /*  REMOVED - not using idle times currenlty
+        public long do_getIdleTime(String name) {
         return (System.currentTimeMillis() - players.get(name)) / Tools.TimeInMillis.MINUTE;
-    }
+        }
     */
-    
+
     // Used by TimerTask to execute statements conditioned by idle time
-    /* not using just yet
-    public void check() {
+    /*  not using just yet
+        public void check() {
         if (!players.isEmpty()) {
             for (String name : players.keySet()) {
-                
+
             }
         }
-    }
+        }
     */
-    
+
     public void do_addPlayer(String name, String IP, String sMID) {
         int MID = 0;
+
         try {
             MID = Integer.parseInt(sMID);
         } catch (NumberFormatException e) {
             System.out.println("[TEAMDUEL] Failed to convert MID " + sMID);
             return;
         }
-        
+
         try {
-            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND (P.fcIP = '"+IP+"' OR (P.fcIP = '"+IP+"' AND P.fnMID = "+MID+")) OR P.fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)");
+            ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT U.fcUserName FROM tblDuel__2player P JOIN tblUser U ON U.fnUserID = P.fnUserID WHERE P.fnEnabled = 1 AND (P.fcIP = '" + IP + "' OR (P.fcIP = '" + IP + "' AND P.fnMID = " + MID + ")) OR P.fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)");
+
             if (!result.next()) {
                 m_botAction.SQLClose(result);
                 DuelPlayer dp = null;
+
                 if (newbies.containsKey(name.toLowerCase())) {
                     int id = newbies.remove(name.toLowerCase());
-                    m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                            "VALUES(" + id + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
+                    m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " +
+                                                 "VALUES(" + id + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
                     dp = sql_buildPlayer(name, id);
                 }
                 else {
-                    m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                            "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
+                    m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " +
+                                                 "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
                     dp = sql_buildPlayer(name);
                 }
+
                 players.put(name.toLowerCase(), dp);
-                
+
                 if (aliasChecker.equals(""))
                     m_botAction.sendPrivateMessage(name, "You have been registered to use this bot. It is advised you set your personal dueling rules, for further information use !help");
                 else {
@@ -2755,19 +3076,22 @@ public class teamduel extends SubspaceBot {
                 LinkedList<String> aliases = new LinkedList<String>();
                 String alias = result.getString("U.fcUserName");
                 aliases.add(alias);
+
                 if (alias.equalsIgnoreCase(name)) {
                     signedup = true;
                 }
-                
+
                 while (result.next()) {
                     alias = result.getString("U.fcUserName");
                     aliases.add(alias);
+
                     if (alias.equalsIgnoreCase(name)) {
                         signedup = true;
                     }
                 }
+
                 m_botAction.SQLClose(result);
-                
+
                 if (signedup) {
                     if (aliasChecker.equals(""))
                         m_botAction.sendSmartPrivateMessage(name, "You have already signed up.");
@@ -2778,17 +3102,19 @@ public class teamduel extends SubspaceBot {
                 } else {
                     if (!allowedNames.isEmpty() && allowedNames.contains(name.toLowerCase()) && aliasChecker.equals("")) {
                         DuelPlayer dp = null;
+
                         if (!newbies.isEmpty() && newbies.containsKey(name.toLowerCase())) {
                             int id = newbies.remove(name.toLowerCase());
-                            m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                                    "VALUES(" + id + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
+                            m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " +
+                                                         "VALUES(" + id + ", '" + IP + "', " + MID + ", 0, 0, NOW())");
                             dp = sql_buildPlayer(name, id);
                         }
                         else {
-                            m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " + 
-                                    "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
+                            m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2player (`fnUserID`, `fcIP`, `fnMID`, `fnLag`, `fnLagCheckCount`, `fdLastPlayed`) " +
+                                                         "VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1), '" + IP + "', " + MID + ", 0, 0, NOW())");
                             dp = sql_buildPlayer(name);
                         }
+
                         players.put(name.toLowerCase(), dp);
                         m_botAction.sendPrivateMessage(name, "You have been registered to use this bot. Find a partner, pick a division and have some fun. ");
                         allowedNames.remove(name.toLowerCase());
@@ -2796,18 +3122,19 @@ public class teamduel extends SubspaceBot {
                     } else {
                         String extras = "";
                         Iterator<String> i = aliases.iterator();
+
                         while (i.hasNext())
                             extras += " " + i.next() + " ";
 
                         if (aliasChecker.equals("")) {
                             m_botAction.sendSmartPrivateMessage(name, "It appears you already have other names signed up for TeamDuel or have registered this name already.");
                             m_botAction.sendSmartPrivateMessage(name, "Please login with these names: ("
-                                    + extras
-                                    + ") and use the command !disable, you will then be able to signup a new name.");
+                                                                + extras
+                                                                + ") and use the command !disable, you will then be able to signup a new name.");
                             m_botAction.sendSmartPrivateMessage(name, "Disabled names automatically disable the teams they were on. If you have further problems please contact a league op.");
                         } else {
                             m_botAction.sendSmartPrivateMessage(aliasChecker, "Aliases registered: "
-                                    + extras);
+                                                                + extras);
                             aliasChecker = "";
                         }
                     }
@@ -2825,6 +3152,7 @@ public class teamduel extends SubspaceBot {
             String thisName = pieces[3].substring(10);
             String thisIP = pieces[0].substring(3);
             String thisID = pieces[5].substring(10);
+
             if (aliasCheck) {
                 do_getAliases(thisName, thisIP, Integer.parseInt(thisID));
             } else {
@@ -2838,8 +3166,10 @@ public class teamduel extends SubspaceBot {
             String pieces[] = message.split(" ");
             String output = pieces[4] + " ms  " + pieces[10] + " ms";
             output = message.substring(0, message.length() - 16);
+
             if (to != null)
                 m_botAction.sendPrivateMessage(to, from + ":  " + output);
+
             int average = Integer.parseInt(pieces[4].substring(pieces[4].indexOf(":") + 1));
             sql_lagInfo(name, average);
             to = "";
@@ -2853,18 +3183,23 @@ public class teamduel extends SubspaceBot {
         hiddenOps.clear();
         // Reads in the league operators
         String ops[] = m_botSettings.getString("LeagueOps").split(",");
+
         for (int i = 0; i < ops.length; i++)
             leagueOps.put(ops[i].toLowerCase(), ops[i]);
+
         // Reads in the head league operators
         String hops[] = m_botSettings.getString("HeadOps").split(",");
+
         for (int j = 0; j < hops.length; j++)
             leagueHeadOps.put(hops[j].toLowerCase(), hops[j]);
+
         // Reads in the hidden league operators
         String hideops[] = m_botSettings.getString("HiddenOps").split(",");
+
         for (int k = 0; k < hideops.length; k++)
             hiddenOps.put(hideops[k].toLowerCase(), hideops[k]);
     }
-    
+
     private String getDivision(int type) {
 
         if (type == 1)
@@ -2880,20 +3215,23 @@ public class teamduel extends SubspaceBot {
         else
             return "invalid";
     }
-    
+
     /**
-     * Duel Operations
-     */
+        Duel Operations
+    */
 
     public boolean boxOpen(int division) {
         int i = 0;
         Iterator<String> it = duelBoxes.keySet().iterator();
+
         while (it.hasNext()) {
             String key = (String) it.next();
             DuelBox b = duelBoxes.get(key);
+
             if (!b.inUse() && b.gameType(division))
                 i++;
         }
+
         if (i == 0)
             return false;
         else
@@ -2903,12 +3241,15 @@ public class teamduel extends SubspaceBot {
     public DuelBox getDuelBox(int division) {
         Vector<DuelBox> v = new Vector<DuelBox>();
         Iterator<String> it = duelBoxes.keySet().iterator();
+
         while (it.hasNext()) {
             String key = (String) it.next();
             DuelBox b = duelBoxes.get(key);
+
             if (!b.inUse() && b.gameType(division))
                 v.add(b);
         }
+
         if (v.size() == 0)
             return null;
         else {
@@ -2934,6 +3275,7 @@ public class teamduel extends SubspaceBot {
         m_botAction.warpTo(challenger[1], d.getSafeAXTwo(), d.getSafeAYTwo());
         m_botAction.warpTo(challenged[0], d.getSafeBXOne(), d.getSafeBYOne());
         m_botAction.warpTo(challenged[1], d.getSafeBXTwo(), d.getSafeBYTwo());
+
         if (d.getDivisionID() != 5) {
             m_botAction.sendPrivateMessage(challenger[0], "Duel Begins in 15 Seconds Against '" + challenged[0] + "' and '" + challenged[1] + "'", 27);
             m_botAction.sendPrivateMessage(challenger[1], "Duel Begins in 15 Seconds Against '" + challenged[0] + "' and '" + challenged[1] + "'", 27);
@@ -2963,13 +3305,13 @@ public class teamduel extends SubspaceBot {
             to = null;
             from = challenger[1];
         }
-        
+
         m_botAction.scheduleTask(new GameStartTimer(d, challenger, challenged, m_botAction, locksmith), 15000);
 
         m_botAction.sendTeamMessage("A " + d.getDivision() + " duel is starting in box #" + (d.getBoxFreq() / 2) + ": " + challenger[0] + " and " + challenger[1] + " VERSUS " + challenged[0] + " and " + challenged[1]);
         // setScoreboard(d, 0);
         int div = d.getDivisionID();
-        
+
         // this should prevent the ship bug
         if (div == 4) {
             if (m_botAction.getPlayer(challenger[0]).getShipType() != 7) {
@@ -2977,16 +3319,19 @@ public class teamduel extends SubspaceBot {
                 p.setShip(7);
                 m_botAction.setShip(challenger[0], 7);
             }
+
             if (m_botAction.getPlayer(challenger[1]).getShipType() != 7) {
                 DuelPlayerStats p = d.getPlayerTwo();
                 p.setShip(7);
                 m_botAction.setShip(challenger[1], 7);
             }
+
             if (m_botAction.getPlayer(challenged[0]).getShipType() != 7) {
                 DuelPlayerStats p = d.getPlayerThree();
                 m_botAction.setShip(challenged[0], 7);
                 p.setShip(7);
             }
+
             if (m_botAction.getPlayer(challenged[0]).getShipType() != 7) {
                 DuelPlayerStats p = d.getPlayerFour();
                 p.setShip(7);
@@ -2998,38 +3343,44 @@ public class teamduel extends SubspaceBot {
                 p.setShip(3);
                 m_botAction.setShip(challenger[0], 3);
             }
+
             if (m_botAction.getPlayer(challenger[1]).getShipType() != 3) {
                 DuelPlayerStats p = d.getPlayerTwo();
                 p.setShip(3);
                 m_botAction.setShip(challenger[1], 3);
             }
+
             if (m_botAction.getPlayer(challenged[0]).getShipType() != 3) {
                 DuelPlayerStats p = d.getPlayerThree();
                 p.setShip(3);
                 m_botAction.setShip(challenged[0], 3);
             }
+
             if (m_botAction.getPlayer(challenged[0]).getShipType() != 3) {
                 DuelPlayerStats p = d.getPlayerFour();
                 p.setShip(3);
                 m_botAction.setShip(challenged[1], 3);
             }
-            
+
         } else if (div == 2) {
             if (m_botAction.getPlayer(challenger[0]).getShipType() != 2) {
                 DuelPlayerStats p = d.getPlayerOne();
                 p.setShip(2);
                 m_botAction.setShip(challenger[0], 2);
             }
+
             if (m_botAction.getPlayer(challenger[1]).getShipType() != 2) {
                 DuelPlayerStats p = d.getPlayerTwo();
                 p.setShip(2);
                 m_botAction.setShip(challenger[1], 2);
             }
+
             if (m_botAction.getPlayer(challenged[0]).getShipType() != 2) {
                 DuelPlayerStats p = d.getPlayerThree();
                 p.setShip(2);
                 m_botAction.setShip(challenged[0], 2);
             }
+
             if (m_botAction.getPlayer(challenged[0]).getShipType() != 2) {
                 DuelPlayerStats p = d.getPlayerFour();
                 p.setShip(2);
@@ -3041,22 +3392,26 @@ public class teamduel extends SubspaceBot {
                 p.setShip(1);
                 m_botAction.setShip(challenger[0], 1);
             }
+
             if (m_botAction.getPlayer(challenger[1]).getShipType() != 1) {
                 DuelPlayerStats p = d.getPlayerTwo();
                 p.setShip(1);
                 m_botAction.setShip(challenger[1], 1);
             }
+
             if (m_botAction.getPlayer(challenged[0]).getShipType() != 1) {
                 DuelPlayerStats p = d.getPlayerThree();
                 p.setShip(1);
                 m_botAction.setShip(challenged[0], 1);
             }
+
             if (m_botAction.getPlayer(challenged[0]).getShipType() != 1) {
                 DuelPlayerStats p = d.getPlayerFour();
                 p.setShip(1);
                 m_botAction.setShip(challenged[1], 1);
             }
         }
+
         d.settingUpOff();
     }
 
@@ -3069,16 +3424,21 @@ public class teamduel extends SubspaceBot {
         m_botAction.sendUnfilteredPrivateMessage(challed[0], "*lag");
         DuelPlayer[] winners = new DuelPlayer[] {players.get(winner[0].toLowerCase()), players.get(winner[1].toLowerCase())};
         DuelPlayer[] losers = new DuelPlayer[] {players.get(loser[0].toLowerCase()), players.get(loser[1].toLowerCase())};
+
         if (!spawnDelays.isEmpty()) {
             if (spawnDelays.containsKey(loser[0].toLowerCase()))
                 m_botAction.cancelTask(spawnDelays.get(loser[0].toLowerCase()));
+
             if (spawnDelays.containsKey(loser[1].toLowerCase()))
                 m_botAction.cancelTask(spawnDelays.get(loser[1].toLowerCase()));
+
             if (spawnDelays.containsKey(winner[0].toLowerCase()))
                 m_botAction.cancelTask(spawnDelays.get(winner[0].toLowerCase()));
+
             if (spawnDelays.containsKey(winner[1].toLowerCase()))
                 m_botAction.cancelTask(spawnDelays.get(winner[1].toLowerCase()));
         }
+
         // finalOff(d.getDivisionID(), d.getBoxNumber(), d.getPlayerOne().getDeaths() + d.getPlayerTwo().getDeaths(), d.getPlayerThree().getDeaths() + d.getPlayerFour().getDeaths());
 
         if (!laggers.isEmpty()) {
@@ -3086,14 +3446,17 @@ public class teamduel extends SubspaceBot {
                 m_botAction.cancelTask(laggers.get(winner[0].toLowerCase()));
                 laggers.remove(winner[0].toLowerCase());
             }
+
             if (laggers.containsKey(winner[1].toLowerCase())) {
                 m_botAction.cancelTask(laggers.get(winner[1].toLowerCase()));
                 laggers.remove(winner[1].toLowerCase());
             }
+
             if (laggers.containsKey(loser[0].toLowerCase())) {
                 m_botAction.cancelTask(laggers.get(loser[0].toLowerCase()));
                 laggers.remove(loser[0].toLowerCase());
             }
+
             if (laggers.containsKey(loser[1].toLowerCase())) {
                 m_botAction.cancelTask(laggers.get(loser[1].toLowerCase()));
                 laggers.remove(loser[1].toLowerCase());
@@ -3102,7 +3465,7 @@ public class teamduel extends SubspaceBot {
 
         int loserScore = d.getPlayer(winner[0]).getDeaths() + d.getPlayer(winner[1]).getDeaths();
         int winnerScore = d.getPlayer(loser[0]).getDeaths() + d.getPlayer(loser[1]).getDeaths();
-        
+
         if (type == 0) {
             m_botAction.sendPrivateMessage(winner[0], "You and '" + winner[1] + "' have defeated '" + loser[0] + "' and '" + loser[1] + "' score: (" + winnerScore + "-" + loserScore + ")");
             m_botAction.sendPrivateMessage(winner[1], "You and '" + winner[0] + "' have defeated '" + loser[0] + "' and '" + loser[1] + "' score: (" + winnerScore + "-" + loserScore + ")");
@@ -3134,11 +3497,11 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(winner[1], loser[0] + " or " + loser[1] + " have been lagged out for over 1 minute and forfeit the duel.", 103);
             m_botAction.sendTeamMessage(loser[0] + " and " + loser[1] + " forfeit to " + winner[0] + " and " + winner[1] + " (1 MIN LAGOUT) in their " + d.getDivision() + " duel");
         }
-        
+
         to = null;
         from = challed[1];
         m_botAction.sendUnfilteredPrivateMessage(challed[1], "*lag");
-        
+
         int division = d.getDivisionID();
         d.toggleDuelBox();
         duels.remove(new Integer(d.getBoxNumber()));
@@ -3159,18 +3522,22 @@ public class teamduel extends SubspaceBot {
         m_botAction.spec(loser[1]);
         m_botAction.spec(loser[0]);
         m_botAction.spec(loser[1]);
-        
-        
+
+
         ResultSet loserSet = sql_getTeamInfo(loserTeam);
         ResultSet winnerSet = sql_getTeamInfo(winnerTeam);
+
         try {
             // Calculate new streaks.
             int loserStreak = loserSet.getInt("fnLossStreak");
             int loserCurStreak = loserSet.getInt("fnCurrentLossStreak") + 1;
+
             if (loserStreak < loserCurStreak)
                 loserStreak = loserCurStreak;
+
             int winnerStreak = winnerSet.getInt("fnWinStreak");
             int winnerCurStreak = winnerSet.getInt("fnCurrentWinStreak") + 1;
+
             if (winnerStreak < winnerCurStreak)
                 winnerStreak = winnerCurStreak;
 
@@ -3178,23 +3545,25 @@ public class teamduel extends SubspaceBot {
                 streakZoner(winner, winnerCurStreak, d.getDivision());
 
             boolean aced = false;
+
             if (d.getPlayer(loser[0]).getDeaths() == 0 && d.getPlayer(loser[1]).getDeaths() == 0)
                 aced = true;
-            
+
             // Calculate new ratings.
             int winnerRatingBefore = winnerSet.getInt("fnRating");
             int loserRatingBefore = loserSet.getInt("fnRating");
             int loserRatingAfter = 0;
             int winnerRatingAfter = 0;
-            
+
             if (winnerRatingBefore == 0)
                 winnerRatingAfter = 45;
             else
-                winnerRatingAfter = (int) Math.round((winnerRatingBefore + 32*(1 - (1 / (1 + Math.pow(10, (loserRatingBefore - winnerRatingBefore) / 400))))));
+                winnerRatingAfter = (int) Math.round((winnerRatingBefore + 32 * (1 - (1 / (1 + Math.pow(10, (loserRatingBefore - winnerRatingBefore) / 400))))));
+
             if (loserRatingBefore <= 0)
                 loserRatingAfter = 0;
             else
-                loserRatingAfter = (int) Math.round((loserRatingBefore + 32*(0 - (1 / (1 + Math.pow(10, (winnerRatingBefore - loserRatingBefore) / 400))))));
+                loserRatingAfter = (int) Math.round((loserRatingBefore + 32 * (0 - (1 / (1 + Math.pow(10, (winnerRatingBefore - loserRatingBefore) / 400))))));
 
             int time = d.getTime();
             // Store loser information
@@ -3213,28 +3582,29 @@ public class teamduel extends SubspaceBot {
             sql_storeTeamWin(winnerTeam, division, winnerStreak, winnerCurStreak, loserTeam, winnerRatingAfter, aced);
 
             String[] fields = new String[] {"fnSeason", "fnLeagueTypeID", "fnBoxType", "fnWinnerScore", "fnLoserScore", "fnWinnerTeamID", "fnLoserTeamID", "fnWinner1Ship", "fnWinner2Ship", "fnLoser1Ship", "fnLoser2Ship", "fnCommentID", "fnDeaths", "fnDuration", "fnWinnerRatingBefore", "fnWinnerRatingAfter", "fnLoserRatingBefore", "fnLoserRatingAfter"};
-            String[] values = new String[] {"" + s_season, "" + division, "" + d.getBoxType(), "" + winnerScore, "" + loserScore, "" + winnerTeam, "" + loserTeam, "" + winnerStats[0].getShip(), "" + winnerStats[1].getShip(), "" + loserStats[0].getShip(), "" + loserStats[1].getShip(), "" + type, "" + d.toWin(), "" + d.getTime(), "" + winnerRatingBefore, "" + winnerRatingAfter, "" + loserRatingBefore, "" + loserRatingAfter}; 
+            String[] values = new String[] {"" + s_season, "" + division, "" + d.getBoxType(), "" + winnerScore, "" + loserScore, "" + winnerTeam, "" + loserTeam, "" + winnerStats[0].getShip(), "" + winnerStats[1].getShip(), "" + loserStats[0].getShip(), "" + loserStats[1].getShip(), "" + type, "" + d.toWin(), "" + d.getTime(), "" + winnerRatingBefore, "" + winnerRatingAfter, "" + loserRatingBefore, "" + loserRatingAfter};
             m_botAction.SQLBackgroundInsertInto(mySQLHost, "tblDuel__2match", fields, values);
             /*
-            String query = "INSERT INTO `tblDuel__2match` (`fnSeason`, `fnLeagueTypeID`, `fnBoxType`, `fnWinnerScore`, `fnLoserScore`, `fnWinnerTeamID`, `fnLoserTeamID`, `fnWinner1Ship`, `fnWinner2Ship`, `fnLoser1Ship`, `fnLoser2Ship`, `fnCommentID`, `fnDeaths`, `fnDuration`, `fnWinnerRatingBefore`, `fnWinnerRatingAfter`, `fnLoserRatingBefore`, `fnLoserRatingAfter` ) VALUES (";
-            query += s_season + ", " + division + ", " + d.getBoxType() + ", " + winnerScore + ", " + loserScore + ", ";
-            query += "" + winnerTeam + ", " + loserTeam + ", ";
-            query += winnerStats[0].getShip() + ", " + winnerStats[1].getShip() + ", " + loserStats[0].getShip() + ", " + loserStats[1].getShip() + ", ";
-            query += type + ", ";
-            query += d.toWin() + ", " + d.getTime() + ", ";
-            query += winnerRatingBefore + ", " + winnerRatingAfter + ", ";
-            query += loserRatingBefore + ", " + loserRatingAfter + ")";
-            m_botAction.SQLQueryAndClose(mySQLHost, query);
-             */
+                String query = "INSERT INTO `tblDuel__2match` (`fnSeason`, `fnLeagueTypeID`, `fnBoxType`, `fnWinnerScore`, `fnLoserScore`, `fnWinnerTeamID`, `fnLoserTeamID`, `fnWinner1Ship`, `fnWinner2Ship`, `fnLoser1Ship`, `fnLoser2Ship`, `fnCommentID`, `fnDeaths`, `fnDuration`, `fnWinnerRatingBefore`, `fnWinnerRatingAfter`, `fnLoserRatingBefore`, `fnLoserRatingAfter` ) VALUES (";
+                query += s_season + ", " + division + ", " + d.getBoxType() + ", " + winnerScore + ", " + loserScore + ", ";
+                query += "" + winnerTeam + ", " + loserTeam + ", ";
+                query += winnerStats[0].getShip() + ", " + winnerStats[1].getShip() + ", " + loserStats[0].getShip() + ", " + loserStats[1].getShip() + ", ";
+                query += type + ", ";
+                query += d.toWin() + ", " + d.getTime() + ", ";
+                query += winnerRatingBefore + ", " + winnerRatingAfter + ", ";
+                query += loserRatingBefore + ", " + loserRatingAfter + ")";
+                m_botAction.SQLQueryAndClose(mySQLHost, query);
+            */
         } catch (Exception e) {
             Tools.printStackTrace("Error ending duel", e);
         }
+
         teamList.get(winnerTeam).setNowPlayingOff();
         teamList.get(loserTeam).setNowPlayingOff();
-        
+
         m_botAction.SQLClose(loserSet);
         m_botAction.SQLClose(winnerSet);
-        
+
         do_teamListUpdate(winnerTeam);
         do_teamListUpdate(loserTeam);
 
@@ -3248,17 +3618,18 @@ public class teamduel extends SubspaceBot {
             m_botAction.scheduleTask(dieTask, 5000);
         }
     }
-    
+
     private void do_teamListUpdate(int team) {
         if (teamList.containsKey(team)) {
             DuelTeam t = teamList.get(team);
             String[] names = t.getNames();
+
             if (players.containsKey(names[0]) && players.containsKey(names[1])); // do nothing
             else
                 teamList.remove(team);
         }
     }
-    
+
     public void do_score(Duel duel, int type) {
         int scoreWinner = duel.getPlayerThree().getDeaths() + duel.getPlayerFour().getDeaths();
         int scoreLoser = duel.getPlayerOne().getDeaths() + duel.getPlayerTwo().getDeaths();
@@ -3284,7 +3655,7 @@ public class teamduel extends SubspaceBot {
         m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Score: " + scoreWinner + "-" + scoreLoser, 26);
         m_botAction.sendOpposingTeamMessageByFrequency(loserFreq, "Score: " + scoreLoser + "-" + scoreWinner, 26);
 
-        if (scoreWinner >= duel.toWin()*2)
+        if (scoreWinner >= duel.toWin() * 2)
             endDuel(duel, winner, loser, winnerTeam, loserTeam, type);
     }
 
@@ -3324,11 +3695,11 @@ public class teamduel extends SubspaceBot {
         objects.hideAllObjects(challenged[0]);
         objects.hideAllObjects(challenged[1]);
     }
- 
+
     /**
-     * SQL Database Queries
-     */
-    
+        SQL Database Queries
+    */
+
     public DuelPlayer sql_buildPlayer(String name) {
         int id;
         int lag = 0;
@@ -3339,6 +3710,7 @@ public class teamduel extends SubspaceBot {
         int[] teams = new int[6];
         int[] pids = new int[6];
         String[] partners = new String[6];
+
         for (int i = 1; i < 6; i++) {
             teams[i] = -1;
             partners[i] = null;
@@ -3348,45 +3720,61 @@ public class teamduel extends SubspaceBot {
             // METHOD TWO
             String q = "SELECT p.fnUserID, b.fnBanID, p.fnLag, p.fnGameDeaths, p.fnNoCount, p.fnEnabled FROM tblDuel__2player p LEFT JOIN tblDuel__2ban b ON p.fnUserID = b.fnUserID WHERE p.fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1) LIMIT 1";
             ResultSet info = m_botAction.SQLQuery(mySQLHost, q);
+
             if (info.next()) {
                 Integer tenabled = info.getInt("p.fnEnabled");
+
                 if (tenabled != null) {
                     if (tenabled == 0)
                         enabled = false;
                     else
                         enabled = true;
                 }
+
                 //else
                 //    return null;
                 Integer tid = info.getInt("p.fnUserID");
+
                 if (tid != null && tid > 0)
                     id = tid;
                 else
                     return null;
+
                 Integer tban = info.getInt("b.fnBanID");
+
                 if (tban != null && tban > 0)
                     banned = true;
+
                 Integer tlag = info.getInt("p.fnLag");
+
                 if (tlag != null && tlag > 0)
                     lag = tlag;
+
                 Integer tdeaths = info.getInt("p.fnGameDeaths");
+
                 if (tdeaths != null)
                     deaths = tdeaths;
+
                 Integer tnc = info.getInt("p.fnNoCount");
+
                 if (tnc != null && tnc == 0)
                     nc = false;
+
                 m_botAction.SQLClose(info);
             } else {
                 m_botAction.SQLClose(info);
                 return null;
             }
-            
+
             q = "SELECT t.fnTeamID, t.fnLeagueTypeID, u2.fnUserID, u2.fcUserName FROM tblDuel__2team t JOIN tblUser u JOIN tblUser u2 ON (u.fnUserID = t.fnUser1ID AND u2.fnUserID = t.fnUser2ID) OR (u.fnUserID = t.fnUser2ID AND u2.fnUserID = t.fnUser1ID) WHERE t.fnTeamID IN (SELECT fnTeamID FROM tblDuel__2league WHERE fnUserID = " + id + " AND fnStatus = 1 AND fnSeason = " + s_season + ") AND u.fnUserID = " + id + " AND t.fnStatus = 1 AND t.fnSeason = " + s_season;
             info = m_botAction.SQLQuery(mySQLHost, q);
+
             while (info.next()) {
                 Integer div = info.getInt("t.fnLeagueTypeID");
+
                 if (div != null && div > 0 && div < 6) {
                     Integer team = info.getInt("t.fnTeamID");
+
                     if (team != null && team > 0) {
                         teams[div] = team;
                         partners[div] = info.getString("u2.fcUserName");
@@ -3395,23 +3783,24 @@ public class teamduel extends SubspaceBot {
                     }
                 }
             }
+
             m_botAction.SQLClose(info);
             return new DuelPlayer(name, id, lag, deaths, nc, enabled, banned, teams, partners, pids);
         } catch (Exception e) {
             Tools.printStackTrace("Failed to get player information", e);
         }
-        
+
         /** old way which apparently doesn't work
-        String query = "SELECT U.fnUserID, B.fnBanID, P.fnGameDeaths, P.fnNoCount, P.fnEnabled, P.fnLag, " + 
-                "L.fnLeagueTypeID, L.fnTeamID, T.fnTeamID, T.fnLeagueTypeID, U2.fnUserID, U2.fcUserName " + 
-            "FROM tblUser U LEFT JOIN tblDuel__2player P ON U.fnUserID = P.fnUserID " + 
-            "LEFT JOIN tblDuel__2ban B ON P.fnUserID = B.fnUserID LEFT JOIN tblDuel__2league L ON L.fnSeason = " + s_season + " " + 
-                "AND L.fnStatus = 1 AND P.fnUserID = L.fnUserID " + 
-            "LEFT JOIN tblDuel__2team T ON T.fnSeason = " + s_season + " AND T.fnStatus = 1 AND L.fnTeamID = T.fnTeamID " + 
-            "LEFT JOIN tblUser U2 ON (U.fnUserID = T.fnUser1ID AND U2.fnUserID = T.fnUser2ID) " + 
-                "OR (U.fnUserID = T.fnUser2ID AND U2.fnUserID = T.fnUser1ID) " + 
+            String query = "SELECT U.fnUserID, B.fnBanID, P.fnGameDeaths, P.fnNoCount, P.fnEnabled, P.fnLag, " +
+                "L.fnLeagueTypeID, L.fnTeamID, T.fnTeamID, T.fnLeagueTypeID, U2.fnUserID, U2.fcUserName " +
+            "FROM tblUser U LEFT JOIN tblDuel__2player P ON U.fnUserID = P.fnUserID " +
+            "LEFT JOIN tblDuel__2ban B ON P.fnUserID = B.fnUserID LEFT JOIN tblDuel__2league L ON L.fnSeason = " + s_season + " " +
+                "AND L.fnStatus = 1 AND P.fnUserID = L.fnUserID " +
+            "LEFT JOIN tblDuel__2team T ON T.fnSeason = " + s_season + " AND T.fnStatus = 1 AND L.fnTeamID = T.fnTeamID " +
+            "LEFT JOIN tblUser U2 ON (U.fnUserID = T.fnUser1ID AND U2.fnUserID = T.fnUser2ID) " +
+                "OR (U.fnUserID = T.fnUser2ID AND U2.fnUserID = T.fnUser1ID) " +
             "WHERE U.fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)";
-        try {
+            try {
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             if (result.next()) {
                 do {
@@ -3450,25 +3839,25 @@ public class teamduel extends SubspaceBot {
                                     teams[div] = team;
                                     partners[div] = result.getString("U2.fcUserName");
                                     pids[div] = result.getInt("U2.fnUserID");
-                                    
+
                                 }
-                                
+
                             }
-                            
+
                         }
-                        
+
                     }
                 } while (result.next());
                 m_botAction.SQLClose(result);
                 return new DuelPlayer(name, id, lag, deaths, nc, enabled, banned, teams, partners, pids);
             }
-        } catch (Exception e) {
+            } catch (Exception e) {
             Tools.printStackTrace("Failed to get player information", e);
-        } 
+            }
         **/
         return null;
     }
-    
+
     public DuelPlayer sql_buildPlayer(String name, int userID) {
         int lag = 0;
         int deaths = -1;
@@ -3478,6 +3867,7 @@ public class teamduel extends SubspaceBot {
         int[] teams = new int[6];
         int[] pids = new int[6];
         String[] partners = new String[6];
+
         for (int i = 1; i < 6; i++) {
             teams[i] = -1;
             partners[i] = null;
@@ -3487,44 +3877,60 @@ public class teamduel extends SubspaceBot {
             // METHOD TWO
             String q = "SELECT p.fnUserID, b.fnBanID, p.fnLag, p.fnGameDeaths, p.fnNoCount, p.fnEnabled FROM tblDuel__2player p LEFT JOIN tblDuel__2ban b ON p.fnUserID = b.fnUserID WHERE p.fnUserID = " + userID + " LIMIT 1";
             ResultSet info = m_botAction.SQLQuery(mySQLHost, q);
+
             if (info.next()) {
                 Integer tenabled = info.getInt("p.fnEnabled");
+
                 if (tenabled != null) {
                     if (tenabled == 0)
                         enabled = false;
                     else
                         enabled = true;
                 }
+
                 //else
                 //    return null;
                 Integer tid = info.getInt("p.fnUserID");
+
                 if (tid != null && userID == tid);
                 else
                     return null;
+
                 Integer tban = info.getInt("b.fnBanID");
+
                 if (tban != null && tban > 0)
                     banned = true;
+
                 Integer tlag = info.getInt("p.fnLag");
+
                 if (tlag != null && tlag > 0)
                     lag = tlag;
+
                 Integer tdeaths = info.getInt("p.fnGameDeaths");
+
                 if (tdeaths != null)
                     deaths = tdeaths;
+
                 Integer tnc = info.getInt("p.fnNoCount");
+
                 if (tnc != null && tnc == 0)
                     nc = false;
+
                 m_botAction.SQLClose(info);
             } else {
                 m_botAction.SQLClose(info);
                 return null;
             }
-            
+
             q = "SELECT t.fnTeamID, t.fnLeagueTypeID, u2.fnUserID, u2.fcUserName FROM tblDuel__2team t JOIN tblUser u JOIN tblUser u2 ON (u.fnUserID = t.fnUser1ID AND u2.fnUserID = t.fnUser2ID) OR (u.fnUserID = t.fnUser2ID AND u2.fnUserID = t.fnUser1ID) WHERE t.fnTeamID IN (SELECT fnTeamID FROM tblDuel__2league WHERE fnUserID = " + userID + " AND fnStatus = 1 AND fnSeason = " + s_season + ") AND u.fnUserID = " + userID + " AND t.fnStatus = 1 AND t.fnSeason = " + s_season;
             info = m_botAction.SQLQuery(mySQLHost, q);
+
             while (info.next()) {
                 Integer div = info.getInt("t.fnLeagueTypeID");
+
                 if (div != null && div > 0 && div < 6) {
                     Integer team = info.getInt("t.fnTeamID");
+
                     if (team != null && team > 0) {
                         teams[div] = team;
                         partners[div] = info.getString("u2.fcUserName");
@@ -3533,22 +3939,24 @@ public class teamduel extends SubspaceBot {
                     }
                 }
             }
+
             m_botAction.SQLClose(info);
             return new DuelPlayer(name, userID, lag, deaths, nc, enabled, banned, teams, partners, pids);
         } catch (Exception e) {
             Tools.printStackTrace("Failed to get player information", e);
         }
+
         /** old way which apparently doesnt work
-        String query = "SELECT U.fnUserID, B.fnBanID, P.fnGameDeaths, P.fnNoCount, P.fnEnabled, P.fnLag, " + 
-                "L.fnLeagueTypeID, L.fnTeamID, T.fnTeamID, T.fnLeagueTypeID, U2.fnUserID, U2.fcUserName " + 
-            "FROM tblUser U LEFT JOIN tblDuel__2player P ON U.fnUserID = P.fnUserID " + 
-            "LEFT JOIN tblDuel__2ban B ON P.fnUserID = B.fnUserID LEFT JOIN tblDuel__2league L ON L.fnSeason = " + s_season + " " + 
-                "AND L.fnStatus = 1 AND P.fnUserID = L.fnUserID " + 
-            "LEFT JOIN tblDuel__2team T ON T.fnSeason = " + s_season + " AND T.fnStatus = 1 AND L.fnTeamID = T.fnTeamID " + 
-            "LEFT JOIN tblUser U2 ON (U.fnUserID = T.fnUser1ID AND U2.fnUserID = T.fnUser2ID) " + 
-                "OR (U.fnUserID = T.fnUser2ID AND U2.fnUserID = T.fnUser1ID) " + 
+            String query = "SELECT U.fnUserID, B.fnBanID, P.fnGameDeaths, P.fnNoCount, P.fnEnabled, P.fnLag, " +
+                "L.fnLeagueTypeID, L.fnTeamID, T.fnTeamID, T.fnLeagueTypeID, U2.fnUserID, U2.fcUserName " +
+            "FROM tblUser U LEFT JOIN tblDuel__2player P ON U.fnUserID = P.fnUserID " +
+            "LEFT JOIN tblDuel__2ban B ON P.fnUserID = B.fnUserID LEFT JOIN tblDuel__2league L ON L.fnSeason = " + s_season + " " +
+                "AND L.fnStatus = 1 AND P.fnUserID = L.fnUserID " +
+            "LEFT JOIN tblDuel__2team T ON T.fnSeason = " + s_season + " AND T.fnStatus = 1 AND L.fnTeamID = T.fnTeamID " +
+            "LEFT JOIN tblUser U2 ON (U.fnUserID = T.fnUser1ID AND U2.fnUserID = T.fnUser2ID) " +
+                "OR (U.fnUserID = T.fnUser2ID AND U2.fnUserID = T.fnUser1ID) " +
             "WHERE U.fnUserID = " + userID;
-        try {
+            try {
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             if (result.next()) {
                 do {
@@ -3582,28 +3990,30 @@ public class teamduel extends SubspaceBot {
                                     teams[div] = team;
                                     partners[div] = result.getString("U2.fcUserName");
                                     pids[div] = result.getInt("U2.fnUserID");
-                                    
+
                                 }
-                                
+
                             }
-                            
+
                         }
-                        
+
                     }
                 } while (result.next());
                 return new DuelPlayer(name, userID, lag, deaths, nc, enabled, banned, teams, partners, pids);
             }
-        } catch (Exception e) {
+            } catch (Exception e) {
             Tools.printStackTrace("Failed to get player information", e);
-        }
+            }
         **/
         return null;
     }
-    
+
     public int sql_getUserID(String name) {
         int id = -1;
+
         try {
             ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "' ORDER BY fnUserID ASC LIMIT 1");
+
             if (rs.next()) {
                 id = rs.getInt("fnUserID");
                 m_botAction.SQLClose(rs);
@@ -3612,69 +4022,87 @@ public class teamduel extends SubspaceBot {
         } catch (Exception e) {
             Tools.printLog("Couldn't get or create user: " + name);
         }
-        return id;        
+
+        return id;
     }
-    
+
     public ArrayList<Integer> sql_getTeams(String name) {
         ArrayList<Integer> teams = new ArrayList<Integer>(6);
         teams.add(0, -1);
-        for (int i = 1; i <=5; i++)
+
+        for (int i = 1; i <= 5; i++)
             teams.add(i, -1);
+
         try {
             String query = "SELECT l.fnUserID, l.fnTeamID, l.fnLeagueTypeID FROM tblDuel__2league l JOIN tblUser u ON u.fnUserID = l.fnUserID WHERE l.fnSeason = " + s_season + " AND l.fnStatus = 1 AND u.fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY l.fnLeagueTypeID";
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
+
             if (result.next()) {
                 teams.add(0, result.getInt("l.fnUserID"));
+
                 do {
-                    teams.add(result.getInt("l.fnLeagueTypeID"), result.getInt("l.fnTeamID"));                    
+                    teams.add(result.getInt("l.fnLeagueTypeID"), result.getInt("l.fnTeamID"));
                 } while (result.next());
             }
+
             m_botAction.SQLClose(result);
-        } catch (Exception e) { }        
+        } catch (Exception e) { }
+
         return teams;
     }
-    
+
     public int sql_getTeamDivision(int teamID) {
         int id = 0;
+
         try {
             String query = "SELECT fnLeagueTypeID FROM tblDuel__2team WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID;
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
+
             if (result.next()) {
                 id = result.getInt("fnLeagueTypeID");
             }
+
             m_botAction.SQLClose(result);
         } catch (Exception e) { }
+
         return id;
     }
-    
+
     public String[] sql_getPartners(int teamID) {
         String[] info = new String[2];
+
         try {
             String query = "SELECT u.fcUserName FROM tblUser u JOIN tblDuel__2team t ON (t.fnUser1ID = u.fnUserID OR t.fnUser2ID = u.fnUserID) WHERE t.fnSeason = " + s_season + " AND t.fnStatus = 1 AND t.fnTeamID = " + teamID;
             ResultSet team = m_botAction.SQLQuery(mySQLHost, query);
+
             if (team.next())
                 info[0] = team.getString("u.fcUserName");
+
             if (team.next())
                 info[1] = team.getString("u.fcUserName");
+
             m_botAction.SQLClose(team);
         } catch (Exception e) { }
+
         return info;
     }
-    
+
     public boolean sql_banned(String name) {
         try {
             boolean banned = false;
             ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel__2ban WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"
-                    + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)");
+                                                    + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)");
+
             if (result.next())
                 banned = true;
+
             m_botAction.SQLClose(result);
             return banned;
         } catch (Exception e) {
             return false;
         }
     }
-    
+
     public boolean sql_banPlayer(int id, String comment) {
         try {
             m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2ban (fnUserID, fcComment) VALUES(" + id + ", '" + Tools.addSlashesToString(comment) + "')");
@@ -3683,7 +4111,7 @@ public class teamduel extends SubspaceBot {
             return false;
         }
     }
-    
+
     public boolean sql_banPlayer(String name, String comment) {
         try {
             m_botAction.SQLQueryAndClose(mySQLHost, "INSERT INTO tblDuel__2ban (fnUserID, fcComment) VALUES((SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "' ORDER BY fnUserID ASC LIMIT 1), '" + Tools.addSlashesToString(comment) + "')");
@@ -3692,7 +4120,7 @@ public class teamduel extends SubspaceBot {
             return false;
         }
     }
-    
+
     public boolean sql_unbanPlayer(int id) {
         try {
             m_botAction.SQLQueryAndClose(mySQLHost, "DELETE FROM tblDuel__2ban WHERE fnUserID = " + id);
@@ -3701,7 +4129,7 @@ public class teamduel extends SubspaceBot {
             return false;
         }
     }
-    
+
     public boolean sql_unbanPlayer(String name) {
         try {
             m_botAction.SQLQueryAndClose(mySQLHost, "DELETE FROM tblDuel__2ban WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + name + "' ORDER BY fnUserID ASC LIMIT 1)");
@@ -3710,12 +4138,12 @@ public class teamduel extends SubspaceBot {
             return false;
         }
     }
-    
+
     public boolean sql_enabledUser(String name) {
 
         try {
             String query = "SELECT fnUserID FROM tblDuel__2player WHERE fnEnabled = 1 AND fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '"
-                    + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)";
+                           + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)";
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
             boolean hasNext = result.next();
             m_botAction.SQLClose(result);
@@ -3725,7 +4153,7 @@ public class teamduel extends SubspaceBot {
             return false;
         }
     }
-    
+
     public boolean sql_enabledUser(int id) {
         try {
             String query = "SELECT * FROM tblDuel__2player WHERE fnEnabled = 1 AND fnUserID = " + id;
@@ -3738,7 +4166,7 @@ public class teamduel extends SubspaceBot {
             return false;
         }
     }
-    
+
     public void sql_enableUser(int id) {
         try {
             String query = "UPDATE tblDuel__2player SET fnEnabled = 1 WHERE fnUserID = " + id;
@@ -3747,70 +4175,80 @@ public class teamduel extends SubspaceBot {
             Tools.printStackTrace("Error enabling user", e);
         }
     }
-    
+
     // Disable not only disables the player, but disables all the teams player was on
     public void sql_disableUser(int id) {
         try {
             m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fnEnabled = 0 WHERE fnUserID = " + id);
             m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2team SET fnStatus = 0 WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND (fnUser1ID = " + id + " OR fnUser2ID = " + id + ")");
-            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2league SET fnStatus = 0 WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnUserID = " + id);           
+            m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2league SET fnStatus = 0 WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnUserID = " + id);
         } catch (Exception e) {
             Tools.printStackTrace("Error disabling user", e);
         }
     }
-    
+
     // Now rendered useless due to DuelPlayer holding all that information
     public boolean sql_divisionCheck(String name, String part, int div) {
         if ((div > 0 && div < 6) || div == 7) {
             if (div == 7)
                 div = 4;
+
             try {
                 ResultSet user = m_botAction.SQLQuery(mySQLHost, "SELECT L.fnTeamID, L.fnStatus FROM tblDuel__2league L JOIN tblUser U ON U.fnUserID = L.fnUserID WHERE L.fnSeason = " + s_season + " AND U.fcUserName = '" + Tools.addSlashesToString(name) + "' AND L.fnLeagueTypeID = " + div + " AND L.fnStatus = 1");
+
                 if (user.next()) {
                     m_botAction.sendPrivateMessage(name, "You are all ready registered for a team in that division.");
-                    m_botAction.SQLClose(user);   
+                    m_botAction.SQLClose(user);
                     return false;
                 }
-                m_botAction.SQLClose(user);                
+
+                m_botAction.SQLClose(user);
                 user = m_botAction.SQLQuery(mySQLHost, "SELECT L.fnTeamID, L.fnStatus FROM tblDuel__2league L JOIN tblUser U ON U.fnUserID = L.fnUserID WHERE L.fnSeason = " + s_season + " AND fcUserName = '" + Tools.addSlashesToString(part) + "' AND L.fnLeagueTypeID = " + div + " AND L.fnStatus = 1");
+
                 if (user.next()) {
                     m_botAction.sendPrivateMessage(name, part + " is all ready registered for a team in that division.");
-                    m_botAction.SQLClose(user);                   
+                    m_botAction.SQLClose(user);
                     return false;
                 }
+
                 m_botAction.SQLClose(user);
-            } catch (Exception e) { 
+            } catch (Exception e) {
                 return false;
             }
+
             return true;
-        } else 
+        } else
             return false;
     }
-    
+
     public int sql_createTeam(DuelPlayer a, DuelPlayer b, int div) {
         int id = -1;
         String query = "INSERT INTO tblDuel__2team (fnSeason, fnLeagueTypeID, fnUser1ID, fnUser2ID) VALUES(" + s_season + ", " + div + ", " + a.getID() + ", " + b.getID() + ")";
+
         try {
             m_botAction.SQLQueryAndClose(mySQLHost, query);
             ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT fnTeamID FROM tblDuel__2team WHERE fnUser1ID = " + a.getID() + " AND fnUser2ID = " + b.getID() + " AND fnSeason = " + s_season + " AND fnStatus = 1 AND fnLeagueTypeID = " + div);
+
             if (rs.next())
                 id = rs.getInt("fnTeamID");
+
             m_botAction.SQLClose(rs);
             query = "INSERT INTO tblDuel__2league (fnSeason, fnTeamID, fnUserID, fnLeagueTypeID) VALUES(" + s_season + ", " + id + ", " + a.getID() + ", " + div + "),(" + s_season + ", " + id + ", " + b.getID() + ", " + div + ")";
             m_botAction.SQLQueryAndClose(mySQLHost, query);
         } catch (SQLException e) {
             e.printStackTrace();
-        }        
+        }
+
         return id;
     }
 
     public void sql_storeUserLoss(int id, int teamID, int division, int kills, int deaths, int spawns, int spawned, int lagouts, int time) {
         try {
-            String query = "UPDATE tblDuel__2league SET fnLosses = fnLosses + 1, fnKills = fnKills + " + kills + 
-            ", fnDeaths = fnDeaths + " + deaths + ", fnTimePlayed = fnTimePlayed + " + time + 
-            ", fnSpawns = fnSpawns + " + spawns + ", fnSpawned = fnSpawned + " + spawned + 
-            ", fnLagouts = fnLagouts + " + lagouts + 
-            " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnUserID = " + id + " AND fnLeagueTypeID = " + division;
+            String query = "UPDATE tblDuel__2league SET fnLosses = fnLosses + 1, fnKills = fnKills + " + kills +
+                           ", fnDeaths = fnDeaths + " + deaths + ", fnTimePlayed = fnTimePlayed + " + time +
+                           ", fnSpawns = fnSpawns + " + spawns + ", fnSpawned = fnSpawned + " + spawned +
+                           ", fnLagouts = fnLagouts + " + lagouts +
+                           " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnUserID = " + id + " AND fnLeagueTypeID = " + division;
             m_botAction.SQLQueryAndClose(mySQLHost, query);
             query = "UPDATE tblDuel__2player SET fdLastPlayed = NOW() WHERE fnUserID = " + id;
             m_botAction.SQLQueryAndClose(mySQLHost, query);
@@ -3821,11 +4259,11 @@ public class teamduel extends SubspaceBot {
 
     public void sql_storeUserWin(int id, int teamID, int division, int kills, int deaths, int spawns, int spawned, int lagouts, int time) {
         try {
-            String query = "UPDATE tblDuel__2league SET fnWins = fnWins + 1, fnKills = fnKills + " + kills + 
-            ", fnDeaths = fnDeaths + " + deaths + ", fnTimePlayed = fnTimePlayed + " + time + 
-            ", fnSpawns = fnSpawns + " + spawns + ", fnSpawned = fnSpawned + " + spawned + 
-            ", fnLagouts = fnLagouts + " + lagouts + 
-            " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnUserID = " + id + " AND fnLeagueTypeID = " + division;
+            String query = "UPDATE tblDuel__2league SET fnWins = fnWins + 1, fnKills = fnKills + " + kills +
+                           ", fnDeaths = fnDeaths + " + deaths + ", fnTimePlayed = fnTimePlayed + " + time +
+                           ", fnSpawns = fnSpawns + " + spawns + ", fnSpawned = fnSpawned + " + spawned +
+                           ", fnLagouts = fnLagouts + " + lagouts +
+                           " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnUserID = " + id + " AND fnLeagueTypeID = " + division;
             m_botAction.SQLQueryAndClose(mySQLHost, query);
             query = "UPDATE tblDuel__2player SET fdLastPlayed = NOW() WHERE fnUserID = " + id;
             m_botAction.SQLQueryAndClose(mySQLHost, query);
@@ -3833,53 +4271,58 @@ public class teamduel extends SubspaceBot {
             Tools.printStackTrace("Failed to store user win", e);
         }
     }
-    
+
     public void sql_storeTeamWin(int teamID, int division, int winnerStreak, int winnerCurStreak, int wonAgainst, int rating, boolean aced ) {
         try {
             String query;
+
             if (aced) {
-                query = "UPDATE tblDuel__2team SET fnWins = fnWins + 1, fnWinStreak = " + winnerStreak + 
-                ", fnCurrentWinStreak = " + winnerCurStreak + ", fnCurrentLossStreak = 0, fnAces = fnAces + 1, fnLastWin = " + wonAgainst + 
-                ", fnRating = " + rating + 
-                ", fdLastPlayed = NOW()" +
-                " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
+                query = "UPDATE tblDuel__2team SET fnWins = fnWins + 1, fnWinStreak = " + winnerStreak +
+                        ", fnCurrentWinStreak = " + winnerCurStreak + ", fnCurrentLossStreak = 0, fnAces = fnAces + 1, fnLastWin = " + wonAgainst +
+                        ", fnRating = " + rating +
+                        ", fdLastPlayed = NOW()" +
+                        " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
             } else {
-                query = "UPDATE tblDuel__2team SET fnWins = fnWins + 1, fnWinStreak = " + winnerStreak + 
-                ", fnCurrentWinStreak = " + winnerCurStreak + ", fnCurrentLossStreak = 0, fnLastWin = " + wonAgainst + ", fnRating = " + rating +
-                ", fdLastPlayed = NOW()" +
-                " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + 
-                " AND fnLeagueTypeID = " + division;
+                query = "UPDATE tblDuel__2team SET fnWins = fnWins + 1, fnWinStreak = " + winnerStreak +
+                        ", fnCurrentWinStreak = " + winnerCurStreak + ", fnCurrentLossStreak = 0, fnLastWin = " + wonAgainst + ", fnRating = " + rating +
+                        ", fdLastPlayed = NOW()" +
+                        " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID +
+                        " AND fnLeagueTypeID = " + division;
             }
+
             m_botAction.SQLQueryAndClose(mySQLHost, query);
         } catch (Exception e) {
             Tools.printStackTrace( "Failed to store team win", e );
         }
     }
-    
+
     public void sql_storeTeamLoss(int teamID, int division, int loserStreak, int loserCurStreak, int lostAgainst, int rating, boolean aced ) {
         try {
             String query;
+
             if (aced) {
-                query = "UPDATE tblDuel__2team SET fnLosses = fnLosses + 1, fnLossStreak = " + loserStreak + 
-                ", fnCurrentLossStreak = " + loserCurStreak + 
-                ", fnCurrentWinStreak = 0, fnAced = fnAced + 1, fnLastLoss = " + lostAgainst + ", fnRating = " + rating + 
-                ", fdLastPlayed = NOW()" +
-                " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
+                query = "UPDATE tblDuel__2team SET fnLosses = fnLosses + 1, fnLossStreak = " + loserStreak +
+                        ", fnCurrentLossStreak = " + loserCurStreak +
+                        ", fnCurrentWinStreak = 0, fnAced = fnAced + 1, fnLastLoss = " + lostAgainst + ", fnRating = " + rating +
+                        ", fdLastPlayed = NOW()" +
+                        " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
             } else {
-                query = "UPDATE tblDuel__2team SET fnLosses = fnLosses + 1, fnLossStreak = " + loserStreak + 
-                ", fnCurrentLossStreak = " + loserCurStreak + ", fnCurrentWinStreak = 0, fnLastLoss = " + lostAgainst + ", fnRating = " + rating +
-                ", fdLastPlayed = NOW()" +
-                " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
+                query = "UPDATE tblDuel__2team SET fnLosses = fnLosses + 1, fnLossStreak = " + loserStreak +
+                        ", fnCurrentLossStreak = " + loserCurStreak + ", fnCurrentWinStreak = 0, fnLastLoss = " + lostAgainst + ", fnRating = " + rating +
+                        ", fdLastPlayed = NOW()" +
+                        " WHERE fnSeason = " + s_season + " AND fnStatus = 1 AND fnTeamID = " + teamID + " AND fnLeagueTypeID = " + division;
             }
+
             m_botAction.SQLQueryAndClose( mySQLHost, query );
         } catch (Exception e) {
             Tools.printStackTrace( "Failed to store team loss", e );
         }
     }
-    
+
     public ResultSet sql_getTeamInfo(int id) {
         try {
             ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblDuel__2team WHERE fnTeamID = " + id + " AND fnStatus = 1 AND fnSeason = " + s_season + " LIMIT 1");
+
             if (result.next())
                 return result;
             else
@@ -3889,7 +4332,7 @@ public class teamduel extends SubspaceBot {
             return null;
         }
     }
-    
+
     public ResultSet sql_getPlayerInfo(int id) {
         try {
             String query = "SELECT fcIP, fnMID, fnEnabled FROM tblDuel__2player WHERE fnUserID = " + id;
@@ -3898,9 +4341,10 @@ public class teamduel extends SubspaceBot {
         } catch (Exception e) {
             Tools.printStackTrace("Problem getting user IP/MID", e);
         }
+
         return null;
     }
-    
+
     public ResultSet sql_getPlayerInfo(String name) {
         try {
             String query = "SELECT fcIP, fnMID, fnEnabled FROM tblDuel__2player WHERE fnUserID = (SELECT fnUserID FROM tblUser WHERE fcUserName = '" + Tools.addSlashesToString(name) + "' ORDER BY fnUserID ASC LIMIT 1)";
@@ -3909,29 +4353,36 @@ public class teamduel extends SubspaceBot {
         } catch (Exception e) {
             Tools.printStackTrace("Problem getting user IP/MID", e);
         }
+
         return null;
     }
 
     public void sql_lagInfo(String name, int average) {
         if (!newbies.isEmpty() && newbies.containsKey(name.toLowerCase()))
             return;
+
         int id = -1;
         DuelPlayer dp = null;
+
         if (!players.isEmpty())
-            dp = players.get(name.toLowerCase()); 
+            dp = players.get(name.toLowerCase());
+
         if (dp != null)
             id = dp.getID();
         else
             id = sql_getUserID(name);
-        
+
         try {
             m_botAction.SQLQueryAndClose(mySQLHost, "UPDATE tblDuel__2player SET fnLag = (fnLag * fnLagCheckCount + " + average + ") / (fnLagCheckCount + 1), fnLagCheckCount = fnLagCheckCount + 1 WHERE fnUserID = " + id);
+
             if (dp != null) {
                 ResultSet rs = m_botAction.SQLQuery(mySQLHost, "SELECT fnLag FROM tblDuel__2player WHERE fnUserID = " + id);
+
                 if (rs.next()) {
                     dp.setLag(rs.getInt("fnLag"));
                     players.put(name, dp);
                 }
+
                 m_botAction.SQLClose(rs);
             }
         } catch (Exception e) {
@@ -3943,12 +4394,14 @@ public class teamduel extends SubspaceBot {
         try {
             String query = "SELECT COUNT(fnMatchID) AS count FROM `tblDuel__2match` WHERE" + " ((fnWinnerTeamID = '" + a + "' AND fnLoserTeamID = '" + b + "')" + " OR (fnWinnerTeamID = '" + b + "' AND fnLoserTeamID = '" + a + "'))" + " AND TO_DAYS(NOW()) - TO_DAYS(ftUpdated ) <= " + s_duelDays + " AND fnLeagueTypeID = " + division;
             ResultSet result = m_botAction.SQLQuery(mySQLHost, query);
+
             if (result.next()) {
                 if (result.getInt("count") >= s_duelLimit) {
                     m_botAction.SQLClose(result);
                     return true;
                 }
             }
+
             m_botAction.SQLClose(result);
             return false;
         } catch (Exception e) {
@@ -3957,8 +4410,8 @@ public class teamduel extends SubspaceBot {
     }
 
     /**
-     * Internal Classes
-     */
+        Internal Classes
+    */
     class GameStartTimer extends TimerTask {
 
         BotAction m_botAction;
@@ -3982,31 +4435,35 @@ public class teamduel extends SubspaceBot {
             b1 = duel.getB1();
             b2 = duel.getB2();
         }
-        
+
         public void run() {
             duel.setLockOn();
-            
+
             if (!laggers.isEmpty() || !laggers.containsKey(challenger[0])) {
                 m_botAction.warpTo(challenger[0], a1[0], a1[1]);
                 m_botAction.sendPrivateMessage(challenger[0], "GO GO GO!!!", 104);
             }
+
             if (!laggers.isEmpty() || !laggers.containsKey(challenger[1])) {
                 m_botAction.warpTo(challenger[1], a2[0], a2[1]);
-                m_botAction.sendPrivateMessage(challenger[1], "GO GO GO!!!", 104);                
+                m_botAction.sendPrivateMessage(challenger[1], "GO GO GO!!!", 104);
             }
+
             if (!laggers.isEmpty() || !laggers.containsKey(challenged[0])) {
                 m_botAction.warpTo(challenged[0], b1[0], b1[1]);
                 m_botAction.sendPrivateMessage(challenged[0], "GO GO GO!!!", 104);
             }
+
             if (!laggers.isEmpty() || !laggers.containsKey(challenged[1])) {
                 m_botAction.warpTo(challenged[1], b2[0], b2[1]);
                 m_botAction.sendPrivateMessage(challenged[1], "GO GO GO!!!", 104);
             }
+
             duel.started();
-            duel.getPlayerOne().setSpawn((int) (System.currentTimeMillis()/1000));
-            duel.getPlayerTwo().setSpawn((int) (System.currentTimeMillis()/1000));
-            duel.getPlayerThree().setSpawn((int) (System.currentTimeMillis()/1000));
-            duel.getPlayerFour().setSpawn((int) (System.currentTimeMillis()/1000));
+            duel.getPlayerOne().setSpawn((int) (System.currentTimeMillis() / 1000));
+            duel.getPlayerTwo().setSpawn((int) (System.currentTimeMillis() / 1000));
+            duel.getPlayerThree().setSpawn((int) (System.currentTimeMillis() / 1000));
+            duel.getPlayerFour().setSpawn((int) (System.currentTimeMillis() / 1000));
             duel.getPlayerOne().setLastDeath();
             duel.getPlayerTwo().setLastDeath();
             duel.getPlayerThree().setLastDeath();
@@ -4014,12 +4471,12 @@ public class teamduel extends SubspaceBot {
             locks.lock();
         }
     }
-       
-    class TeamInvite extends TimerTask{
+
+    class TeamInvite extends TimerTask {
         String inviter;
         String invitee;
         int division;
-        
+
         public TeamInvite(String a, String b, int type) {
             inviter = a;
             invitee = b;
@@ -4034,20 +4491,20 @@ public class teamduel extends SubspaceBot {
             m_botAction.sendPrivateMessage(invitee, "The team invitation from " + inviter + " has now expired.");
             invites.remove(this);
         }
-        
+
         public String getInviter() {
             return inviter;
         }
-        
+
         public String getInvitee() {
             return invitee;
         }
-        
+
         public int getDivisionID() {
             return division;
         }
     }
-    
+
     class TeamChallenge {
         private int challengers;
         private int challenged;
@@ -4057,7 +4514,7 @@ public class teamduel extends SubspaceBot {
         private String partner;
         private boolean accepted = false;
         private int issueTime;
-        
+
         public TeamChallenge(int team1, int team2, int div, int box, String name, String partner) {
             challengers = team1;
             challenged = team2;
@@ -4067,35 +4524,35 @@ public class teamduel extends SubspaceBot {
             this.partner = partner;
             issueTime = ((int) System.currentTimeMillis() / 1000);
         }
-        
+
         public boolean getAccepted() {
             return accepted;
         }
-        
+
         public void accept() {
             accepted = true;
         }
-        
+
         public int getChallengers() {
             return challengers;
         }
-        
+
         public int getChallenged() {
             return challenged;
         }
-        
+
         public String getChallenger() {
             return challenger;
         }
-        
+
         public String getPartner() {
             return partner;
         }
-        
+
         public int getDivision() {
             return division;
         }
-        
+
         public int getBoxType() {
             return boxType;
         }
@@ -4121,7 +4578,8 @@ public class teamduel extends SubspaceBot {
         public void run() {
             m_botAction.warpTo(player, xCoord, yCoord);
             m_botAction.shipReset(player);
-            playing.get(player.toLowerCase()).getPlayer(player).setSpawn((int) (System.currentTimeMillis()/1000));
+            playing.get(player.toLowerCase()).getPlayer(player).setSpawn((int) (System.currentTimeMillis() / 1000));
+
             if (!spawnDelays.isEmpty() && spawnDelays.containsKey(player.toLowerCase()))
                 spawnDelays.remove(player.toLowerCase());
         }
@@ -4143,13 +4601,15 @@ public class teamduel extends SubspaceBot {
             DuelPlayerStats player = duel.getPlayer(lagger);
             int laggerFreq = player.getFreq();
             int otherFreq;
+
             if (team == 1)
                 otherFreq = duel.getChallengedTeam();
             else
                 otherFreq = duel.getChallengerTeam();
+
             m_botAction.sendPrivateMessage(lagger, "You have forfeited since you have been lagged out for over a minute.");
             m_botAction.sendOpposingTeamMessageByFrequency(laggerFreq, lagger + " has been lagged out for over a minute and forfeits.", 26);
-            m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, lagger + " has been lagged out for over a minute and forfeits.", 26); 
+            m_botAction.sendOpposingTeamMessageByFrequency(otherFreq, lagger + " has been lagged out for over a minute and forfeits.", 26);
             player.setDeaths(duel.toWin());
             player.setOut();
             playing.remove(lagger.toLowerCase());
@@ -4157,12 +4617,13 @@ public class teamduel extends SubspaceBot {
             m_botAction.spec(lagger);
             m_botAction.setFreq(lagger, laggerFreq);
             do_score(duel, 4);
+
             if (!laggers.isEmpty() && laggers.containsKey(lagger.toLowerCase())) {
                 m_botAction.cancelTask(laggers.remove(lagger.toLowerCase()));
             }
         }
     }
-    
+
     class KillDelay extends TimerTask {
         String name;
         String killer;
@@ -4191,21 +4652,22 @@ public class teamduel extends SubspaceBot {
             // is killed player out?
             if (nameStats.getDeaths() >= duel.toWin()) {
                 m_botAction.sendOpposingTeamMessageByFrequency(killerFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);
-                m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);                
+                m_botAction.sendOpposingTeamMessageByFrequency(nameFreq, name + " is out with " + nameStats.getKills() + ":" + nameStats.getDeaths(), 26);
                 nameStats.setOut();
                 playing.remove(name.toLowerCase());
                 m_botAction.spec(name);
                 m_botAction.spec(name);
+
                 if (duel.getPlayerNumber(name) == 1)
                     m_botAction.setFreq(name, duel.getBoxFreq());
                 else
                     m_botAction.setFreq(name, duel.getBoxFreq() + 1);
             }
-            
+
             if (!spawnDelays.isEmpty() && spawnDelays.containsKey(name.toLowerCase())) {
                 m_botAction.cancelTask(spawnDelays.remove(name.toLowerCase()));
             }
-            
+
             do_score(duel, 0);
         }
     }

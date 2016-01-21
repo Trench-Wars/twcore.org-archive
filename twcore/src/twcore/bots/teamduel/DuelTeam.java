@@ -21,18 +21,19 @@ public class DuelTeam {
 
     public String toString() {
         String team = "|";
-        
+
         if (teamID / 10 > 0) {
             if (teamID / 100 > 0) {
                 if (teamID / 1000 > 0) {
-                    team += " " + teamID + "|"; 
+                    team += " " + teamID + "|";
                 } else
                     team += "  " + teamID + " |";
             } else
                 team += "  " + teamID + " |";
         } else // "| ID#  | Division | Partners"
             team += "   " + teamID + " |";
-        if (division == 1 || division == 2) 
+
+        if (division == 1 || division == 2)
             team += " " + divisionName + "  | ";
         else if (division == 3)
             team += "  " + divisionName + "  | ";
@@ -40,12 +41,13 @@ public class DuelTeam {
             team += " " + divisionName + "| ";
         else if (division == 5)
             team += "  " + divisionName + "   | ";
+
         team += names[0] + " and " + names[1];
-        
+
         while (team.length() < 55) {
             team += " ";
         }
-        
+
         return team + "|";
     }
 

@@ -57,7 +57,7 @@ public class GameFlagTimeModule extends AbstractModule {
     private HashMap<String, LevTerr> levterrs;              // Current lev terrs
     private TimerTask levInfo;                              // Msgs info about LTs as they form
     private TimerTask levCoordReporter;                     // Freq-msgs LT Hunter freq with LT coords
-    
+
 
     // Kill weight per location
     private static HashMap<Location, Integer> locationWeight;
@@ -90,12 +90,12 @@ public class GameFlagTimeModule extends AbstractModule {
     // X and Y coords for warp points.  Note that the first X and Y should be
     // the "standard" warp; in TW this is the earwarp.  These coords are used in
     // strict flag time mode.
-    private boolean warpCmdsAllowed = true;	// True if players & mods are allowed to use warp cmds
-    
+    private boolean warpCmdsAllowed = true; // True if players & mods are allowed to use warp cmds
+
     // Warp coords for warp in into FR at the start of a round.
     private Point[] warpPtsLeft;
     private Point[] warpPtsRight;
-    
+
     // Warp coords for safes (for use in strict flag time mode)
     Point warpSafeLeft;
     Point warpSafeRight;
@@ -105,34 +105,34 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private boolean flagTimeStarted = false;
     private boolean strictFlagTimeMode = false;
-    
+
     // Solo terr incentive: if player is only Terr on freq 0/1, provide a regular bonus
     // NOTE: Values are read from CFG, but these are there as a backup/guide.
     private boolean giveTerrBonus = true;       // True if sole-terr-on-freq, non-LT terrs
-                                                // receive a money bonus.
+    // receive a money bonus.
     private int terrBonusFrequency = 117; // How often terrs are given a bonus, in seconds
     private int terrBonusAmt = 250;       // Award amount
     private int terrBonusMinOnFreq = 3;   // Smallest # of players on freq to allow bonus
-    
+
     // LTHunter freq, for those dedicated to LT hunting
     // PROS: Group-shared LT bounties; regularly PMs location of any LTs; provides 1 terr w/ terr bonus
     // CONS: Levis can't join; can't earn round end bonus
     private boolean hunterFreqEnabled = false;
     private int hunterFreq = -1;
-    
+
     private final int LVZ_10TOSTART = 17100;
     private final int LVZ_60TOWIN = 17101;
     private final int LVZ_30TOWIN = 17102;
     private final int LVZ_10TOWIN = 17103;
     private final int LVZ_WINIMMINENT = 17104;
-    private final int LVZ_GAMEOVER= 17105;
+    private final int LVZ_GAMEOVER = 17105;
     private final int LVZ_ROUNDOVER = 17106;
-    
 
-    /* Added in and never used?
-    private int moneyRoundWin = 0;
-    private int moneyGameWin = 0;
-    private int moneyMVP = 0;
+
+    /*  Added in and never used?
+        private int moneyRoundWin = 0;
+        private int moneyGameWin = 0;
+        private int moneyMVP = 0;
     */
 
     public GameFlagTimeModule(BotAction botAction, PubContext context) {
@@ -146,49 +146,58 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public void reloadConfig() {
-    	
-    	reloadCoordsConfig();
-        
+
+        reloadCoordsConfig();
+
         if (m_botAction.getBotSettings().getInt("allow_warp") == 1)
             warpEnabled = true;
-        
+
         if (m_botAction.getBotSettings().getInt("auto_warp") == 1)
             autoWarp = true;
 
         if (m_botAction.getBotSettings().getInt("flagtime_enabled") == 1)
             enabled = true;
-        
+
         if (m_botAction.getBotSettings().getInt("terr_bonus_enabled") == 1)
             giveTerrBonus = true;
-        
+
         if (giveTerrBonus) {
             int t = m_botAction.getBotSettings().getInt("terr_bonus_amt");
-            if (t>0) terrBonusAmt = t;
+
+            if (t > 0) terrBonusAmt = t;
+
             t = m_botAction.getBotSettings().getInt("terr_bonus_freq");
-            if (t>0) terrBonusFrequency = t;
+
+            if (t > 0) terrBonusFrequency = t;
+
             t = m_botAction.getBotSettings().getInt("terr_bonus_min_players");
-            if (t>0) terrBonusMinOnFreq = t;
+
+            if (t > 0) terrBonusMinOnFreq = t;
         }
-        
+
         if (m_botAction.getBotSettings().getInt("hunter_freq_enabled") == 1)
             hunterFreqEnabled = true;
-        
+
         if (hunterFreqEnabled) {
             int t = m_botAction.getBotSettings().getInt("hunter_freq");
-            if (t>0) hunterFreq = t;
-            
+
+            if (t > 0) hunterFreq = t;
+
             levCoordReporter = new TimerTask() {
                 String msg = "";
-                
+
                 @Override
                 public void run() {
                     for (LevTerr lt : levterrs.values()) {
                         if (!lt.isEmpty()) {
                             Player p = m_botAction.getPlayer(lt.terrierName);
+
                             if (p != null) {}
-                               // msg += p.getPlayerName() + " @ " + p.getTextCoords() + "     ";
+
+                            // msg += p.getPlayerName() + " @ " + p.getTextCoords() + "     ";
                         }
                     }
+
                     if (!msg.equals("")) {
                         // Don't check if anyone's even on the freq; if not, msg will just not send
                         m_botAction.sendOpposingTeamMessageByFrequency(hunterFreq, "LTs:   " + msg);
@@ -200,27 +209,27 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
     }
-    
+
     /**
-     * Loads the coordinates from a separate settings file.
-     */
+        Loads the coordinates from a separate settings file.
+    */
     private void reloadCoordsConfig() {
         BotSettings cfg = new BotSettings(m_botAction.getBotSettings().getString("coords_config"));
-        
+
         // Warp points for start of round, left side of base.
         warpPtsLeft = cfg.getPointArray("warp_left", ",", ":");
-        
+
         // Warp points for start of round, right side of base.
         warpPtsRight = cfg.getPointArray("warp_right", ",", ":");
-        
+
         // Coordinates of left safe.
         warpSafeLeft = cfg.getPoint("safe_left", ":");
-        
+
         // Cordinates of right safe.
         warpSafeRight = cfg.getPoint("safe_right", ":");
-        
+
         //TODO: Handle situation in which the warp points aren't located.
-        
+
     }
 
     @Override
@@ -233,6 +242,7 @@ public class GameFlagTimeModule extends AbstractModule {
         if (!enabled ) return;
 
         Player p = m_botAction.getPlayer(event.getPlayerID());
+
         if (p == null)
             return;
 
@@ -240,10 +250,12 @@ public class GameFlagTimeModule extends AbstractModule {
         if (p.getShipType() == Tools.Ship.TERRIER)
             if (levterrs.containsKey(p.getPlayerName()))
                 levterrs.remove(p.getPlayerName());
+
         if (p.getShipType() == Tools.Ship.LEVIATHAN) {
             for (LevTerr lt : levterrs.values()) {
                 if (lt.leviathans.contains(p.getPlayerName())) {
                     lt.removeLeviathan(p.getPlayerName());
+
                     if (lt.isEmpty())
                         lt.allowAlert(true);
                 }
@@ -262,11 +274,13 @@ public class GameFlagTimeModule extends AbstractModule {
             flagTimer.newAttachee(p1.getPlayerName());
 
         if (p2 != null)
+
             // Attachee check up
             if (p2.getShipType() == Tools.Ship.LEVIATHAN)
                 if (event.isAttaching()) {
 
                     final LevTerr levTerr;
+
                     if (levterrs.containsKey(p1.getPlayerName()))
                         levTerr = levterrs.get(p1.getPlayerName());
                     else {
@@ -278,9 +292,9 @@ public class GameFlagTimeModule extends AbstractModule {
 
                     try {
                         levInfo.cancel();
-                    } catch (Exception e) {                        
+                    } catch (Exception e) {
                     }
-                    
+
                     TimerTask levInfo = new TimerTask() {
                         @Override
                         public void run() {
@@ -288,20 +302,27 @@ public class GameFlagTimeModule extends AbstractModule {
                                 String message = "[LEVTERR Alert] " + p1.getPlayerName() + " (Terrier) with ";
                                 String hunterAdv = (hunterFreqEnabled ? "   =" + hunterFreq + " for LT Hunter freq." : "");
                                 String lev = "";
+
                                 for (String name : levTerr.getLeviathans())
                                     lev += ", " + name;
+
                                 message += lev.substring(2);
                                 int freq = p1.getFrequency();
+
                                 if (freq != 0)
                                     m_botAction.sendOpposingTeamMessageByFrequency(0, message + hunterAdv, 26);
+
                                 if (freq != 1)
                                     m_botAction.sendOpposingTeamMessageByFrequency(1, message + hunterAdv, 26);
+
                                 if (hunterFreqEnabled)
                                     m_botAction.sendOpposingTeamMessageByFrequency(hunterFreq, message, 26);
+
                                 levTerr.allowAlert(false);
                             }
                         }
                     };
+
                     try {
                         m_botAction.scheduleTask(levInfo, 5 * Tools.TimeInMillis.SECOND);
                     } catch (IllegalStateException e) {
@@ -309,6 +330,7 @@ public class GameFlagTimeModule extends AbstractModule {
                     }
 
                 } else
+
                     // We can't use AttacheeID (bug)
                     for (LevTerr lt : levterrs.values())
                         if (lt.leviathans.contains(p2.getPlayerName()))
@@ -322,19 +344,23 @@ public class GameFlagTimeModule extends AbstractModule {
         int playerID = event.getPlayerID();
 
         Player p = m_botAction.getPlayer(playerID);
+
         if( p == null )
-        	return;
+            return;
+
         String playerName = p.getPlayerName();
 
         PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
+
         if (pubPlayer != null) {
             pubPlayer.setLastFreqSwitch(event.getFrequency());
+
             if (hunterFreqEnabled && pubPlayer.getLastFreq() != event.getFrequency() && event.getFrequency() == hunterFreq)
                 m_botAction.sendPrivateMessage(playerID, "[HUNTER]  All LT bounties shared; +$15 for all Levi kills; solo Terrs get regular bonus.");
         }
-                
-        /* Disabled until hunt re-enabled
-        if (context.getPubHunt().isPlayerPlaying(playerName))
+
+        /*  Disabled until hunt re-enabled
+            if (context.getPubHunt().isPlayerPlaying(playerName))
             return;
         */
 
@@ -353,14 +379,15 @@ public class GameFlagTimeModule extends AbstractModule {
 
         try {
             if (isFlagTimeStarted() && isRunning())
+
                 // Remove player if spec'ing
                 if (event.getShipType() == Tools.Ship.SPECTATOR) {
                     String pname = p.getPlayerName();
                     playerTimes.remove(pname);
                 }
 
-            /* Should ONLY be done after a player enters, not every shipchange!
-            if (warpEnabled && !strictFlagTimeMode && isFlagTimeStarted() && autoWarp && !warpPlayers.containsKey(playerName))
+            /*  Should ONLY be done after a player enters, not every shipchange!
+                if (warpEnabled && !strictFlagTimeMode && isFlagTimeStarted() && autoWarp && !warpPlayers.containsKey(playerName))
                 if (ship != Tools.Ship.SPECTATOR)
                     cmd_warp(playerName);
             */
@@ -376,10 +403,11 @@ public class GameFlagTimeModule extends AbstractModule {
 
         if (hunterFreqEnabled && event.getFrequency() == hunterFreq)
             m_botAction.sendPrivateMessage(event.getPlayerID(), "[HUNTER]  LT bounties shared; +$15 for all Levi kills; Terrs get bonus.");
-        
+
         // Reset the time of a player for MVP purpose
         if (isRunning()) {
             Player player = m_botAction.getPlayer(event.getPlayerID());
+
             if(player != null)
                 playerTimeJoined.put(player.getPlayerName(), System.currentTimeMillis());
         }
@@ -399,76 +427,82 @@ public class GameFlagTimeModule extends AbstractModule {
             if (levterrs.containsKey(killed.getPlayerName()))
                 levterrs.get(killed.getPlayerName()).allowAlert(true);
 
-        // Check for slain LTs and award bonuses appropriately 
+        // Check for slain LTs and award bonuses appropriately
         if (killed.getShipType() == Tools.Ship.LEVIATHAN) {
             for (LevTerr lt : levterrs.values()) {
                 if (lt.leviathans.contains(killed.getPlayerName())) {
                     lt.removeLeviathan(killed.getPlayerName());
-                    
+
                     int money = 0;
                     boolean isHunterFreq = (killer.getFrequency() == hunterFreq);
-                    
+
                     // Bonus to killer
                     if (lt.isEmpty()) {
                         lt.allowAlert(true);
-                        money = 500 + (event.getKilledPlayerBounty() * 5);                        
+                        money = 500 + (event.getKilledPlayerBounty() * 5);
+
                         if (isHunterFreq) {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty, plus a $250 Hunter Freq bonus!  +$"+ (money + 250));
-                            context.getPlayerManager().addMoney(killer.getPlayerName(), money + 250);                            
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty, plus a $250 Hunter Freq bonus!  +$" + (money + 250));
+                            context.getPlayerManager().addMoney(killer.getPlayerName(), money + 250);
                         } else {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$"+ money);
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$" + money);
                             context.getPlayerManager().addMoney(killer.getPlayerName(), money);
                         }
                     } else {
                         money = 250 + (event.getKilledPlayerBounty() * 3);
+
                         if (isHunterFreq) {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty, plus a $150 Hunter Freq bonus!  +$"+ (money + 150));
-                            context.getPlayerManager().addMoney(killer.getPlayerName(), money + 150);                            
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty, plus a $150 Hunter Freq bonus!  +$" + (money + 150));
+                            context.getPlayerManager().addMoney(killer.getPlayerName(), money + 150);
                         } else {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$"+ money);
+                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$" + money);
                             context.getPlayerManager().addMoney(killer.getPlayerName(), money);
                         }
                     }
-                    
+
                     // Hunter freq LT assist: share between all teammates near the Levi
                     if (isHunterFreq) {
                         Iterator<Player> i = m_botAction.getFreqPlayerIterator(hunterFreq);
                         Location locKilled = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
                         Location locHunter;
+
                         if (locKilled == null)
                             break;
 
                         while (i.hasNext()) {
                             Player p = i.next();
+
                             // Assist award for all those on the hunter freq that did not make the actual kill.
                             // Assists must be in the same Location as the Levi to get the award, but kills do not.
                             if( p.getPlayerID() != event.getKillerID() ) {
                                 locHunter = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
+
                                 if (locHunter != null && locHunter.equals(locKilled)) {
                                     if (lt.isEmpty()) {
-                                        m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$"+ money);
+                                        m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$" + money);
                                         context.getPlayerManager().addMoney(p.getPlayerName(), money);
                                     } else {
-                                        m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$"+ money);
-                                        context.getPlayerManager().addMoney(p.getPlayerName(), money);                                    
+                                        m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$" + money);
+                                        context.getPlayerManager().addMoney(p.getPlayerName(), money);
                                     }
                                 }
                             }
                         }
                     }
-                    
+
                     break;
                 }
             }
         }
-        
+
         // Killed by Levi on private freq? Occasionally suggest they join the LT Hunter freq.
         if (killer.getShipType() == Tools.Ship.LEVIATHAN && killer.getFrequency() > 1) {
             Random r = new Random();
+
             if (r.nextInt(10) == 0)
                 m_botAction.sendPrivateMessage(killed.getPlayerID(), "Killed by private-freq Levi. Want revenge? Get bonuses to LT kills on the Hunter freq. Type =99 to join.");
         }
-        
+
         if (isRunning()) {
 
             if (killer.getPlayerName().equals(m_botAction.getBotName()))
@@ -482,28 +516,35 @@ public class GameFlagTimeModule extends AbstractModule {
                 flagTimer.addPlayerDeath(killed.getPlayerName());
             }
 
-            // If Terr killed in FR, notify players if another Terr in FR or mid is still alive 
+            // If Terr killed in FR, notify players if another Terr in FR or mid is still alive
             if (killed.getShipType() == Tools.Ship.TERRIER) {
 
                 Location locKilled = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
+
                 if (locKilled == null || !locKilled.equals(Location.FLAGROOM))
                     return;
 
                 String attachTo = "";
 
                 Iterator<Player> it = m_botAction.getFreqPlayerIterator(killed.getFrequency());
+
                 while (it.hasNext()) {
                     Player p = it.next();
+
                     if (p.getShipType() != Tools.Ship.TERRIER)
                         continue;
+
                     if (p.getPlayerName().equals(killed.getPlayerName()))
                         continue;
+
                     if (context.getPubChallenge().isDueling(p.getPlayerName()))
                         continue;
 
                     PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p.getPlayerName());
+
                     if (pubPlayer != null && System.currentTimeMillis() - pubPlayer.getLastDeath() > 5 * Tools.TimeInMillis.SECOND) {
                         Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+
                         if (loc != null)
                             if (loc.equals(Location.FLAGROOM))
                                 attachTo += ", " + p.getPlayerName() + " (" + context.getPubUtil().getLocationName(loc) + ")";
@@ -525,15 +566,17 @@ public class GameFlagTimeModule extends AbstractModule {
 
         int playerID = event.getPlayerID();
         Player player = m_botAction.getPlayer(playerID);
+
         if (player == null)
             return;
+
         String playerName = m_botAction.getPlayerName(playerID);
 
         if (isRunning() ) {
             if( event.getShipType() != Tools.Ship.SPECTATOR )
                 flagTimer.newShip(playerName, player.getShipType());
         }
-        
+
         statusMessage(playerName);
     }
 
@@ -613,79 +656,88 @@ public class GameFlagTimeModule extends AbstractModule {
 
     @Override
     public String[] getHelpMessage(String sender) {
-    	if( warpCmdsAllowed ) {
-    		return new String[] { 
-                pubsystem.getHelpLine("!warp             -- Warps you inside base at start of next round. (!w)"),
-                pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
-                pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
-                pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
-                pubsystem.getHelpLine("!time             -- Displays info about time remaining in flag time."),
-
-    		};
-    	} else {
+        if( warpCmdsAllowed ) {
             return new String[] {
-                pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
-                pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
-                pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
-                pubsystem.getHelpLine("!time             -- Displays info about time remaining in flag time."),
+                       pubsystem.getHelpLine("!warp             -- Warps you inside base at start of next round. (!w)"),
+                       pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
+                       pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
+                       pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
+                       pubsystem.getHelpLine("!time             -- Displays info about time remaining in flag time."),
 
-            };    		
-    	}
+                   };
+        } else {
+            return new String[] {
+                       pubsystem.getHelpLine("!terr             -- Shows terriers on the team and their last seen locations. (!t)"),
+                       pubsystem.getHelpLine("!lt               -- Shows active levterrs (ter + lev(s) attached)."),
+                       pubsystem.getHelpLine("!team             -- Tells you which ships your team members are in."),
+                       pubsystem.getHelpLine("!time             -- Displays info about time remaining in flag time."),
+
+                   };
+        }
     }
 
     @Override
     public String[] getModHelpMessage(String sender) {
         return new String[] { pubsystem.getHelpLine("!starttime <#>    -- Starts Flag Time game to <#> minutes"),
-                pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
-                pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
-                pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends.")
-        };
+                              pubsystem.getHelpLine("!stoptime         -- Ends Flag Time mode."),
+                              pubsystem.getHelpLine("!stricttime       -- Toggles strict mode (all players warped)"),
+                              pubsystem.getHelpLine("!shufflevote      -- Initiates shuffle teams poll after a round ends.")
+                            };
     }
 
     @Override
     public String[] getSmodHelpMessage(String sender) {
         if (warpCmdsAllowed) {
             return new String[] { pubsystem.getHelpLine("!autovote         -- Toggles the shuffle vote between auto and manual (!shufflevote)"),
-                pubsystem.getHelpLine("!rounds <#>       -- Sets the minumum number of rounds for shuffle vote to <#>"),
-                pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
-                pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command") };
+                                  pubsystem.getHelpLine("!rounds <#>       -- Sets the minumum number of rounds for shuffle vote to <#>"),
+                                  pubsystem.getHelpLine("!autowarp         -- Enables and disables 'opt out' warping style"),
+                                  pubsystem.getHelpLine("!allowwarp        -- Allow/Disallow the !warp command")
+                                };
         } else {
             return new String[] { pubsystem.getHelpLine("!autovote         -- Toggles the shuffle vote between auto and manual (!shufflevote)"),
-                    pubsystem.getHelpLine("!rounds <#>       -- Sets the minumum number of rounds for shuffle vote to <#>"), };
+                                  pubsystem.getHelpLine("!rounds <#>       -- Sets the minumum number of rounds for shuffle vote to <#>"),
+                                };
         }
     }
 
     /**
-     * Shows who on the team is in which ship.
-     * 
-     * @param sender
-     *            is the person issuing the command.
-     */
+        Shows who on the team is in which ship.
+
+        @param sender
+                  is the person issuing the command.
+    */
     public void cmd_showTeam(String sender) {
         Player p = m_botAction.getPlayer(sender);
+
         if (p == null)
             throw new RuntimeException("Can't find you. Please report this to staff.");
+
         if (p.getShipType() == 0)
             throw new RuntimeException("You must be in a ship for this command to work.");
+
         ArrayList<Vector<String>> team = getTeamData(p.getFrequency());
+
         //int players = 0;
         for (int i = 1; i < 9; i++) {
             int num = team.get(i).size();
             String text = num + Tools.formatString((" " + Tools.shipNameSlang(i) + (num == 1 ? "" : "s")), 8);
             text += "   ";
+
             for (int j = 0; j < team.get(i).size(); j++) {
                 text += (j + 1) + ") " + team.get(i).get(j) + "  ";
                 //players++;
             }
+
             m_botAction.sendSmartPrivateMessage(sender, text);
         }
     }
 
     /**
-     * Shows active levterrs.
-     */
+        Shows active levterrs.
+    */
     public void cmd_levTerr(String sender) {
         Player p = m_botAction.getPlayer(sender);
+
         if (p == null)
             throw new RuntimeException("Can't find you. Please report this to staff.");
 
@@ -695,19 +747,25 @@ public class GameFlagTimeModule extends AbstractModule {
             boolean active = false;
             int levNameLength = 15;
             int terNameLength = 19;
+
             for (LevTerr lt : levterrs.values()) {
                 int length = 0;
+
                 if (terNameLength < lt.terrierName.length())
                     terNameLength = lt.terrierName.length();
+
                 if (!lt.isEmpty())
                     for (String name : lt.leviathans)
                         length += name.length();
+
                 if (levNameLength < length)
                     levNameLength = length;
             }
+
             for (LevTerr lt : levterrs.values())
                 if (!lt.isEmpty()) {
                     Player terr = m_botAction.getFuzzyPlayer(lt.terrierName);
+
                     if (!active) {
                         String header = "Freq      " + Tools.formatString("Name of Terrier", terNameLength + 4);
                         ;
@@ -720,8 +778,10 @@ public class GameFlagTimeModule extends AbstractModule {
 
                     String message = Tools.formatString(freq, 10) + Tools.formatString(terr.getPlayerName(), terNameLength + 4);
                     String levs = "";
+
                     for (String lev : lt.getLeviathans())
                         levs += ", " + lev;
+
                     message += Tools.formatString(levs.substring(2), levNameLength + 4);
                     message += Tools.getTimeDiffString(lt.levvingSince, true);
                     m_botAction.sendSmartPrivateMessage(sender, message);
@@ -735,29 +795,36 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Shows terriers on the team and their last observed locations.
-     */
+        Shows terriers on the team and their last observed locations.
+    */
     public void cmd_terr(String sender) {
         Player p = m_botAction.getPlayer(sender);
+
         if (p == null)
             throw new RuntimeException("Can't find you.  Please report this to staff.");
+
         if (p.getShipType() == 0)
             throw new RuntimeException("You must be in a ship for this command to work.");
+
         Iterator<Player> i = m_botAction.getFreqPlayerIterator(p.getFrequency());
+
         if (!i.hasNext())
             throw new RuntimeException("ERROR: No players detected on your frequency!");
+
         m_botAction.sendSmartPrivateMessage(sender, "Name of Terrier          Last seen");
+
         while (i.hasNext()) {
             Player terr = i.next();
+
             if (terr.getShipType() == Tools.Ship.TERRIER)
                 m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(terr.getPlayerName(), 25)
-                        + context.getPubUtil().getPlayerLocation(terr.getXTileLocation(), terr.getYTileLocation()));
+                                                    + context.getPubUtil().getPlayerLocation(terr.getXTileLocation(), terr.getYTileLocation()));
         }
     }
 
     /**
-     * Displays info about time remaining in flag time round, if applicable.
-     */
+        Displays info about time remaining in flag time round, if applicable.
+    */
     public void cmd_time(String sender) {
         if (isFlagTimeStarted())
             if (flagTimer != null)
@@ -784,24 +851,25 @@ public class GameFlagTimeModule extends AbstractModule {
     public void cmd_shuffleRounds(String sender, String msg) {
         m_botAction.sendSmartPrivateMessage(sender, "Shuffle is presently disabled.");
         /*
-        int r = 3;
-        try {
+            int r = 3;
+            try {
             r = Integer.valueOf(msg.substring(msg.indexOf(" ") + 1));
-        } catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
             m_botAction.sendSmartPrivateMessage(sender, "Could not convert " + msg);
             return;
-        }
-        if (r < 1) {
+            }
+            if (r < 1) {
             m_botAction.sendSmartPrivateMessage(sender, "Rounds must be greater than 0");
             return;
-        }
-        minShuffleRound = r;
-        m_botAction.sendSmartPrivateMessage(sender, "Minimum shuffle rounds set to " + r);
+            }
+            minShuffleRound = r;
+            m_botAction.sendSmartPrivateMessage(sender, "Minimum shuffle rounds set to " + r);
         */
     }
 
     public void cmd_autoVote(String name) {
         autoVote = !autoVote;
+
         if (!autoVote)
             m_botAction.sendSmartPrivateMessage(name, "Auto shuffle vote has been DISABLED");
         else
@@ -809,13 +877,13 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Starts a "flag time" mode in which a team must hold the flag for a certain consecutive number of minutes in order to win the round.
-     * 
-     * @param sender
-     *            is the person issuing the command.
-     * @param argString
-     *            is the number of minutes to hold the game to.
-     */
+        Starts a "flag time" mode in which a team must hold the flag for a certain consecutive number of minutes in order to win the round.
+
+        @param sender
+                  is the person issuing the command.
+        @param argString
+                  is the number of minutes to hold the game to.
+    */
     public void cmd_startTime(String sender, String argString) {
         if (isFlagTimeStarted())
             throw new RuntimeException("Flag Time mode has already been started.");
@@ -826,7 +894,7 @@ public class GameFlagTimeModule extends AbstractModule {
             min = (Integer.valueOf(argString)).intValue();
         } catch (Exception e) {
             throw new RuntimeException("Bad input.  Please supply a number.");
-        } 
+        }
 
         if (min < 1 || min > 120)
             throw new RuntimeException("The number of minutes required must be between 1 and 120.");
@@ -837,19 +905,20 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.sendArenaMessage("[FLAG] Flag Time mode has been enabled.");
 
         m_botAction.sendArenaMessage("[FLAG] Hold for " + flagMinutesRequired + " consecutive minute"
-                + (flagMinutesRequired == 1 ? "" : "s") + " to win round. (Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of " + MAX_FLAGTIME_ROUNDS + ")");
+                                     + (flagMinutesRequired == 1 ? "" : "s") + " to win round. (Best " + (MAX_FLAGTIME_ROUNDS + 1) / 2 + " of " + MAX_FLAGTIME_ROUNDS + ")");
+
         if (strictFlagTimeMode) {
-       		m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  ALL players warped at round start.");
+            m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  ALL players warped at round start.");
         } else if (isAutoWarpEnabled()) {
-        	if (warpCmdsAllowed)
-        		m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  You will be warped inside base at round start (type :tw-p:!warp to change)." );
-        	else
-        		m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  You will be warped inside base at round start." );
+            if (warpCmdsAllowed)
+                m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  You will be warped inside base at round start (type :tw-p:!warp to change)." );
+            else
+                m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  You will be warped inside base at round start." );
         } else {
-        	if (warpCmdsAllowed)
-        		m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  Type :tw-p:!warp to warp into base at round start." );
-        	else
-                m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.");        	        	
+            if (warpCmdsAllowed)
+                m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.  Type :tw-p:!warp to warp into base at round start." );
+            else
+                m_botAction.sendArenaMessage("[FLAG] Round 1 begins in 60 seconds.");
         }
 
         startFlagTimeStarted();
@@ -860,20 +929,22 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Toggles "strict" flag time mode in which all players are first warped automatically into safe (must be set), and then warped into base.
-     * 
-     * @param sender
-     *            is the person issuing the command.
-     */
+        Toggles "strict" flag time mode in which all players are first warped automatically into safe (must be set), and then warped into base.
+
+        @param sender
+                  is the person issuing the command.
+    */
     public void cmd_strictTime(String sender) {
         if (strictFlagTimeMode) {
             strictFlagTimeMode = false;
+
             if (isFlagTimeStarted())
                 m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled. Changes will go into effect next round.");
             else
                 m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled. !starttime <minutes> to begin a normal flag time game.");
         } else {
             strictFlagTimeMode = true;
+
             if (isFlagTimeStarted())
                 m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled. All players will be warped into base next round.");
             else
@@ -882,27 +953,27 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Ends "flag time" mode.
-     * 
-     * @param sender
-     *            is the person issuing the command.
-     */
+        Ends "flag time" mode.
+
+        @param sender
+                  is the person issuing the command.
+    */
     public void cmd_stopTime(String sender) {
         stopTime();
     }
 
     /**
-     * Turns on or off "autowarp" mode, where players opt out of warping into base, rather than opting in.
-     * 
-     * @param sender
-     *            is the person issuing the command.
-     */
+        Turns on or off "autowarp" mode, where players opt out of warping into base, rather than opting in.
+
+        @param sender
+                  is the person issuing the command.
+    */
     public void cmd_autoWarp(String sender) {
         if(!warpCmdsAllowed) {
             m_botAction.sendSmartPrivateMessage(sender, "Sorry, the use of warp commands on this bot are presently disabled. Please speak to Local Dev Union #646 to change this.");
             return;
         }
-        
+
         if (autoWarp) {
             m_botAction.sendSmartPrivateMessage(sender, "Players will no longer automatically be added to the !warp list when they enter the arena.");
             autoWarpDisable();
@@ -913,17 +984,17 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Turns on or off allowing players to use !warp to get into base at the start of a round.
-     * 
-     * @param sender
-     *            is the person issuing the command.
-     */
+        Turns on or off allowing players to use !warp to get into base at the start of a round.
+
+        @param sender
+                  is the person issuing the command.
+    */
     public void cmd_allowWarp(String sender) {
         if(!warpCmdsAllowed) {
             m_botAction.sendSmartPrivateMessage(sender, "Sorry, the use of warp commands on this bot are presently disabled. Please speak to Local Dev Union #646 to change this.");
             return;
         }
-        
+
         if (isWarpEnabled()) {
             m_botAction.sendSmartPrivateMessage(sender, "Players will no longer be able to use !warp.");
             warpDisable();
@@ -936,6 +1007,7 @@ public class GameFlagTimeModule extends AbstractModule {
     public void cmd_warp(String sender) {
 
         PubPlayer player = context.getPlayerManager().getPlayer(sender);
+
         if (player == null) {
             m_botAction.sendPrivateMessage("WingZero", "Null player: " + sender);
             return;
@@ -960,11 +1032,11 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Shows and hides scores (used at intermission only).
-     * 
-     * @param time
-     *            Time after which the score should be removed
-     */
+        Shows and hides scores (used at intermission only).
+
+        @param time
+                  Time after which the score should be removed
+    */
     private void doScores(int time) {
         int[] objs1 = { 2000, (freq0Score < 10 ? 60 + freq0Score : 50 + freq0Score), (freq0Score < 10 ? 80 + freq1Score : 70 + freq1Score) };
         boolean[] objs1Display = { true, true, true };
@@ -982,8 +1054,8 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Displays rules and pauses for intermission.
-     */
+        Displays rules and pauses for intermission.
+    */
     private void doIntermission() {
 
         if (!isFlagTimeStarted())
@@ -993,23 +1065,23 @@ public class GameFlagTimeModule extends AbstractModule {
 
         int intermission = INTERMISSION_SECS;
         //boolean endOfGame = false;
-        
+
         if (roundNum == 1) {
             intermission = INTERMISSION_GAME_SECS;
-            
+
             m_botAction.sendArenaMessage("[FLAG] Hold for " + flagMinutesRequired + " consecutive minute"
-                    + (flagMinutesRequired == 1 ? "" : "s") + " to win.  Next game in " + getTimeString(intermission) + ". :tw-p:!warp to warp in" );            
+                                         + (flagMinutesRequired == 1 ? "" : "s") + " to win.  Next game in " + getTimeString(intermission) + ". :tw-p:!warp to warp in" );
         } else {
             //Let's try not spamming between rounds (only games)
             //m_botAction.sendArenaMessage("[FLAG] " + (roundNum==MAX_FLAGTIME_ROUNDS ? "Final Round" : "Round " + roundNum) + " begins in " + getTimeString(intermission) + ".  (Score: " + freq0Score + " - " + freq1Score + ")"
             //        + (strictFlagTimeMode ? "" : (" :tw-p:!warp to warp in")));
-                        
+
         }
 
         m_botAction.cancelTask(startTimer);
 
-        /* Disabled until hunt re-enabled
-        if (context.getPubHunt().isEnabled() && endOfGame) {
+        /*  Disabled until hunt re-enabled
+            if (context.getPubHunt().isEnabled() && endOfGame) {
             TimerTask timer = new TimerTask() {
                 @Override
                 public void run() {
@@ -1017,7 +1089,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
             };
             m_botAction.scheduleTask(timer, 10 * Tools.TimeInMillis.SECOND);
-        }
+            }
         */
 
         startTimer = new StartRoundTask();
@@ -1025,8 +1097,8 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Starts a game of flag time mode.
-     */
+        Starts a game of flag time mode.
+    */
     private void doStartRound() {
         if (!isFlagTimeStarted())
             return;
@@ -1044,11 +1116,11 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Ends a round of Flag Time mode & awards prizes. After, sets up an intermission, followed by a new round.
-     */
+        Ends a round of Flag Time mode & awards prizes. After, sets up an intermission, followed by a new round.
+    */
     /*
-    @SuppressWarnings("unused")
-    private void doEndRound() {
+        @SuppressWarnings("unused")
+        private void doEndRound() {
 
         if (!isFlagTimeStarted() || flagTimer == null)
             return;
@@ -1316,12 +1388,13 @@ public class GameFlagTimeModule extends AbstractModule {
 
         intermissionTimer = new IntermissionTask();
         m_botAction.scheduleTask(intermissionTimer, intermissionTime);
-    }*/
+        }*/
 
     private void doEndRoundNew() {
 
         if (!isFlagTimeStarted() || flagTimer == null)
             return;
+
         votePeriod = true;
         voteWait = new TimerTask() {
             @Override
@@ -1334,15 +1407,16 @@ public class GameFlagTimeModule extends AbstractModule {
         // Internal variables
         boolean gameOver = false;
         int winnerFreq = flagTimer.getHoldingFreq();
-        boolean hunterFreqWon = winnerFreq == hunterFreq; 
+        boolean hunterFreqWon = winnerFreq == hunterFreq;
         int maxScore = (MAX_FLAGTIME_ROUNDS + 1) / 2;  // Score needed to win
         int secs = flagTimer.getTotalSecs();
         int mins = (secs / 60);
 
         int moneyBonus = ((flagTimer.freqsSecs.get(winnerFreq)) * 3);
+
         if (moneyBonus > 2000)
             moneyBonus = 2000;
-        
+
         if (!hunterFreqWon)
             m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this round. End-round bonus: $" + moneyBonus);
         else
@@ -1359,28 +1433,28 @@ public class GameFlagTimeModule extends AbstractModule {
                 gameOver = true;
                 moneyBonus *= 1.5;
             }
-            
+
             int roundNumber = freq0Score + freq1Score;
-            m_botAction.sendArenaMessage("[FLAG] END OF ROUND " + roundNumber 
-                    + ": Freq " + winnerFreq + " wins after " + getTimeString(flagTimer.getTotalSecs()) 
-                    + (gameOver?" Final":" Current") + " Score: " + freq0Score + "-" + freq1Score 
-                    + " (Bonus: +$" + moneyBonus + ")");
-        
+            m_botAction.sendArenaMessage("[FLAG] END OF ROUND " + roundNumber
+                                         + ": Freq " + winnerFreq + " wins after " + getTimeString(flagTimer.getTotalSecs())
+                                         + (gameOver ? " Final" : " Current") + " Score: " + freq0Score + "-" + freq1Score
+                                         + " (Bonus: +$" + moneyBonus + ")");
+
 
         } else if (hunterFreqWon) {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: Levi Hunters (freq " + winnerFreq + ") win the round after " + getTimeString(flagTimer.getTotalSecs())
-                    + ". (Bonus: NONE)");
+                                         + ". (Bonus: NONE)");
         } else if (winnerFreq < 100) {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString(flagTimer.getTotalSecs())
-                    + ". (Bonus: +$" + moneyBonus + ")");
+                                         + ". (Bonus: +$" + moneyBonus + ")");
         } else {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: A PRIVATE FREQ wins the round after " + getTimeString(flagTimer.getTotalSecs()) + "! (Bonus: +$"
-                    + moneyBonus + ")");
+                                         + moneyBonus + ")");
         }
 
         // Clear any round restricted buyable items/commands
         context.getMoneySystem().resetRoundRestrictions();
-        
+
         // Achievement part
         // ---------------------------------------
 
@@ -1394,6 +1468,7 @@ public class GameFlagTimeModule extends AbstractModule {
         // Recompute some list (get the % instead)
         for (String playerName : killsBounty.keySet())
             killsBounty.put(playerName, (killsBounty.get(playerName) / kills.get(playerName)));
+
         for (String playerName : killsInBase.keySet())
             if (killsInBase.get(playerName) >= 15)
                 killsInBasePercent.put(playerName, (killsInBase.get(playerName) / kills.get(playerName)));
@@ -1403,8 +1478,10 @@ public class GameFlagTimeModule extends AbstractModule {
         // 3/4 of attaches for non-winners
         for (String playerName : attaches.keySet()) {
             Player p = m_botAction.getPlayer(playerName);
+
             if (p != null && p.getFrequency() != winnerFreq) {
                 Integer i = attaches.get(playerName);
+
                 if (i != null && i > 0 )
                     attaches.put(playerName, new Integer( (int)Math.round((float)i * 0.75)) );
                 else
@@ -1429,8 +1506,10 @@ public class GameFlagTimeModule extends AbstractModule {
 
         // Make sure we have only terrier in bestTerrier
         Iterator<String> it = bestTerrier.keySet().iterator();
+
         while (it.hasNext()) {
             String name = it.next();
+
             if (!attaches.containsKey(name))
                 it.remove();
             else if (ships.get(name) != null && !ships.get(name).contains(5))
@@ -1452,7 +1531,7 @@ public class GameFlagTimeModule extends AbstractModule {
         int m10 = 500 + Math.max(0, (mins - 5) * 10);
         int m5 = 250 + Math.max(0, (mins - 5) * 5);
         //int m2 = 100 + Math.max(0, (mins - 5) * 5);
-        
+
         ArrayList<String> lines = new ArrayList<String>();
 
         if (basingKingName != null) {
@@ -1460,168 +1539,510 @@ public class GameFlagTimeModule extends AbstractModule {
             //m_botAction.sendArenaMessage("- Basing King/Queen       : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
             context.getPlayerManager().addMoney(basingKingName, m10, true);
         }
+
         if (mostKillName != null) {
             lines.add("- Most Veteran Like       : " + mostKillName + Tools.rightString(" (+$" + m5 + ")", 8) );
             //m_botAction.sendArenaMessage("- Most Veteran Like       : " + mostKillName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostKillName, m5, true);
         }
+
         if (mostFlagClaimed != null) {
             lines.add("- Flag Savior             : " + mostFlagClaimed + Tools.rightString(" (+$" + m5 + ")", 8) );
             //m_botAction.sendArenaMessage("- Flag Savior             : " + mostFlagClaimed + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostFlagClaimed, m5, true);
         }
+
         if (bestTerrierName != null) {
             lines.add("- Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
             //m_botAction.sendArenaMessage("- Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(bestTerrierName, m5);
         }
+
         if (mostTek != null) {
             lines.add("- Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m5 + ")", 8) );
             //m_botAction.sendArenaMessage("- Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostTek, m5);
         }
+
         if (mostLvk != null) {
             lines.add("- Most Leviathan Kills    : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
             //m_botAction.sendArenaMessage("- Most Leviathan Kills    : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostLvk, m5);
         }
-        /* Unused achievements
-        if (lessDeath != null) {
+
+        /*  Unused achievements
+            if (lessDeath != null) {
             m_botAction.sendArenaMessage("- Most Cautious           : " + lessDeath + Tools.rightString(" (+$" + m2 + ")", 8) );
             context.getPlayerManager().addMoney(lessDeath, m2);
-        }
-        if (mostDeath != null) {
+            }
+            if (mostDeath != null) {
             m_botAction.sendArenaMessage(" - Most Reckless      : " + mostDeath);
-        }
-        if (mostTk != null) {
+            }
+            if (mostTk != null) {
             m_botAction.sendArenaMessage(" - Least Honorable    : " + mostTk);
             //context.getPlayerManager().addMoney(mostTk, 0);
-        }
+            }
         */
-                
+
         // Let's have fun. Fake achievements!
         java.util.Random r = new Random();
-        if (r.nextInt(10) == 0) {         
+
+        if (r.nextInt(10) == 0) {
             // Get a random
             List <Player>l = m_botAction.getPlayingPlayers();
+
             if(l.size() > 0) {
                 Player p = l.get( r.nextInt(l.size()) );
+
                 if( p != null ) {
 
                     String text;
+
                     switch( r.nextInt(110) ) {
-                    case  0: text = "- Most Randomly Selected  : "; break;
-                    case  1: text = "- Most Pubbux Owed        : "; break;
-                    case  2: text = "- Most Extreme Politics   : "; break;
-                    case  3: text = "- Scariest                : "; break;
-                    case  4: text = "- Most Likely to Succeed  : "; break;
-                    case  5: text = "- Best Dressed            : "; break;
-                    case  6: text = "- Basement Dweller        : "; break;
-                    case  7: text = "- Most Lovable            : "; break;
-                    case  8: text = "- AFK Most of the Round   : "; break;
-                    case  9: text = "- Spawnkilling King/Queen : "; break;
-                    case 10: text = "- Basing Prince/Princess  : "; break;
-                    case 11: text = "- Most PMs Sent           : "; break;
-                    case 12: text = "- Forgot Mother's Bday    : "; break;
-                    case 13: text = "- Most Delicate           : "; break;
-                    case 14: text = "- Best Kisser             : "; break;
-                    case 15: text = "- Community Leader        : "; break;
-                    case 16: text = "- Most Thrust Used        : "; break;
-                    case 17: text = "- Mad                     : "; break;
-                    case 18: text = "- Best Lead in a Drama    : "; break;
-                    case 19: text = "- Most Help from Friends  : "; break;
-                    case 20: text = "- Best Gallery Pic        : "; break;
-                    case 21: text = "- Best Pubchat Arguer     : "; break;
-                    case 22: text = "- Overall Best Ever       : "; break;
-                    case 23: text = "- Quietest Riot           : "; break;
-                    case 24: text = "- Tiniest Dancer          : "; break;
-                    case 25: text = "- Sexy and Knows It       : "; break;
-                    case 26: text = "- In Love with a Ghost    : "; break;
-                    case 27: text = "- Most Aliases            : "; break;
-                    case 28: text = "- Biggest Elitist         : "; break;
-                    case 29: text = "- Fewest Moderator Warns  : "; break;
-                    case 30: text = "- Possibly Intoxicated    : "; break;
-                    case 31: text = "- Most Unintentional TKs  : "; break;
-                    case 32: text = "- Everybody Loves         : "; break;
-                    case 33: text = "- Biggest God Complex     : "; break;
-                    case 34: text = "- Longest Time in Safe    : "; break;
-                    case 35: text = "- Most Unduly Respected   : "; break;
-                    case 36: text = "- Most Overrated          : "; break;
-                    case 37: text = "- Most Underrated         : "; break;
-                    case 38: text = "- Least Intelligible      : "; break;
-                    case 39: text = "- Most Requests for Money : "; break;
-                    case 40: text = "- Most Ragequits          : "; break;
-                    case 41: text = "- Most Eats               : "; break;
-                    case 42: text = "- Highest Packetloss      : "; break;
-                    case 43: text = "- Most Friends            : "; break;
-                    case 44: text = "- Most Rock Bounces       : "; break;
-                    case 45: text = "- Best at Running Away    : "; break;
-                    case 46: text = "- Most Warps              : "; break;
-                    case 47: text = "- Most Serious            : "; break;
-                    case 48: text = "- Best Miner on Attack    : "; break;
-                    case 49: text = "- Least Time Outside Pub  : "; break;
-                    case 50: text = "- Most Relaxed            : "; break;
-                    case 51: text = "- Most Fragile Ego        : "; break;
-                    case 52: text = "- Happiest Overall        : "; break;
-                    case 53: text = "- Just Married            : "; break;
-                    case 54: text = "- Best Groomed            : "; break;
-                    case 55: text = "- Most PMs Sent to Self   : "; break;
-                    case 56: text = "- Most Believable Troll   : "; break;
-                    case 57: text = "- Just Dropped from Squad : "; break;
-                    case 58: text = "- Who, Exactly, is        : "; break;
-                    case 59: text = "- Most Titles Earned      : "; break;
-                    case 60: text = "- Most Flag-Ambivalent    : "; break;
-                    case 61: text = "- Most PMs to Staff       : "; break;
-                    case 62: text = "- Softest Skin            : "; break;
-                    case 63: text = "- Least Awake             : "; break;
-                    case 64: text = "- Most Profanity          : "; break;
-                    case 65: text = "- Best in Nightwasp       : "; break;
-                    case 66: text = "- Most Commands to Bot    : "; break;
-                    case 67: text = "- MOST CAPS USED          : "; break;
-                    case 68: text = "- Best Comedic Screenplay : "; break;
-                    case 69: text = "- Most Squad Invites      : "; break;
-                    case 70: text = "- Just Doesn't Care       : "; break;
-                    case 71: text = "- Most Triple Jav Bounces : "; break;
-                    case 72: text = "- Smallest                : "; break;
-                    case 73: text = "- Tallest                 : "; break;
-                    case 74: text = "- Best Supporting Actor   : "; break;
-                    case 75: text = "- Biggest Crush           : "; break;
-                    case 76: text = "- Takes Lots of Baths     : "; break;
-                    case 77: text = "- Most Yoga Classes Given : "; break;
-                    case 78: text = "- Philosophy Genius       : "; break;
-                    case 79: text = "- Won't Talk to Me :(     : "; break;
-                    case 80: text = "- Overall Most Awesome    : "; break;
-                    case 81: text = "- Totally the Bestest     : "; break;
-                    case 82: text = "- Most Texts While Flying : "; break;
-                    case 83: text = "- Hunted Most             : "; break;
-                    case 84: text = "- Best Overall Flavor     : "; break;
-                    case 85: text = "- Most Kawaii Banner      : "; break;
-                    case 86: text = "- never uses shift key    : "; break;
-                    case 87: text = "- Most Disturbing Dreams  : "; break;
-                    case 88: text = "- Fastest Levi            : "; break;
-                    case 89: text = "- Likes Shiny Things Most : "; break;
-                    case 90: text = "- Most Gullible           : "; break;
-                    case 91: text = "- Most Interest in Trains : "; break;
-                    case 92: text = "- Leland                  : "; break;
-                    case 93: text = "- Should Know Better      : "; break;
-                    case 94: text = "- Nice Hat                : "; break;
-                    case 95: text = "- Smallest PM Reply %     : "; break;
-                    case 96: text = "- Dies Over and Over      : "; break;
-                    case 97: text = "- Possible Sysop Recruit  : "; break;
-                    case 98: text = "- Most Time Avoiding Work : "; break;
-                    case 99: text = "- TW's Greatest Asset     : "; break;
-                    case 100: text= "- Won't Leave a Residue   : "; break;
-                    case 101: text= "- Dropped from TWL        : "; break;
-                    case 102: text= "- Universal ignore.txt    : "; break;
-                    case 103: text= "- hax                     : "; break;
-                    case 104: text= "- Great Pair of Legs      : "; break;
-                    case 105: text= "- Spiritual Guide         : "; break;
-                    case 106: text= "- Closet Non-Conformist   : "; break;
-                    case 107: text= "- My New Rap Name         : "; break;
-                    case 108: text= "- Most Grandchildren      : "; break;
-                    case 109: text= "- Never Ever Pubs         : "; break;
-                    default: text = "- Most Non-Conformist     : ";
+                    case  0:
+                        text = "- Most Randomly Selected  : ";
+                        break;
+
+                    case  1:
+                        text = "- Most Pubbux Owed        : ";
+                        break;
+
+                    case  2:
+                        text = "- Most Extreme Politics   : ";
+                        break;
+
+                    case  3:
+                        text = "- Scariest                : ";
+                        break;
+
+                    case  4:
+                        text = "- Most Likely to Succeed  : ";
+                        break;
+
+                    case  5:
+                        text = "- Best Dressed            : ";
+                        break;
+
+                    case  6:
+                        text = "- Basement Dweller        : ";
+                        break;
+
+                    case  7:
+                        text = "- Most Lovable            : ";
+                        break;
+
+                    case  8:
+                        text = "- AFK Most of the Round   : ";
+                        break;
+
+                    case  9:
+                        text = "- Spawnkilling King/Queen : ";
+                        break;
+
+                    case 10:
+                        text = "- Basing Prince/Princess  : ";
+                        break;
+
+                    case 11:
+                        text = "- Most PMs Sent           : ";
+                        break;
+
+                    case 12:
+                        text = "- Forgot Mother's Bday    : ";
+                        break;
+
+                    case 13:
+                        text = "- Most Delicate           : ";
+                        break;
+
+                    case 14:
+                        text = "- Best Kisser             : ";
+                        break;
+
+                    case 15:
+                        text = "- Community Leader        : ";
+                        break;
+
+                    case 16:
+                        text = "- Most Thrust Used        : ";
+                        break;
+
+                    case 17:
+                        text = "- Mad                     : ";
+                        break;
+
+                    case 18:
+                        text = "- Best Lead in a Drama    : ";
+                        break;
+
+                    case 19:
+                        text = "- Most Help from Friends  : ";
+                        break;
+
+                    case 20:
+                        text = "- Best Gallery Pic        : ";
+                        break;
+
+                    case 21:
+                        text = "- Best Pubchat Arguer     : ";
+                        break;
+
+                    case 22:
+                        text = "- Overall Best Ever       : ";
+                        break;
+
+                    case 23:
+                        text = "- Quietest Riot           : ";
+                        break;
+
+                    case 24:
+                        text = "- Tiniest Dancer          : ";
+                        break;
+
+                    case 25:
+                        text = "- Sexy and Knows It       : ";
+                        break;
+
+                    case 26:
+                        text = "- In Love with a Ghost    : ";
+                        break;
+
+                    case 27:
+                        text = "- Most Aliases            : ";
+                        break;
+
+                    case 28:
+                        text = "- Biggest Elitist         : ";
+                        break;
+
+                    case 29:
+                        text = "- Fewest Moderator Warns  : ";
+                        break;
+
+                    case 30:
+                        text = "- Possibly Intoxicated    : ";
+                        break;
+
+                    case 31:
+                        text = "- Most Unintentional TKs  : ";
+                        break;
+
+                    case 32:
+                        text = "- Everybody Loves         : ";
+                        break;
+
+                    case 33:
+                        text = "- Biggest God Complex     : ";
+                        break;
+
+                    case 34:
+                        text = "- Longest Time in Safe    : ";
+                        break;
+
+                    case 35:
+                        text = "- Most Unduly Respected   : ";
+                        break;
+
+                    case 36:
+                        text = "- Most Overrated          : ";
+                        break;
+
+                    case 37:
+                        text = "- Most Underrated         : ";
+                        break;
+
+                    case 38:
+                        text = "- Least Intelligible      : ";
+                        break;
+
+                    case 39:
+                        text = "- Most Requests for Money : ";
+                        break;
+
+                    case 40:
+                        text = "- Most Ragequits          : ";
+                        break;
+
+                    case 41:
+                        text = "- Most Eats               : ";
+                        break;
+
+                    case 42:
+                        text = "- Highest Packetloss      : ";
+                        break;
+
+                    case 43:
+                        text = "- Most Friends            : ";
+                        break;
+
+                    case 44:
+                        text = "- Most Rock Bounces       : ";
+                        break;
+
+                    case 45:
+                        text = "- Best at Running Away    : ";
+                        break;
+
+                    case 46:
+                        text = "- Most Warps              : ";
+                        break;
+
+                    case 47:
+                        text = "- Most Serious            : ";
+                        break;
+
+                    case 48:
+                        text = "- Best Miner on Attack    : ";
+                        break;
+
+                    case 49:
+                        text = "- Least Time Outside Pub  : ";
+                        break;
+
+                    case 50:
+                        text = "- Most Relaxed            : ";
+                        break;
+
+                    case 51:
+                        text = "- Most Fragile Ego        : ";
+                        break;
+
+                    case 52:
+                        text = "- Happiest Overall        : ";
+                        break;
+
+                    case 53:
+                        text = "- Just Married            : ";
+                        break;
+
+                    case 54:
+                        text = "- Best Groomed            : ";
+                        break;
+
+                    case 55:
+                        text = "- Most PMs Sent to Self   : ";
+                        break;
+
+                    case 56:
+                        text = "- Most Believable Troll   : ";
+                        break;
+
+                    case 57:
+                        text = "- Just Dropped from Squad : ";
+                        break;
+
+                    case 58:
+                        text = "- Who, Exactly, is        : ";
+                        break;
+
+                    case 59:
+                        text = "- Most Titles Earned      : ";
+                        break;
+
+                    case 60:
+                        text = "- Most Flag-Ambivalent    : ";
+                        break;
+
+                    case 61:
+                        text = "- Most PMs to Staff       : ";
+                        break;
+
+                    case 62:
+                        text = "- Softest Skin            : ";
+                        break;
+
+                    case 63:
+                        text = "- Least Awake             : ";
+                        break;
+
+                    case 64:
+                        text = "- Most Profanity          : ";
+                        break;
+
+                    case 65:
+                        text = "- Best in Nightwasp       : ";
+                        break;
+
+                    case 66:
+                        text = "- Most Commands to Bot    : ";
+                        break;
+
+                    case 67:
+                        text = "- MOST CAPS USED          : ";
+                        break;
+
+                    case 68:
+                        text = "- Best Comedic Screenplay : ";
+                        break;
+
+                    case 69:
+                        text = "- Most Squad Invites      : ";
+                        break;
+
+                    case 70:
+                        text = "- Just Doesn't Care       : ";
+                        break;
+
+                    case 71:
+                        text = "- Most Triple Jav Bounces : ";
+                        break;
+
+                    case 72:
+                        text = "- Smallest                : ";
+                        break;
+
+                    case 73:
+                        text = "- Tallest                 : ";
+                        break;
+
+                    case 74:
+                        text = "- Best Supporting Actor   : ";
+                        break;
+
+                    case 75:
+                        text = "- Biggest Crush           : ";
+                        break;
+
+                    case 76:
+                        text = "- Takes Lots of Baths     : ";
+                        break;
+
+                    case 77:
+                        text = "- Most Yoga Classes Given : ";
+                        break;
+
+                    case 78:
+                        text = "- Philosophy Genius       : ";
+                        break;
+
+                    case 79:
+                        text = "- Won't Talk to Me :(     : ";
+                        break;
+
+                    case 80:
+                        text = "- Overall Most Awesome    : ";
+                        break;
+
+                    case 81:
+                        text = "- Totally the Bestest     : ";
+                        break;
+
+                    case 82:
+                        text = "- Most Texts While Flying : ";
+                        break;
+
+                    case 83:
+                        text = "- Hunted Most             : ";
+                        break;
+
+                    case 84:
+                        text = "- Best Overall Flavor     : ";
+                        break;
+
+                    case 85:
+                        text = "- Most Kawaii Banner      : ";
+                        break;
+
+                    case 86:
+                        text = "- never uses shift key    : ";
+                        break;
+
+                    case 87:
+                        text = "- Most Disturbing Dreams  : ";
+                        break;
+
+                    case 88:
+                        text = "- Fastest Levi            : ";
+                        break;
+
+                    case 89:
+                        text = "- Likes Shiny Things Most : ";
+                        break;
+
+                    case 90:
+                        text = "- Most Gullible           : ";
+                        break;
+
+                    case 91:
+                        text = "- Most Interest in Trains : ";
+                        break;
+
+                    case 92:
+                        text = "- Leland                  : ";
+                        break;
+
+                    case 93:
+                        text = "- Should Know Better      : ";
+                        break;
+
+                    case 94:
+                        text = "- Nice Hat                : ";
+                        break;
+
+                    case 95:
+                        text = "- Smallest PM Reply %     : ";
+                        break;
+
+                    case 96:
+                        text = "- Dies Over and Over      : ";
+                        break;
+
+                    case 97:
+                        text = "- Possible Sysop Recruit  : ";
+                        break;
+
+                    case 98:
+                        text = "- Most Time Avoiding Work : ";
+                        break;
+
+                    case 99:
+                        text = "- TW's Greatest Asset     : ";
+                        break;
+
+                    case 100:
+                        text = "- Won't Leave a Residue   : ";
+                        break;
+
+                    case 101:
+                        text = "- Dropped from TWL        : ";
+                        break;
+
+                    case 102:
+                        text = "- Universal ignore.txt    : ";
+                        break;
+
+                    case 103:
+                        text = "- hax                     : ";
+                        break;
+
+                    case 104:
+                        text = "- Great Pair of Legs      : ";
+                        break;
+
+                    case 105:
+                        text = "- Spiritual Guide         : ";
+                        break;
+
+                    case 106:
+                        text = "- Closet Non-Conformist   : ";
+                        break;
+
+                    case 107:
+                        text = "- My New Rap Name         : ";
+                        break;
+
+                    case 108:
+                        text = "- Most Grandchildren      : ";
+                        break;
+
+                    case 109:
+                        text = "- Never Ever Pubs         : ";
+                        break;
+
+                    default:
+                        text = "- Most Non-Conformist     : ";
                     }
+
                     int amt = r.nextInt(48) + 2;    // Extremely small, awkward amount to show it's only a joke
                     lines.add( text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 8) );
                     //m_botAction.sendArenaMessage(text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 8) );
@@ -1629,26 +2050,29 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
             }
         }
-        
+
         String output = "";
+
         for ( String l : lines ) {
             if ( output.equals("") ) {
                 output += Tools.formatString(l, 56);
-            } else {                
+            } else {
                 output += l;
                 m_botAction.sendArenaMessage(output);
                 output = "";
             }
         }
+
         if ( !output.equals("") )
             m_botAction.sendArenaMessage(output);
 
-        
+
         if( r.nextInt(200) == 0 )   // Because very rare surprises are fun/festive!
             m_botAction.sendPublicMessage("Leland");
 
-        
+
         Iterator<Player> iterator = m_botAction.getFreqPlayerIterator(winnerFreq);
+
         while (iterator.hasNext()) {
 
             Player player = iterator.next();
@@ -1663,7 +2087,9 @@ public class GameFlagTimeModule extends AbstractModule {
             // Must have played at least 60 seconds on the winning freq
             if (!playerTimes.containsKey(player.getPlayerName()))
                 continue;
+
             int time = playerTimes.get(player.getPlayerName());
+
             if (time < 60)
                 continue;
 
@@ -1725,7 +2151,7 @@ public class GameFlagTimeModule extends AbstractModule {
             } else {
                 m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize #15"); // multifire
             }
-            
+
             if (mins >= 45) {
                 final TimerTask displayFireworks = new TimerTask() {
                     int iterations = 0;
@@ -1747,21 +2173,21 @@ public class GameFlagTimeModule extends AbstractModule {
 
         }
 
-   /*     if (!autoVote && context.getPlayerManager().checkSizes()) {
-            m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName()
-                    + " with !shufflevote ");
-            m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName()
-                    + " with !shufflevote ");
-        }*/
+        /*     if (!autoVote && context.getPlayerManager().checkSizes()) {
+                 m_botAction.sendOpposingTeamMessageByFrequency(0, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName()
+                         + " with !shufflevote ");
+                 m_botAction.sendOpposingTeamMessageByFrequency(1, "[TEAM SHUFFLE] To start a poll for a pub freq shuffle, PM " + m_botAction.getBotName()
+                         + " with !shufflevote ");
+             }*/
 
         // MVP TOP 3
         /*
-        HashMap<String,Integer> topPlayers = getTopPlayers();
-        Iterator<String> iterator = topPlayers.keySet().iterator();
-        m_botAction.sendArenaMessage("MVP:");
-        int position = 0;
-        int div[] = new int[]{ 1,2,4,5,10 };
-        while(iterator.hasNext() && position < 3) {
+            HashMap<String,Integer> topPlayers = getTopPlayers();
+            Iterator<String> iterator = topPlayers.keySet().iterator();
+            m_botAction.sendArenaMessage("MVP:");
+            int position = 0;
+            int div[] = new int[]{ 1,2,4,5,10 };
+            while(iterator.hasNext() && position < 3) {
             position++;
             int moneyBonus = (int)(moneyMVP/div[position-1]);
             String playerName = iterator.next();
@@ -1771,7 +2197,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 context.getPlayerManager().addMoney(playerName, moneyBonus);
             }
             m_botAction.sendArenaMessage(" " + position + ". " + playerName + moneyMessage);
-        }
+            }
         */
 
         // Is gameover?
@@ -1785,6 +2211,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             int diff = 0;
             String winMsg = "";
+
             if (freq0Score >= maxScore) {
                 if (freq1Score == 0)
                     diff = -1;
@@ -1795,25 +2222,30 @@ public class GameFlagTimeModule extends AbstractModule {
                     diff = -1;
                 else
                     diff = freq1Score - freq0Score;
+
             switch (diff) {
-                case -1:
-                    winMsg = " educates with a masterful victory";
-                    break;
-                case 1:
-                    winMsg = " muscles in a close win";
-                    break;
-                case 2:
-                    winMsg = " delivers a well-executed victory";
-                    break;
-                default:
-                    winMsg = " wins";
-                    break;
+            case -1:
+                winMsg = " educates with a masterful victory";
+                break;
+
+            case 1:
+                winMsg = " muscles in a close win";
+                break;
+
+            case 2:
+                winMsg = " delivers a well-executed victory";
+                break;
+
+            default:
+                winMsg = " wins";
+                break;
             }
+
             m_botAction.sendArenaMessage("[FLAG] GAME OVER!  Freq " + winnerFreq + winMsg + " after " + getTimeString(flagTimer.getTotalSecs())
-                    + ". Final score: " + freq0Score + "-" + freq1Score);
+                                         + ". Final score: " + freq0Score + "-" + freq1Score);
             //m_botAction.sendArenaMessage("Give congratulations to FREQ " + winnerFreq + winMsg + " (Bonus: +$" + moneyBonus + ")");
             m_botAction.showObject(LVZ_GAMEOVER);
-            
+
             freq0Score = 0;
             freq1Score = 0;
 
@@ -1834,24 +2266,24 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Warps a player within a radius of 2 tiles to provided coord.
-     * 
-     * @param playerName Name of the player.
-     * @param targetCoord Coordinates the player will warp to.
-     */
+        Warps a player within a radius of 2 tiles to provided coord.
+
+        @param playerName Name of the player.
+        @param targetCoord Coordinates the player will warp to.
+    */
     private void doPlayerWarp(String playerName, Point targetCoord) {
         doPlayerWarp(playerName, targetCoord.x, targetCoord.y);
     }
-    
+
     /**
-     * Warps a player within a radius of 2 tiles to provided coord.
-     * 
-     * @param playerName
-     * @param xCoord
-     * @param yCoord
-     * @param radius
-     * @author Cpt.Guano!
-     */
+        Warps a player within a radius of 2 tiles to provided coord.
+
+        @param playerName
+        @param xCoord
+        @param yCoord
+        @param radius
+        @author Cpt.Guano!
+    */
     private void doPlayerWarp(String playerName, int xCoord, int yCoord) {
 
         // Don't warp a player dueling
@@ -1874,8 +2306,8 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Adds all players to the hashmap which stores the time, in flagTimer time, when they joined their freq.
-     */
+        Adds all players to the hashmap which stores the time, in flagTimer time, when they joined their freq.
+    */
     public void setupPlayerTimes() {
 
         playerTimes = new HashMap<String, Integer>();
@@ -1907,8 +2339,10 @@ public class GameFlagTimeModule extends AbstractModule {
         //return warpPlayers.contains(name);
 
         PubPlayer player = context.getPlayerManager().getPlayer(name);
+
         if (player == null)
             return true;
+
         return player.getWarp();
     }
 
@@ -1923,6 +2357,7 @@ public class GameFlagTimeModule extends AbstractModule {
     public boolean isStarted() {
         if (flagTimer == null)
             return false;
+
         return flagTimer.isStarted;
     }
 
@@ -1933,22 +2368,22 @@ public class GameFlagTimeModule extends AbstractModule {
     public boolean isAutoWarpEnabled() {
         return autoWarp;
     }
-    
+
     public boolean isHunterFreqEnabled() {
         return hunterFreqEnabled;
     }
-    
+
     public int getHunterFreq() {
         return hunterFreq;
     }
 
     /**
-     * Formats an integer time as a String.
-     * 
-     * @param time
-     *            Time in seconds.
-     * @return Formatted string in 0:00 format.
-     */
+        Formats an integer time as a String.
+
+        @param time
+                  Time in seconds.
+        @return Formatted string in 0:00 format.
+    */
     public String getTimeString(int time) {
         if (time <= 0)
             return "0:00";
@@ -1960,30 +2395,36 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Collects names of players on a freq into a Vector ArrayList by ship.
-     * 
-     * @param freq
-     *            Frequency to collect info on
-     * @return Vector array containing player names on given freq
-     */
+        Collects names of players on a freq into a Vector ArrayList by ship.
+
+        @param freq
+                  Frequency to collect info on
+        @return Vector array containing player names on given freq
+    */
     public ArrayList<Vector<String>> getTeamData(int freq) {
         ArrayList<Vector<String>> team = new ArrayList<Vector<String>>();
+
         // 8 ships plus potential spectators
         for (int i = 0; i < 9; i++)
             team.add(new Vector<String>());
+
         Iterator<Player> i = m_botAction.getFreqPlayerIterator(freq);
+
         while (i.hasNext()) {
             Player p = i.next();
             team.get(p.getShipType()).add(p.getPlayerName());
         }
+
         return team;
     }
 
     public String getShips(HashMap<String, HashSet<Integer>> ships, String playerName) {
         if (ships.containsKey(playerName)) {
             String ship = "";
+
             for (int shipNumber : ships.get(playerName))
                 ship += "," + shipNumber;
+
             return ship.substring(1);
         } else
             return "";
@@ -1992,18 +2433,23 @@ public class GameFlagTimeModule extends AbstractModule {
     public String getPosition(LinkedHashMap<String, Integer> map, int position, int excludeShip, boolean fullRound) {
         int i = 1;
         Iterator<String> it = map.keySet().iterator();
+
         while (it.hasNext()) {
             String player = it.next();
             int time = 0;
+
             if (playerTimes.get(player) != null)
                 time = flagTimer.getTotalSecs() - playerTimes.get(player).intValue();
+
             if (ships.get(player) != null && !ships.get(player).contains(excludeShip) && (!fullRound || time == flagTimer.getTotalSecs()))
                 if (i == position)
                     return player;
                 else if (i > position)
                     return player;
+
             i++;
         }
+
         return null;
     }
 
@@ -2015,14 +2461,18 @@ public class GameFlagTimeModule extends AbstractModule {
     final public LinkedHashMap<String, Integer> getBestOf(LinkedHashMap<String, Integer> ... lists) {
 
         HashMap<String, Integer> playerWeight = new HashMap<String, Integer>();
+
         for (LinkedHashMap<String, Integer> list : lists) {
             Iterator<String> players = list.keySet().iterator();
             int i = 0;
+
             while (players.hasNext()) {
                 String player = players.next();
                 Integer currentWeight = playerWeight.get(player);
+
                 if (currentWeight == null)
                     currentWeight = 0;
+
                 // Top1 (+6), Top2 (+4), Top3 (+2), rest normal weight
                 int weight = (list.size() - i) + Math.max(0, (3 - i)) * 2;
                 playerWeight.put(player, currentWeight.intValue() + weight);
@@ -2060,14 +2510,18 @@ public class GameFlagTimeModule extends AbstractModule {
         // The player with most points is MVP, etc..
 
         HashMap<String, Integer> playerWeight = new HashMap<String, Integer>();
+
         for (Entry<HashMap<String, Integer>, Integer> entry : sortedList.entrySet()) {
             Iterator<String> players = entry.getKey().keySet().iterator();
             int i = 0;
+
             while (players.hasNext()) {
                 String player = players.next();
                 Integer currentWeight = playerWeight.get(player);
+
                 if (currentWeight == null)
                     currentWeight = 0;
+
                 int weight = (playerWeight.size() - i) * entry.getValue();
                 playerWeight.put(player, currentWeight.intValue() + weight);
                 i++;
@@ -2081,21 +2535,22 @@ public class GameFlagTimeModule extends AbstractModule {
     public int getFreqWithFlag() {
         if (isRunning())
             return flagTimer.flagHoldingFreq;
+
         return -1;
     }
-    
+
     public Long getLastFreqChange(String name) {
         return playerTimeJoined.get(name);
     }
-    
+
     /**
-     * Instantly claims the flag while bypassing the FlagClaimed eventhandler.
-     * <p>
-     * This method is meant to be used if the pubsystem bot needs to claim the flag himself from a different PubSystem module.
-     * This will bypass the FlagClaimed event as well as the check if the bot isn't the claiming party and the three second grace period.
-     * 
-     * @param freq Frequency for which the flag is to be claimed.
-     */
+        Instantly claims the flag while bypassing the FlagClaimed eventhandler.
+        <p>
+        This method is meant to be used if the pubsystem bot needs to claim the flag himself from a different PubSystem module.
+        This will bypass the FlagClaimed event as well as the check if the bot isn't the claiming party and the three second grace period.
+
+        @param freq Frequency for which the flag is to be claimed.
+    */
     public void remoteFlagClaim(int freq) {
         flagTimer.flagHoldingFreq = freq;
         m_botAction.showObject(2400); // Shows flag claimed lvz
@@ -2113,6 +2568,7 @@ public class GameFlagTimeModule extends AbstractModule {
         try {
             if (flagTimer != null)
                 flagTimer.endGame();
+
             m_botAction.cancelTask(flagTimer);
             m_botAction.cancelTask(intermissionTimer);
             m_botAction.cancelTask(startTimer);
@@ -2143,8 +2599,8 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Warps all players who have PMed with !warp into FR at start. Ensures !warpers on freqs are warped all to 'their' side, but not predictably.
-     */
+        Warps all players who have PMed with !warp into FR at start. Ensures !warpers on freqs are warped all to 'their' side, but not predictably.
+    */
     public void warpPlayers(boolean allPlayers) {
 
         Iterator<?> i = m_botAction.getPlayingPlayerIterator();
@@ -2159,8 +2615,10 @@ public class GameFlagTimeModule extends AbstractModule {
         while (i.hasNext()) {
 
             p = (Player) i.next();
+
             if (p == null)
                 continue;
+
             pname = p.getPlayerName();
 
             // TODO: Check instead if dueling (why wasn't that done in the first place, I do not know)
@@ -2173,51 +2631,53 @@ public class GameFlagTimeModule extends AbstractModule {
             // Check if the player is a lev. If so, do not warp.
             if (p.getShipType() == Tools.Ship.LEVIATHAN && !player.wasFRCleared())
                 continue;
-            
+
             // Check player's location for exempt locations.
             if ((player != null && !allPlayers)) {
                 Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+
                 //Do not warp the player if they have disabled warping and aren't inside the flagroom
                 //or skip the player if he/she's inside a safe, and not there due to a mine clearing warp.
                 if(reg != null)
+
                     // Check unusual circumstances
                     if( !player.getWarp() ) {
                         if( !Region.FLAGROOM.equals(reg) ) {
                             if( Region.SAFE.equals(reg) ) {
-                                 if( !player.wasFRCleared() && !player.areMinesCleared() )
-                                     continue;
+                                if( !player.wasFRCleared() && !player.areMinesCleared() )
+                                    continue;
                             } else {
                                 continue;
                             }
                         }
                     }
             }
-            
+
             if (allPlayers)
                 rand = 0;
             else {
                 rand = r.nextInt(warpPtsLeft.length);
             }
-            
+
             if (p.getFrequency() % 2 == randomside)
                 doPlayerWarp(pname, warpPtsLeft[rand]);
             else
                 doPlayerWarp(pname, warpPtsRight[rand]);
         }
 
-        /* Reimplement as needed... not sure if we need it at present.
-        if (!nullPlayers.isEmpty()) {
+        /*  Reimplement as needed... not sure if we need it at present.
+            if (!nullPlayers.isEmpty()) {
             i = nullPlayers.iterator();
             while (i.hasNext())
                 warpPlayers.remove(i.next());
-        }
+            }
         */
     }
 
     /**
-     * In Strict Flag Time mode, warp all players to a safe 10 seconds before starting. This gives a semi-official feeling to the game, and resets all
-     * mines, etc.
-     */
+        In Strict Flag Time mode, warp all players to a safe 10 seconds before starting. This gives a semi-official feeling to the game, and resets all
+        mines, etc.
+    */
     public void safeWarp() {
         // Prevent pre-laid mines and portals in strict flag time by setting to
         // WB and back again (slightly hacky)
@@ -2225,8 +2685,10 @@ public class GameFlagTimeModule extends AbstractModule {
         HashMap<String, Integer> bounties = new HashMap<String, Integer>();
         Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
         Player p;
+
         while (it.hasNext()) {
             p = it.next();
+
             if (p != null)
                 if (p.getShipType() == Tools.Ship.SHARK || p.getShipType() == Tools.Ship.TERRIER || p.getShipType() == Tools.Ship.LEVIATHAN) {
                     players.put(p.getPlayerName(), new Integer(p.getShipType()));
@@ -2234,22 +2696,28 @@ public class GameFlagTimeModule extends AbstractModule {
                     m_botAction.setShip(p.getPlayerName(), 1);
                 }
         }
+
         Iterator<String> it2 = players.keySet().iterator();
         String name;
         Integer ship, bounty;
+
         while (it2.hasNext()) {
             name = it2.next();
             ship = players.get(name);
             bounty = bounties.get(name);
+
             if (ship != null)
                 m_botAction.setShip(name, ship.intValue());
+
             if (bounty != null)
                 m_botAction.giveBounty(name, bounty.intValue() - 3);
         }
 
         Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+
         while (i.hasNext()) {
             p = i.next();
+
             if (p != null)
                 if (p.getFrequency() % 2 == 0)
                     m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
@@ -2257,10 +2725,10 @@ public class GameFlagTimeModule extends AbstractModule {
                     m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
         }
     }
-    
+
     /**
-     * Clears the FR by warping any inside to safe and then back.For public freqs only.
-     */
+        Clears the FR by warping any inside to safe and then back.For public freqs only.
+    */
     public void clearFR() {
         Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
         Player p;
@@ -2269,31 +2737,33 @@ public class GameFlagTimeModule extends AbstractModule {
             p = i.next();
 
             Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+
             if( context.getPubChallenge().isDueling(p.getPlayerName()))
                 continue;
+
             PubPlayer pp = context.getPlayerManager().getPlayer(p.getPlayerName());
 
             // Warp all sharks not in safe and all people in flagroom into safe, then force-warp back in at round start
-            if (p.getShipType() == Tools.Ship.SHARK && !Region.SAFE.equals(reg)) {                
+            if (p.getShipType() == Tools.Ship.SHARK && !Region.SAFE.equals(reg)) {
                 if (pp == null)
                     return;
-                
+
                 if (p.getFrequency() % 2 == 0)
                     m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
                 else
                     m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
-                
+
                 pp.setMinesCleared(true);
             } else if( Region.FLAGROOM.equals(reg) ) {
                 if (pp == null)
                     return;
-                
+
                 if (p.getFrequency() % 2 == 0)
                     m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
                 else
                     m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
-                
-                pp.setFRCleared(true);                
+
+                pp.setFRCleared(true);
             } else {
                 pp.setMinesCleared(false);
                 pp.setFRCleared(false);
@@ -2321,11 +2791,14 @@ public class GameFlagTimeModule extends AbstractModule {
 
         LinkedHashMap someMap = new LinkedHashMap();
         Iterator valueIt = mapValues.iterator();
+
         while (valueIt.hasNext()) {
             Object val = valueIt.next();
             Iterator keyIt = mapKeys.iterator();
+
             while (keyIt.hasNext()) {
                 Object key = keyIt.next();
+
                 if (clonedMap.get(key).toString().equals(val.toString())) {
                     clonedMap.remove(key);
                     mapKeys.remove(key);
@@ -2334,6 +2807,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
             }
         }
+
         return someMap;
     }
 
@@ -2358,31 +2832,33 @@ public class GameFlagTimeModule extends AbstractModule {
     private int calcYCoord(int yCoord, double randRadians, double randRadius) {
         return yCoord + (int) Math.round(randRadius * Math.cos(randRadians));
     }
-    
+
     /**
-     * Public access to flagTimer time remaining.
-     * @return Time remaining; -1 if flag timer is not running
-     */
+        Public access to flagTimer time remaining.
+        @return Time remaining; -1 if flag timer is not running
+    */
     public int getTimeRemaining() {
         if (flagTimer != null && flagTimer.isRunning())
             return flagTimer.getTimeRemaining();
+
         return -1;
     }
 
     /**
-     * Public access to flagTimer time played.
-     * @return Time remaining; -1 if flag timer is not running
-     */
+        Public access to flagTimer time played.
+        @return Time remaining; -1 if flag timer is not running
+    */
     public int getTotalSecs() {
         if (flagTimer != null && flagTimer.isRunning())
             return flagTimer.getTotalSecs();
+
         return -1;
     }
 
     /**
-     * This private class counts the consecutive flag time an individual team racks up. Upon reaching the time needed to win, it fires the end of the
-     * round.
-     */
+        This private class counts the consecutive flag time an individual team racks up. Upon reaching the time needed to win, it fires the end of the
+        round.
+    */
     private class FlagCountTask extends TimerTask {
 
         int flagHoldingFreq, flagClaimingFreq;
@@ -2394,8 +2870,8 @@ public class GameFlagTimeModule extends AbstractModule {
         boolean isStarted, isRunning, isBeingClaimed;
 
         /**
-         * FlagCountTask Constructor
-         */
+            FlagCountTask Constructor
+        */
         public FlagCountTask() {
             flagHoldingFreq = -1;
             secondsHeld = 0;
@@ -2419,14 +2895,14 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * This method is called by the FlagClaimed event, and tracks who currently has or is in the process of claiming the flag. While the flag can
-         * physically be claimed in the game, 3 seconds are needed to claim it for the purpose of the game.
-         * 
-         * @param freq
-         *            Frequency of flag claimer
-         * @param pid
-         *            PlayerID of flag claimer
-         */
+            This method is called by the FlagClaimed event, and tracks who currently has or is in the process of claiming the flag. While the flag can
+            physically be claimed in the game, 3 seconds are needed to claim it for the purpose of the game.
+
+            @param freq
+                      Frequency of flag claimer
+            @param pid
+                      PlayerID of flag claimer
+        */
         public void flagClaimed(int freq, int pid) {
             if (isRunning == false || freq == -1)
                 return;
@@ -2451,8 +2927,10 @@ public class GameFlagTimeModule extends AbstractModule {
         public void newAttachee(String player) {
 
             Integer count = attaches.get(player);
+
             if (count == null)
                 count = new Integer(0);
+
             attaches.put(player, count.intValue() + 1);
 
         }
@@ -2460,8 +2938,10 @@ public class GameFlagTimeModule extends AbstractModule {
         public void newShip(String player, int shipType) {
 
             HashSet<Integer> list = ships.get(player);
+
             if (list == null)
                 list = new HashSet<Integer>();
+
             list.add(shipType);
             ships.put(player, list);
 
@@ -2473,6 +2953,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             // +1 kill
             Integer count = kills.get(player);
+
             if (count == null)
                 kills.put(player, new Integer(1));
             else
@@ -2482,16 +2963,18 @@ public class GameFlagTimeModule extends AbstractModule {
             if (shipTypeKilled == Tools.Ship.LEVIATHAN && !location.equals(Location.SPACE) && !location.equals(Location.SPAWN)
                     && !location.equals(Location.ROOF)) {
                 Integer levKill = levKills.get(player);
+
                 if (levKill == null)
                     levKills.put(player, new Integer(1));
                 else
                     levKills.put(player, new Integer(levKill.intValue() + 1));
             }
-            
+
             // Terr kill ?
             if (shipTypeKilled == Tools.Ship.TERRIER && !location.equals(Location.SPACE) && !location.equals(Location.SPAWN)
                     && !location.equals(Location.ROOF)) {
                 Integer terrKill = terrKills.get(player);
+
                 if (terrKill == null)
                     terrKills.put(player, new Integer(1));
                 else
@@ -2500,6 +2983,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             // Bounty of the killed
             Integer bountyTotal = killsBounty.get(player);
+
             if (count == null)
                 killsBounty.put(player, new Integer(bountyKilled));
             else
@@ -2507,9 +2991,11 @@ public class GameFlagTimeModule extends AbstractModule {
 
             // Weight of the kill
             int weight = 0;
+
             if (locationWeight.containsKey(location)) {
                 weight = locationWeight.get(location);
                 Integer currentWeight = killsLocationWeigth.get(player);
+
                 if (currentWeight == null)
                     killsLocationWeigth.put(player, new Integer(weight));
                 else
@@ -2519,6 +3005,7 @@ public class GameFlagTimeModule extends AbstractModule {
             // Kill inside the base
             if (location.equals(Location.FLAGROOM) || location.equals(Location.MID)) {
                 Integer total = killsInBase.get(player);
+
                 if (total == null)
                     killsInBase.put(player, new Integer(1));
                 else
@@ -2529,6 +3016,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         public void addPlayerDeath(String player) {
             Integer count = deaths.get(player);
+
             if (count == null)
                 deaths.put(player, new Integer(1));
             else
@@ -2537,6 +3025,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         public void addTk(String player) {
             Integer count = tks.get(player);
+
             if (count == null)
                 tks.put(player, new Integer(1));
             else
@@ -2544,9 +3033,9 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Assigns flag (internally) to the claiming frequency.
-         * 
-         */
+            Assigns flag (internally) to the claiming frequency.
+
+        */
         public void assignFlag() {
             flagHoldingFreq = flagClaimingFreq;
 
@@ -2561,8 +3050,8 @@ public class GameFlagTimeModule extends AbstractModule {
                 if (remain < 60)
                     if (remain < 4) {
                         m_botAction.sendArenaMessage("[FLAG] INCONCEIVABLE!!: " + p.getPlayerName() + " claims flag for "
-                                + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " second"
-                                + (remain == 1 ? "" : "s") + " left!", 65);
+                                                     + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " second"
+                                                     + (remain == 1 ? "" : "s") + " left!", 65);
                         m_botAction.showObject(2500);
                         m_botAction.showObject(2600);
                         m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I'll give you $1000 for this.");
@@ -2570,19 +3059,19 @@ public class GameFlagTimeModule extends AbstractModule {
 
                     } else if (remain < 11) {
                         m_botAction.sendArenaMessage("[FLAG] AMAZING!: " + p.getPlayerName() + " claims flag for "
-                                + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " sec. left!");
+                                                     + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " sec. left!");
                         m_botAction.showObject(2600); // 'Daym!' lvz
                         m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I'll give you $500 for this.");
                         context.getPlayerManager().addMoney(p.getPlayerName(), 500);
 
                     } else if (remain < 26) {
                         m_botAction.sendArenaMessage("[FLAG] SAVE!: " + p.getPlayerName() + " claims flag for "
-                                + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left!");
+                                                     + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left!");
                         m_botAction.sendPrivateMessage(p.getPlayerName(), "Nice work. BONUS: $250");
                         context.getPlayerManager().addMoney(p.getPlayerName(), 250);
                     } else {
                         m_botAction.sendArenaMessage("[FLAG] Save: " + p.getPlayerName() + " claims flag for "
-                                + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left.");
+                                                     + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left.");
                     }
             }
 
@@ -2598,13 +3087,14 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Increments a count for player claiming the flag.
-         * 
-         * @param name
-         *            Name of player.
-         */
+            Increments a count for player claiming the flag.
+
+            @param name
+                      Name of player.
+        */
         public void addFlagClaim(String name) {
             Integer count = flagClaims.get(name);
+
             if (count == null)
                 flagClaims.put(name, new Integer(1));
             else {
@@ -2614,52 +3104,59 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Ends the game for the timer's internal purposes.
-         */
+            Ends the game for the timer's internal purposes.
+        */
         public void endGame() {
             objs.hideAllObjects();
             m_botAction.setObjects();
             isRunning = false;
         }
-        
+
         /**
-         * Checks for non-LT terrs on public frequencies that are playing alone,
-         * and gives a small bonus every X seconds.
-         */
+            Checks for non-LT terrs on public frequencies that are playing alone,
+            and gives a small bonus every X seconds.
+        */
         public void checkTerrBonus() {
             Iterator<Player> i = m_botAction.getPlayerIterator();
             Player p, p2;
-            int[] freqsize = {0,0,0};
-            boolean[] foundTerr = {false,false,false};
+            int[] freqsize = {0, 0, 0};
+            boolean[] foundTerr = {false, false, false};
             boolean lt = false, outside = false;
-            Player[] terr = {null,null,null};
+            Player[] terr = {null, null, null};
+
             while (i.hasNext()) {
                 p = i.next();
+
                 if (p != null && p.getShipType() != Tools.Ship.SPECTATOR) {
                     if (p.getFrequency() == 0 || p.getFrequency() == 1 || p.getFrequency() == hunterFreq) {
                         int freq = p.getFrequency();
+
                         if (freq == hunterFreq)
                             freq = 2;
-                    
+
                         freqsize[freq]++;
+
                         if (p.getShipType() == Tools.Ship.TERRIER) {
-                            
+
                             // LTs can't get the bonus
                             for ( Integer turretid : p.getTurrets() ) {
                                 p2 = m_botAction.getPlayer(turretid);
+
                                 if (p2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {
                                     lt = true;
                                     break;
                                 }
                             }
+
                             Location loc = context.getPubUtil().getLocation(p.getXTileLocation(), p.getYTileLocation());
+
                             if (loc != null)
                                 if (freq == hunterFreq) {
                                     if (loc.equals(Location.SAFE) || loc.equals(Location.UNKNOWN) )
                                         outside = true;
                                 } else {
                                     if (loc.equals(Location.SAFE) || loc.equals(Location.SPACE) || loc.equals(Location.UNKNOWN) )
-                                        outside = true;                                    
+                                        outside = true;
                                 }
 
                             if( !lt && !outside ) {
@@ -2674,55 +3171,58 @@ public class GameFlagTimeModule extends AbstractModule {
                         }
                     }
                 }
+
                 lt = false;
                 outside = false;
             }
-            
-            for (int freq=0; freq<2; freq++)
+
+            for (int freq = 0; freq < 2; freq++)
                 if (terr[freq] != null && freqsize[freq] >= terrBonusMinOnFreq ) {
                     context.getPlayerManager().addMoney(terr[freq].getPlayerName(), terrBonusAmt);
                     m_botAction.sendPrivateMessage(terr[freq].getPlayerID(), "TERR BONUS: +$" + terrBonusAmt + "  (only non-LT Terr)" );
                 }
-            
+
             // Hunter freq: must have LT somewhere to give award
             if (terr[2] != null && freqsize[2] >= terrBonusMinOnFreq ) {
                 boolean activeLT = false;
+
                 for (LevTerr l : levterrs.values()) {
                     if (!l.isEmpty()) {
                         activeLT = true;
                         break;
                     }
                 }
+
                 if (activeLT) {
                     context.getPlayerManager().addMoney(terr[2].getPlayerName(), terrBonusAmt);
                     m_botAction.sendPrivateMessage(terr[2].getPlayerID(), "HUNTER TERR BONUS: +$" + terrBonusAmt + "  (only Terr on Hunter Freq chasing LTs)" );
-                }                
+                }
             }
-            
+
         }
-        
+
         /**
-         * Sends time info to requested player.
-         * 
-         * @param name
-         *            Person to send info to
-         */
+            Sends time info to requested player.
+
+            @param name
+                      Person to send info to
+        */
         public void sendTimeRemaining(String name) {
             m_botAction.sendSmartPrivateMessage(name, getTimeInfo());
         }
 
         /**
-         * @return True if a game is currently running; false if not
-         */
+            @return True if a game is currently running; false if not
+        */
         public boolean isRunning() {
             return isRunning;
         }
 
         /**
-         * Gives the name of the top flag claimers out of the MVPs. If there is a tie, does not care because it's only bragging rights anyway. :P
-         * 
-         * @return Array of size 2, index 0 being the team leader and 1 being # flaggrabs
-         */
+            Gives the name of the top flag claimers out of the MVPs. If there is a tie, does not care because it's only bragging rights anyway. :P
+
+            @return Array of size 2, index 0 being the team leader and 1 being # flaggrabs
+        */
         @SuppressWarnings("unused")
         public String[] getTeamLeader(HashSet<String> MVPs) {
             String[] leaderInfo = { "", "", "" };
@@ -2730,6 +3230,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             if (MVPs == null)
                 return leaderInfo;
+
             try {
                 Iterator<String> i = MVPs.iterator();
                 Integer dummyClaim, highClaim = new Integer(0);
@@ -2738,6 +3239,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 while (i.hasNext()) {
                     dummyPlayer = i.next();
                     dummyClaim = flagClaims.get(dummyPlayer);
+
                     if (dummyClaim != null)
                         if (dummyClaim.intValue() > highClaim.intValue()) {
                             leader = dummyPlayer;
@@ -2746,11 +3248,14 @@ public class GameFlagTimeModule extends AbstractModule {
                         } else if (dummyClaim.intValue() == highClaim.intValue())
                             ties.add(dummyPlayer);
                 }
+
                 leaderInfo[0] = leader;
                 leaderInfo[1] = highClaim.toString();
                 i = ties.iterator();
+
                 while (i.hasNext())
                     leaderInfo[2] += i.next() + ", ";
+
                 return leaderInfo;
 
             } catch (Exception e) {
@@ -2761,15 +3266,16 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Returns number of flag grabs for given player.
-         * 
-         * @param name
-         *            Name of player
-         * @return Flag grabs
-         */
+            Returns number of flag grabs for given player.
+
+            @param name
+                      Name of player
+            @return Flag grabs
+        */
         @SuppressWarnings("unused")
         public int getFlagGrabs(String name) {
             Integer grabs = flagClaims.get(name);
+
             if (grabs == null)
                 return 0;
             else
@@ -2777,15 +3283,16 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Returns number of kill for given player.
-         * 
-         * @param name
-         *            Name of player
-         * @return Flag grabs
-         */
+            Returns number of kill for given player.
+
+            @param name
+                      Name of player
+            @return Flag grabs
+        */
         @SuppressWarnings("unused")
         public int getTotalKill(String name) {
             Integer count = kills.get(name);
+
             if (count == null)
                 return 0;
             else
@@ -2793,15 +3300,16 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Returns number of death for given player.
-         * 
-         * @param name
-         *            Name of player
-         * @return Flag grabs
-         */
+            Returns number of death for given player.
+
+            @param name
+                      Name of player
+            @return Flag grabs
+        */
         @SuppressWarnings("unused")
         public int getTotalDeath(String name) {
             Integer count = deaths.get(name);
+
             if (count == null)
                 return 0;
             else
@@ -2809,31 +3317,33 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Returns number of lev kills for given player.
-         * 
-         * @param name
-         *            Name of player
-         * @return Flag grabs
-         */
+            Returns number of lev kills for given player.
+
+            @param name
+                      Name of player
+            @return Flag grabs
+        */
         @SuppressWarnings("unused")
         public int getTotalLevKills(String name) {
             Integer count = levKills.get(name);
+
             if (count == null)
                 return 0;
             else
                 return count;
         }
-        
+
         /**
-         * Returns number of terr kill for given player.
-         * 
-         * @param name
-         *            Name of player
-         * @return Flag grabs
-         */
+            Returns number of terr kill for given player.
+
+            @param name
+                      Name of player
+            @return Flag grabs
+        */
         @SuppressWarnings("unused")
         public int getTotalTerrKill(String name) {
             Integer count = terrKills.get(name);
+
             if (count == null)
                 return 0;
             else
@@ -2841,15 +3351,16 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Returns kill weight for given player.
-         * 
-         * @param name
-         *            Name of player
-         * @return Flag grabs
-         */
+            Returns kill weight for given player.
+
+            @param name
+                      Name of player
+            @return Flag grabs
+        */
         @SuppressWarnings("unused")
         public int getKillWeight(String name) {
             Integer count = killsLocationWeigth.get(name);
+
             if (count == null)
                 return 0;
             else
@@ -2857,15 +3368,16 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Returns number of ship change for given player.
-         * 
-         * @param name
-         *            Name of player
-         * @return Flag grabs
-         */
+            Returns number of ship change for given player.
+
+            @param name
+                      Name of player
+            @return Flag grabs
+        */
         @SuppressWarnings("unused")
         public int getTotalShipChange(String name) {
             HashSet<Integer> count = ships.get(name);
+
             if (count == null)
                 return 0;
             else
@@ -2873,8 +3385,8 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * @return Time-based status of game
-         */
+            @return Time-based status of game
+        */
         public String getTimeInfo() {
             int roundNum = freq0Score + freq1Score + 1;
 
@@ -2883,48 +3395,52 @@ public class GameFlagTimeModule extends AbstractModule {
                     return "[FLAG] Round 1 of a new game will start soon.";
                 else
                     return "[FLAG] Round " + roundNum + " starting soon. Score: " + freq0Score + "-" + freq1Score;
+
             return "[FLAG] ROUND " + roundNum + " (" + freq0Score + "-" + freq1Score + ")  " + (flagHoldingFreq == -1 || flagHoldingFreq > 99 ? "?" : "Freq " + flagHoldingFreq)
-                    + " holding for " + getTimeString(secondsHeld) + ", needs " + getTimeString((flagMinutesRequired * 60) - secondsHeld)
-                    + " more. [Time: " + getTimeString(totalSecs) + "]";
+                   + " holding for " + getTimeString(secondsHeld) + ", needs " + getTimeString((flagMinutesRequired * 60) - secondsHeld)
+                   + " more. [Time: " + getTimeString(totalSecs) + "]";
         }
 
         /**
-         * @return Total number of seconds round has been running.
-         */
+            @return Total number of seconds round has been running.
+        */
         public int getTotalSecs() {
             return totalSecs;
         }
 
         /**
-         * @return Frequency that currently holds the flag
-         */
+            @return Frequency that currently holds the flag
+        */
         public int getHoldingFreq() {
             return flagHoldingFreq;
         }
 
         /**
-         * Timer running once per second that handles the starting of a round, displaying of information updates every 5 minutes, the flag claiming
-         * timer, and total flag holding time/round ends.
-         */
+            Timer running once per second that handles the starting of a round, displaying of information updates every 5 minutes, the flag claiming
+            timer, and total flag holding time/round ends.
+        */
         @Override
         public void run() {
             if (isStarted == false) {
                 int roundNum = freq0Score + freq1Score + 1;
+
                 if (preTimeCount == 0) {
                     m_botAction.sendArenaMessage("[FLAG] Next round begins in 10 seconds . . .");
                     m_botAction.showObject(LVZ_10TOSTART);
+
                     if (strictFlagTimeMode)
                         safeWarp();
                 }
+
                 preTimeCount++;
-                
+
                 if (preTimeCount == 9 && !strictFlagTimeMode ) {
                     clearFR();
                 }
 
                 if (preTimeCount >= 10) {
                     String message = "[FLAG] " + (roundNum == MAX_FLAGTIME_ROUNDS ? "FINAL ROUND" : "ROUND " + roundNum) + " START!  Hold flag for "
-                            + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win.";
+                                     + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win.";
                     //int sound = strictFlagTimeMode ? Tools.Sound.GOGOGO : Tools.Sound.BEEP1;
                     //m_botAction.sendArenaMessage(message, sound);
                     m_botAction.sendArenaMessage(message);
@@ -2932,16 +3448,17 @@ public class GameFlagTimeModule extends AbstractModule {
                     warpPlayers(strictFlagTimeMode);
                     m_botAction.resetFlagGame();
                     Iterator<?> i = m_botAction.getPlayingPlayerIterator();
+
                     while (i.hasNext()) {
                         Player p = (Player) i.next();
                         flagTimer.newShip(p.getPlayerName(), p.getShipType());
                     }
-                    
+
                     // Clear any round restricted buyable items/commands
                     context.getMoneySystem().resetRoundRestrictions();
                     isStarted = true;
                     isRunning = true;
-                    
+
                     return;
                 }
             }
@@ -2954,10 +3471,11 @@ public class GameFlagTimeModule extends AbstractModule {
             // Display mode info at 5 min increments, unless we are near the end of a game;
             //   also check for severe freq imbalance every minute
             if ((flagMinutesRequired * 60) - secondsHeld > 30) {
-                if (totalSecs % (10 * 60) == 0) { 
+                if (totalSecs % (10 * 60) == 0) {
                     m_botAction.sendArenaMessage(getTimeInfo());
                     context.getPlayerManager().checkSpecTime();
                 }
+
                 if (totalSecs % 30 == 0)
                     context.getPlayerManager().checkFreqSizes(true);
             }
@@ -2965,20 +3483,24 @@ public class GameFlagTimeModule extends AbstractModule {
 
             if (isBeingClaimed) {
                 claimSecs++;
+
                 if (claimSecs >= FLAG_CLAIM_SECS) {
                     claimSecs = 0;
                     assignFlag();
                 }
+
                 return;
             }
-            
+
             if (giveTerrBonus && totalSecs % terrBonusFrequency == 0) {
                 checkTerrBonus();
             }
 
             Integer freqSecs = freqsSecs.get(flagHoldingFreq);
+
             if (freqSecs == null)
                 freqSecs = new Integer(0);
+
             freqsSecs.put(flagHoldingFreq, freqSecs + 1);
 
             if (flagHoldingFreq == -1)
@@ -2989,6 +3511,7 @@ public class GameFlagTimeModule extends AbstractModule {
             do_updateTimer();
 
             int flagSecsReq = flagMinutesRequired * 60;
+
             if (secondsHeld >= flagSecsReq) {
                 endGame();
                 doEndRoundNew();
@@ -2996,9 +3519,9 @@ public class GameFlagTimeModule extends AbstractModule {
                 m_botAction.showObject(LVZ_60TOWIN);
                 //m_botAction.sendArenaMessage("[FLAG] " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "Private freq") + " will win in 60 seconds.");
             } else if (flagSecsReq - secondsHeld == 30) {
-                m_botAction.showObject(LVZ_30TOWIN);                
+                m_botAction.showObject(LVZ_30TOWIN);
             } else if (flagSecsReq - secondsHeld == 10) {
-                m_botAction.showObject(LVZ_10TOWIN);                
+                m_botAction.showObject(LVZ_10TOWIN);
                 m_botAction.sendArenaMessage("[FLAG] " + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "Private freq") + " will win in 10 seconds . . .");
             } else if (flagSecsReq - secondsHeld < 9 && ((flagSecsReq - secondsHeld) % 2) == 0) {
                 m_botAction.showObject(LVZ_WINIMMINENT);
@@ -3006,17 +3529,20 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * Runs the LVZ-based timer.
-         */
+            Runs the LVZ-based timer.
+        */
         private void do_updateTimer() {
             int secsNeeded = flagMinutesRequired * 60 - secondsHeld;
             objs.hideAllObjects();
             int minutes = secsNeeded / 60;
             int seconds = secsNeeded % 60;
+
             if (minutes < 1)
                 objs.showObject(1100);
+
             if (minutes > 10)
                 objs.showObject(10 + ((minutes - minutes % 10) / 10));
+
             objs.showObject(20 + (minutes % 10));
             objs.showObject(30 + ((seconds - seconds % 10) / 10));
             objs.showObject(40 + (seconds % 10));
@@ -3025,13 +3551,13 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * This private class starts the round.
-     */
+        This private class starts the round.
+    */
     private class StartRoundTask extends TimerTask {
 
         /**
-         * Starts the round when scheduled.
-         */
+            Starts the round when scheduled.
+        */
         @Override
         public void run() {
             doStartRound();
@@ -3039,13 +3565,13 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * This private class provides a pause before starting the round.
-     */
+        This private class provides a pause before starting the round.
+    */
     private class IntermissionTask extends TimerTask {
 
         /**
-         * Starts the intermission/rule display when scheduled.
-         */
+            Starts the intermission/rule display when scheduled.
+        */
         @Override
         public void run() {
             doIntermission();
@@ -3054,31 +3580,32 @@ public class GameFlagTimeModule extends AbstractModule {
     }
 
     /**
-     * Used to turn on/off a set of LVZ objects at a particular time.
-     */
+        Used to turn on/off a set of LVZ objects at a particular time.
+    */
     private class AuxLvzTask extends TimerTask {
         public int[] objNums;
         public boolean[] showObj;
 
         /**
-         * Creates a new AuxLvzTask, given obj numbers defined in the LVZ and whether or not to turn them on or off. Cardinality of the two arrays
-         * must be the same.
-         * 
-         * @param objNums
-         *            Numbers of objs defined in the LVZ to turn on or off
-         * @param showObj
-         *            For each index, true to show the obj; false to hide it
-         */
+            Creates a new AuxLvzTask, given obj numbers defined in the LVZ and whether or not to turn them on or off. Cardinality of the two arrays
+            must be the same.
+
+            @param objNums
+                      Numbers of objs defined in the LVZ to turn on or off
+            @param showObj
+                      For each index, true to show the obj; false to hide it
+        */
         public AuxLvzTask(int[] objNums, boolean[] showObj) {
             if (objNums.length != showObj.length)
                 throw new RuntimeException("AuxLvzTask constructor error: Arrays must have same cardinality.");
+
             this.objNums = objNums;
             this.showObj = showObj;
         }
 
         /**
-         * Shows and hides set objects.
-         */
+            Shows and hides set objects.
+        */
         @Override
         public void run() {
             for (int i = 0; i < objNums.length; i++)
@@ -3108,6 +3635,7 @@ public class GameFlagTimeModule extends AbstractModule {
         public void addLeviathan(String name) {
             if (isEmpty())
                 levvingSince = System.currentTimeMillis();
+
             leviathans.add(name);
         }
 
@@ -3124,8 +3652,8 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-         * @param b True if the bot can alert the arena to the LT's presence
-         */
+            @param b True if the bot can alert the arena to the LT's presence
+        */
         public void allowAlert(boolean b) {
             allowAlert = b;
         }

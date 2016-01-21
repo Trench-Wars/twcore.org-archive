@@ -20,15 +20,15 @@ import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
- * A simple bot designed for one thing: search & destroy
- * Solves the problem posed by players entering from a different zone and
- * changing arenas before the pubbot can go through banc silence routines. 
- * It seeks out the player and follows through with the banc silence procedures.
- *
- * @author WingZero
- */
+    A simple bot designed for one thing: search & destroy
+    Solves the problem posed by players entering from a different zone and
+    changing arenas before the pubbot can go through banc silence routines.
+    It seeks out the player and follows through with the banc silence procedures.
+
+    @author WingZero
+*/
 public class policebot extends SubspaceBot {
-    
+
     public static final String IPCBANC = "banc";
     public static final String IPCPOLICE = "police";
     public static final String HOME = "#robopark";
@@ -36,20 +36,20 @@ public class policebot extends SubspaceBot {
 
     private BotSettings sets;                   // BotSettings ease of access ** may not be needed if not used much
     private OperatorList ops;                   // OperatorList ease of access
-    
-    private TreeMap<String, BanC> bancs;        // Current BanCs 
+
+    private TreeMap<String, BanC> bancs;        // Current BanCs
     private TreeMap<String, String> guards;     // Quick fix for getting the guard requesting the *info
-    private Vector<String> perps;               // Perpetrator tracking list as reported by pubbot 
-    
+    private Vector<String> perps;               // Perpetrator tracking list as reported by pubbot
+
     private String perp;                        // Current perp being worked
     private Status status;                      // Current status/operation
     private String debugger;                    // Current debugger
     private int locateCount;                    // Number of locate commands since last wait period
     private Random rand;                        // RNG for locate wait timer period
-    
+
     private LocateWait locateWait;              // Wait timer to prevent DC's from too many locates
     private Tracker tracker;                    // Main bot loop for rotating perp tracking and silencing
-    
+
     public policebot(BotAction botAction) {
         super(botAction);
         requestEvents();
@@ -70,42 +70,45 @@ public class policebot extends SubspaceBot {
         er.request(EventRequester.MESSAGE);
         er.request(EventRequester.ARENA_JOINED);
     }
-    
+
     /** Logged on event handler **/
     public void handleEvent(LoggedOn event) {
         ba.ipcSubscribe(IPCBANC);
         ba.ipcSubscribe(IPCPOLICE);
-        
+
         sets = ba.getBotSettings();
         ops = ba.getOperatorList();
-        
+
         ba.joinArena(sets.getString("InitialArena"));
-        
+
         tracker = new Tracker();
         ba.scheduleTask(tracker, 5000, 5000);
     }
 
     /**
-     * Message event handler:
-     *  - Handles *info results
-     *  - Handles *locate results for tracking down player arenas
-     *  - Handles silenced/unsilenced confirmations
-     *  - Handles commands
-     */
+        Message event handler:
+        - Handles *info results
+        - Handles *locate results for tracking down player arenas
+        - Handles silenced/unsilenced confirmations
+        - Handles commands
+    */
     public void handleEvent(Message event) {
         String message = event.getMessage().trim();
+
         if (event.getMessageType() == Message.ARENA_MESSAGE) {
             // Command result returns (arena messages)
             if (status == Status.LOCATE && perp != null && message.toLowerCase().startsWith(perp.toLowerCase() + " - ")) {
                 // Locate was successful so pursue if private arena, otherwise ignore
                 debug("Locate message received: " + message);
                 status = Status.APPREHEND;
+
                 if (!message.contains("Public "))
                     ba.changeArena(message.substring(perp.length() + 3));
                 else
                     status = Status.IDLE;
             } else if (status == Status.CONFIRM && perp != null) {
                 BanC banc = bancs.get(perp);
+
                 if (banc == null) {
                     if (message.startsWith("IP:")) {
                         String guard = guards.remove(perp);
@@ -122,10 +125,13 @@ public class policebot extends SubspaceBot {
                         m_botAction.sendPrivateMessage(banc.getName(), "You've been permanently silenced because of abuse and/or violation of Trench Wars rules.");
                     else
                         m_botAction.sendPrivateMessage(banc.getName(), "You've been silenced for " + banc.getTime()
-                                + " (" + banc.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+                                                       + " (" + banc.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+
                     m_botAction.ipcSendMessage(IPCBANC, banc.getCommand(), "banc", m_botAction.getBotName());
+
                     if (perp != null)
                         bancs.remove(perp);
+
                     status = Status.IDLE;
                 } else if (message.equalsIgnoreCase("Player locked in spectator mode")) {
                     // The bot just spec-locked the player (and it's ok)
@@ -133,10 +139,13 @@ public class policebot extends SubspaceBot {
                         m_botAction.sendPrivateMessage(banc.getName(), "You've been permanently locked into spectator because of abuse and/or violation of Trench Wars rules.");
                     else
                         m_botAction.sendPrivateMessage(banc.getName(), "You've been locked into spectator for " + banc.getTime()
-                                + " (" + banc.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+                                                       + " (" + banc.getTime() + " remaining) minutes because of abuse and/or violation of Trench Wars rules.");
+
                     m_botAction.ipcSendMessage(IPCBANC, banc.getCommand(), "banc", m_botAction.getBotName());
+
                     if (perp != null)
                         bancs.remove(perp);
+
                     status = Status.IDLE;
                 } else if (message.equalsIgnoreCase("Player free to enter arena")) {// The bot just unspec-locked the player, while the player should be spec-locked.
                     ba.spec(perp);
@@ -145,11 +154,12 @@ public class policebot extends SubspaceBot {
         } else if (event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE || event.getMessageType() == Message.PRIVATE_MESSAGE) {
             // Command and message interpreter
             String name = event.getMessager();
+
             if (name == null || name.length() < 1)
                 name = m_botAction.getPlayerName(event.getPlayerID());
-            
+
             String cmd = message.toLowerCase();
-            
+
             if (ops.isSmod(name))
                 if (cmd.startsWith("!die"))
                     cmd_die(name);
@@ -161,60 +171,69 @@ public class policebot extends SubspaceBot {
                     cmd_status(name);
         }
     }
-    
+
     /**
-     * ArenaJoined event handler:
-     *  - Upon entering an arena the bot will proceed with tracked player silencing
-     */
+        ArenaJoined event handler:
+        - Upon entering an arena the bot will proceed with tracked player silencing
+    */
     public void handleEvent(ArenaJoined event) {
         // status should be apprehend
         if (status == Status.APPREHEND && perp != null) {
             String name = ba.getFuzzyPlayerName(perp);
+
             if (name != null && name.equalsIgnoreCase(perp)) {
                 status = Status.CONFIRM;
                 BanC banc = bancs.get(perp);
+
                 if (banc == null) {
                     debug("BanC was null so getting info for: " + perp);
                     ba.sendUnfilteredPrivateMessage(perp, "*info");
                 } else {
                     switch (banc.getType()) {
-                        case SILENCE:
-                            ba.sendUnfilteredPrivateMessage(name, "*shutup");
-                            break;
-                        case SPEC:
-                            ba.sendUnfilteredPrivateMessage(name, "*spec");
-                            break;
-                        default:
-                            status = Status.IDLE;
-                            break;
+                    case SILENCE:
+                        ba.sendUnfilteredPrivateMessage(name, "*shutup");
+                        break;
+
+                    case SPEC:
+                        ba.sendUnfilteredPrivateMessage(name, "*spec");
+                        break;
+
+                    default:
+                        status = Status.IDLE;
+                        break;
                     }
+
                     if (ba.getArenaSize() < 3)
                         ba.sendArenaMessage("WOOP! WOOP!");
+
                     debug("Apprehended " + banc.getType().toString() + " suspect: " + banc.getName());
                 }
             }
         }
     }
-    
+
     /**
-     * IPCMessage event handler is used by pubbots and staffbot to relay banc information.
-     *  - Adds silenced player information
-     *  - Removes silenced information 
-     *  - Tracks down players reported by StaffBot to have entered from cross-zone
-     */
+        IPCMessage event handler is used by pubbots and staffbot to relay banc information.
+        - Adds silenced player information
+        - Removes silenced information
+        - Tracks down players reported by StaffBot to have entered from cross-zone
+    */
     public void handleEvent(InterProcessEvent event) {
         if (IPCPOLICE.equals(event.getChannel())) {
             debug("Got IPCMessage on IPCPolice channel");
             IPCMessage ipc = (IPCMessage) event.getObject();
             String info = ipc.getMessage().toLowerCase();
+
             if (info.toLowerCase().startsWith("banc:")) {
                 BanC b = new BanC(info);
+
                 if(!ba.getOperatorList().isBotExact(b.getName())) {
                     bancs.put(b.getName(), b);
                     perps.add(b.getName());
                 }
             } else if (info.toLowerCase().startsWith("info:")) {
                 String[] args = info.split(":");
+
                 if(!ba.getOperatorList().isBotExact(args[1])) {
                     perps.add(args[1]);
                     guards.put(args[1], ipc.getSender());
@@ -224,28 +243,30 @@ public class policebot extends SubspaceBot {
             }
         }
     }
-    
+
     /** Sends help screen **/
     private void cmd_help(String name) {
         String[] msgs = new String[] {
-                ",------------- POLICE BOT HELP -------------.",
-                "| !debug   - enables debug messages         |",
-                "| !status  - lists current bot variables    |",
-                "`-------------------------------------------'"
+            ",------------- POLICE BOT HELP -------------.",
+            "| !debug   - enables debug messages         |",
+            "| !status  - lists current bot variables    |",
+            "`-------------------------------------------'"
         };
         ba.smartPrivateMessageSpam(name, msgs);
     }
-    
+
     /** Shows current status of bot variables **/
     private void cmd_status(String name) {
         String msg = "Status: " + status.toString() + " Current perp: " + (perp != null ? perp : "null");
         ba.sendSmartPrivateMessage(name, msg);
         msg = "Perps: ";
+
         for (String s : perps)
             msg += s + ", ";
+
         ba.sendSmartPrivateMessage(name, msg);
     }
-    
+
     /** Toggles debug messages **/
     private void cmd_debug(String name) {
         if (debugger != null && debugger.equalsIgnoreCase(name)) {
@@ -256,22 +277,23 @@ public class policebot extends SubspaceBot {
             ba.sendSmartPrivateMessage(name, "Debugging ENABLED");
         }
     }
-    
+
     /** Kills the bot **/
     private void cmd_die(String name) {
         ba.cancelTasks();
+
         if (name.length() > 0) {
             ba.sendSmartPrivateMessage(name, "Goodbye!");
             ba.die(name + " the douchebag killed me.");
         } else
             ba.die("!die by " + name);
     }
-    
+
     /**
-     * Determines if it is safe to do a *locate command and returns false if so.
-     *
-     * @return false if okay to *locate
-     */
+        Determines if it is safe to do a *locate command and returns false if so.
+
+        @return false if okay to *locate
+    */
     private boolean locateWait() {
         if (locateWait != null)
             return true;
@@ -284,16 +306,16 @@ public class policebot extends SubspaceBot {
         } else
             return false;
     }
-    
+
     private void debug(String msg) {
         if (debugger != null)
             ba.sendSmartPrivateMessage(debugger, "[DEBUG] " + msg);
     }
-    
+
     public void handleDisconnect() {
         ba.cancelTasks();
     }
-    
+
     enum Status {
         // more like POST status
         LOCATE,     // attempted to find player but no result returned
@@ -301,59 +323,65 @@ public class policebot extends SubspaceBot {
         CONFIRM,    // awaiting confirmation meaning none was given yet so go back to locating
         IDLE        // previous cycle completed so either get next perp or return home
     }
-    
+
     /**
-     * Tracker is the main loop which systematically cycles through a list of perpetrators
-     * as reported by pubbot to pursue and potentially silence.
-     *
-     * @author WingZero
-     */
+        Tracker is the main loop which systematically cycles through a list of perpetrators
+        as reported by pubbot to pursue and potentially silence.
+
+        @author WingZero
+    */
     private class Tracker extends TimerTask {
 
         @Override
         public void run() {
             switch (status) {
-                case APPREHEND:
-                    // handled by ArenaJoined
-                    break;
-                case CONFIRM:
-                    // handled by Message event
-                    // awaiting confirmation meaning none was given yet so go back to locating
-                    // Perp must have fled to a different arena
+            case APPREHEND:
+                // handled by ArenaJoined
+                break;
+
+            case CONFIRM:
+
+                // handled by Message event
+                // awaiting confirmation meaning none was given yet so go back to locating
+                // Perp must have fled to a different arena
+                if (!locateWait()) {
+                    debug("Relocating " + perp);
+                    status = Status.LOCATE;
+                    ba.locatePlayer(perp);
+                    locateCount++;
+                }
+
+                break;
+
+            case LOCATE:
+                // locate failed, player must be offline
+                debug("Locating " + perp + " failed");
+                status = Status.IDLE;
+
+            case IDLE:
+                if (perps.isEmpty() && !ba.getArenaName().equalsIgnoreCase(HOME)) {
+                    // nothing to do
+                    debug("Nothing to do: returning home");
+                    perp = null;
+                    ba.changeArena(HOME);
+                } else if (!perps.isEmpty()) {
                     if (!locateWait()) {
-                        debug("Relocating " + perp);
+                        perp = perps.remove(0);
+                        debug("Locating " + perp);
                         status = Status.LOCATE;
                         ba.locatePlayer(perp);
                         locateCount++;
                     }
-                    break;
-                case LOCATE:
-                    // locate failed, player must be offline
-                    debug("Locating " + perp + " failed");
-                    status = Status.IDLE;
-                case IDLE:
-                    if (perps.isEmpty() && !ba.getArenaName().equalsIgnoreCase(HOME)) {
-                        // nothing to do
-                        debug("Nothing to do: returning home");
-                        perp = null;
-                        ba.changeArena(HOME);
-                    } else if (!perps.isEmpty()) {
-                        if (!locateWait()) {
-                            perp = perps.remove(0);
-                            debug("Locating " + perp);
-                            status = Status.LOCATE;
-                            ba.locatePlayer(perp);
-                            locateCount++;
-                        }
-                    }
-                    break;
+                }
+
+                break;
             }
         }
-        
+
     }
-    
+
     private class LocateWait extends TimerTask {
-        
+
         @Override
         public void run() {
             locateCount = 0;
@@ -362,10 +390,10 @@ public class policebot extends SubspaceBot {
     }
 
     /**
-     * BanC - stripped down from pubbotbanc's version to include only pertinent information related to policebot.
-     *
-     * @author WingZero
-     */
+        BanC - stripped down from pubbotbanc's version to include only pertinent information related to policebot.
+
+        @author WingZero
+    */
     class BanC {
 
         String name;
@@ -387,7 +415,7 @@ public class policebot extends SubspaceBot {
             else
                 type = BanCType.SUPERSPEC;
         }
-        
+
         public String getRemaining() {
             return "" + (time);
         }

@@ -19,9 +19,9 @@ import twcore.core.util.ipc.IPCMessage;
 public class pubbotwho extends PubBotModule {
 
     protected final String IPC = "whoonline";
-    
+
     HashMap<String, Who> who = new HashMap<String, Who>();
-    
+
     boolean debug = false;
     String debuggee = "WingZero";
 
@@ -35,13 +35,15 @@ public class pubbotwho extends PubBotModule {
         eventRequester.request(EventRequester.ARENA_JOINED);
         eventRequester.request(EventRequester.MESSAGE);
     }
-    
+
     public void handleEvent(Message event) {
         String name = m_botAction.getPlayerName(event.getPlayerID());
         String msg = event.getMessage();
         int type = event.getMessageType();
+
         if (name == null || msg == null)
             return;
+
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) {
             if (m_botAction.getOperatorList().isSmod(name) && msg.equals("!debug")) {
                 debug(name);
@@ -49,19 +51,20 @@ public class pubbotwho extends PubBotModule {
         }
 
     }
-    
+
     private void debug(String name) {
         debug = !debug;
+
         if (debug)
             debuggee = name;
-        
-        m_botAction.sendSmartPrivateMessage(debuggee, "Debug " + (debug?"ON":"OFF"));
+
+        m_botAction.sendSmartPrivateMessage(debuggee, "Debug " + (debug ? "ON" : "OFF"));
     }
 
     public void handleEvent(ArenaJoined event) {
         /*
-        Iterator<Player> i = m_botAction.getPlayerIterator();
-        while (i.hasNext())
+            Iterator<Player> i = m_botAction.getPlayerIterator();
+            while (i.hasNext())
             m_botAction.ipcTransmit(IPC, new IPCEvent(p.getPlayerName(), System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
         */
         m_botAction.ipcTransmit(IPC, new IPCEvent(m_botAction.getPlayerIterator(), System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
@@ -77,25 +80,27 @@ public class pubbotwho extends PubBotModule {
         // ignore players when biller is down
         if (p.getPlayerName().startsWith("^"))
             return;
-        
+
         if (debug)
             m_botAction.sendSmartPrivateMessage(debuggee, "enter event for: " + p.getPlayerName());
 
         //m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + p.getPlayerName()));
         String name = p.getPlayerName().toLowerCase();
-        
+
         // Has player left and then re-entered before their TimerTask has fired? If so, update time
         if (who.containsKey(name)) {
-        	Who temp = who.get(name);
-        	if (temp != null)
-        		temp.setTime( System.currentTimeMillis() );
+            Who temp = who.get(name);
+
+            if (temp != null)
+                temp.setTime( System.currentTimeMillis() );
+
             //m_botAction.cancelTask(who.remove(name));
         } else {
             try {
                 Who newWho = new Who(p.getPlayerName(), System.currentTimeMillis());
                 who.put(name, newWho);
                 m_botAction.scheduleTask(newWho, 2000);
-                
+
                 //who.put(name, new Who(p.getPlayerName(), System.currentTimeMillis()));
                 //m_botAction.scheduleTask(who.get(name), 2000);
             } catch (IllegalStateException e) {
@@ -118,54 +123,55 @@ public class pubbotwho extends PubBotModule {
         // ignore players when biller is down
         if (p.getPlayerName().startsWith("^"))
             return;
-        
+
         if (debug)
             m_botAction.sendSmartPrivateMessage(debuggee, "left event for: " + p.getPlayerName());
 
         //m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + p.getPlayerName()));
         String name = p.getPlayerName().toLowerCase();
+
         if (who.containsKey(name))
             m_botAction.cancelTask(who.remove(name));
-        
+
         m_botAction.ipcTransmit(IPC, new IPCEvent(p.getPlayerName(), System.currentTimeMillis(), EventRequester.PLAYER_LEFT));
     }
-    
+
     public void handleEvent(InterProcessEvent event) {
         if (!event.getChannel().equals(IPC) || !(event.getObject() instanceof IPCMessage))
             return;
-        
+
         if (((IPCMessage) event.getObject()).getMessage().equals("who:refresh")) {
             /*
-            Iterator<Player> i = m_botAction.getPlayerIterator();
-            while (i.hasNext())
+                Iterator<Player> i = m_botAction.getPlayerIterator();
+                while (i.hasNext())
                 m_botAction.ipcTransmit(IPC, new IPCMessage("enter:" + i.next().getPlayerName()));
-            */        
+            */
             m_botAction.ipcTransmit(IPC, new IPCEvent(m_botAction.getPlayerIterator(), System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
-            
+
         }
     }
-    
+
     public void doDie() {
         /*
-        Iterator<Player> i = m_botAction.getPlayerIterator();
-        while (i.hasNext())
+            Iterator<Player> i = m_botAction.getPlayerIterator();
+            while (i.hasNext())
             m_botAction.ipcTransmit(IPC, new IPCMessage("left:" + i.next().getPlayerName()));
         */
         m_botAction.ipcTransmit(IPC, new IPCEvent(m_botAction.getPlayerIterator(), System.currentTimeMillis(), EventRequester.PLAYER_LEFT));
-        
-        
+
+
     }
 
     @Override
     public void cancel() {
     }
-    
+
     class Who extends TimerTask {
-        
+
         String name;    // Player name
         long time;      // Time at which they entered arena  (TODO: verify that this is actually used?
-                        //                                          Its run() uses System's current time)
-        
+        //                                          Its run() uses System's current time)
+
         public Who(String name, long time) {
             this.name = name;
             this.time = time;
@@ -176,10 +182,10 @@ public class pubbotwho extends PubBotModule {
             who.remove(name.toLowerCase());
             m_botAction.ipcTransmit(IPC, new IPCEvent(name, System.currentTimeMillis(), EventRequester.PLAYER_ENTERED));
         }
-        
+
         public void setTime( long time ) {
-        	this.time = time;
+            this.time = time;
         }
-        
+
     }
 }

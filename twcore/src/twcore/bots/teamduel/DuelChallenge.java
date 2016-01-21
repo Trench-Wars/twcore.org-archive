@@ -5,7 +5,7 @@ public class DuelChallenge {
     // Team IDs
     private int m_challengerTeam;
     private int m_challengedTeam;
-    
+
     // Team Ships
     private int m_challengerShip;
     private int m_challengedShip;
@@ -25,13 +25,13 @@ public class DuelChallenge {
 
     // Issued time of challenge
     private int m_issueTime;
-    
+
     // Keep track of who has accepted the challenge
     private boolean[] accepted = { false, false };
 
     /**
-     * This constructor is for normal league challenges
-     */
+        This constructor is for normal league challenges
+    */
     public DuelChallenge(int team1, int team2, String challenger[], String challenged[], DuelPlayer player, int type, int box) {
         m_challengerTeam = team1;
         m_challengedTeam = team2;
@@ -49,15 +49,15 @@ public class DuelChallenge {
 
         m_issueTime = ((int) System.currentTimeMillis() / 1000);
     }
-    
+
     public DuelPlayer getInitiater() {
         return initiater;
     }
-    
+
     public String getKey() {
         return key;
     }
-    
+
     public int getBoxType() {
         return m_boxType;
     }
@@ -93,7 +93,7 @@ public class DuelChallenge {
     public int getToWin() {
         return m_toWin;
     }
-    
+
     public boolean getNoCount() {
         return m_noCount;
     }
@@ -105,7 +105,7 @@ public class DuelChallenge {
     public void acceptTwo() {
         accepted[1] = true;
     }
-    
+
     public boolean[] getAccepted() {
         return accepted;
     }

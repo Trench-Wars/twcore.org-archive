@@ -23,26 +23,26 @@ import facebook4j.FacebookException;
 import facebook4j.FacebookFactory;
 
 /*
- * SSCU Trench Wars Social Media Bot(s)
- * 
- * Twitter - The core function of this bot is to handle the Social Media tools of Trench Wars.
- * The below code is a function incorporated with Twitter4J. This allows TWCore to communicate with the Twitter API.
- * We can have functions such as posting updates on certain events.
- * 
- * Facebook - The core function of this bot is to handle the Social Media tools of Trench Wars.
- * The difference between this and Twitter, is Facebook is not meant to handle the instant events such as events being hosted.
- * We don't clog up the feed of people who have liked our page, and push them away.
- * This purpose is to log important events that we can broadcast to our players on FB.
- * 
- * TODO:
- * We need to get a list of what should be logged for what in each bot.
- * 
- * NOTE:
- * This is two bots in one!
- * 
- * 
- * @author Dezmond
- */
+    SSCU Trench Wars Social Media Bot(s)
+
+    Twitter - The core function of this bot is to handle the Social Media tools of Trench Wars.
+    The below code is a function incorporated with Twitter4J. This allows TWCore to communicate with the Twitter API.
+    We can have functions such as posting updates on certain events.
+
+    Facebook - The core function of this bot is to handle the Social Media tools of Trench Wars.
+    The difference between this and Twitter, is Facebook is not meant to handle the instant events such as events being hosted.
+    We don't clog up the feed of people who have liked our page, and push them away.
+    This purpose is to log important events that we can broadcast to our players on FB.
+
+    TODO:
+    We need to get a list of what should be logged for what in each bot.
+
+    NOTE:
+    This is two bots in one!
+
+
+    @author Dezmond
+*/
 
 public class socialmedia extends SubspaceBot {
     //The mothership of Social Media
@@ -53,8 +53,8 @@ public class socialmedia extends SubspaceBot {
     private OperatorList oplist;
 
     //Twitter Config
-    twitter4j.conf.ConfigurationBuilder twitterConfig; //builds the authentication 
-    TwitterFactory twitterFactory; //initiates the Twitter authentication 
+    twitter4j.conf.ConfigurationBuilder twitterConfig; //builds the authentication
+    TwitterFactory twitterFactory; //initiates the Twitter authentication
     Twitter twitter; //what we will reference through this program to post etc
     String twitterConsumer; //authentication
     String twitterConsSecret; //authentication
@@ -136,6 +136,7 @@ public class socialmedia extends SubspaceBot {
         } else {
             ba.joinArena(cfg.getString("FBInitialArena"));
         }
+
         ba.sendUnfilteredPublicMessage("?chat=marketing," + ba.getGeneralSettings().getString("Smod Chat"));
         loadOps();
     }
@@ -146,6 +147,7 @@ public class socialmedia extends SubspaceBot {
 
     public void handleEvent(ArenaJoined event) {
         ba.setFreq(ba.getPlayerID(ba.getBotName()), 9751);
+
         if (ba.getBotName().equals(twitterBot)) {
             ba.sendChatMessage(2, "OAuth Credentials Verified.");
         } else {
@@ -157,11 +159,12 @@ public class socialmedia extends SubspaceBot {
     public void handleEvent(PlayerEntered event) {
         //We've just had a benchmarks in players for pub. Lets update Twitter!!!
         String arena = ba.getArenaName();
+
         if (ba.getBotName().equals(twitterBot)) {
             if (ba.getPlayingPlayers().size() > 50 && Tools.isAllDigits(arena)) {
                 try {
                     twitter.updateStatus("We have just went passed the 50 player mark in public (non spectating players)! Come join in the basing action in ?go "
-                            + ba.getArenaName() + " -" + ba.getBotName());
+                                         + ba.getArenaName() + " -" + ba.getBotName());
                 } catch (TwitterException e) {
                     // TODO Auto-generated catch block
                     Tools.printStackTrace(e);
@@ -173,8 +176,10 @@ public class socialmedia extends SubspaceBot {
 
     public void handleEvent(Message event) {
         String name = event.getMessager();
+
         if (name == null || name.length() < 1)
             name = m_botAction.getPlayerName(event.getPlayerID());
+
         String msg = event.getMessage();
 
         if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.REMOTE_PRIVATE_MESSAGE
@@ -184,13 +189,14 @@ public class socialmedia extends SubspaceBot {
             } else if (msg.equalsIgnoreCase("!about")) {
                 if (ba.getBotName().equals(twitterBot)) {
                     m_botAction.sendSmartPrivateMessage(name, "Hello there! My name is TwitterBot. I'm the sister of FacebookBot. My purpose is to track important events "
-                            + "and post them on our Twitter page! Want to see what I post? Why don't you follow me on http://www.twitter.com/SSTrenchWars. ");
+                                                        + "and post them on our Twitter page! Want to see what I post? Why don't you follow me on http://www.twitter.com/SSTrenchWars. ");
                 } else {
                     m_botAction.sendSmartPrivateMessage(name, "Hey! My name is FacebookBot. If you didn't know, TwitterBot is my sister! My reason for being here "
-                            + "is to post important events and status updates to our Facebook page for SSCU Trench Wars. Interested in liking my page? "
-                            + "You can visit it at http://facebook.com/TWSubspace.");
+                                                        + "is to post important events and status updates to our Facebook page for SSCU Trench Wars. Interested in liking my page? "
+                                                        + "You can visit it at http://facebook.com/TWSubspace.");
                 }
             }
+
             if (event.getMessageType() == Message.CHAT_MESSAGE) {
                 if (oplist.isSmod(name)) {
                     if (msg.startsWith("!go ")) {
@@ -215,11 +221,13 @@ public class socialmedia extends SubspaceBot {
 
                     if (msg.startsWith("!tpost ") && ba.getBotName().equals(twitterBot)) {
                         String status = msg.substring(7);
+
                         try {
                             if (status.length() > 140) {
                                 m_botAction.sendChatMessage("That tweet is over 140 characters - therefor I reject it.");
                             } else {
                                 twitter.updateStatus(status);
+
                                 if (event.getChatNumber() == 1) {
                                     m_botAction.sendChatMessage("Tweeted to SSTrenchWars!");
                                 } else {
@@ -232,8 +240,10 @@ public class socialmedia extends SubspaceBot {
                         }
                     } else if (msg.startsWith("!fbpost ") && ba.getBotName().equals(facebookBot)) {
                         String fbstatus = msg.substring(8);
+
                         try {
                             facebook.postStatusMessage("136524223193430", fbstatus);
+
                             if (event.getChatNumber() == 1) {
                                 m_botAction.sendChatMessage("Posted to TWSubspace!");
                             } else {
@@ -252,9 +262,9 @@ public class socialmedia extends SubspaceBot {
 
             if (event.getMessageType() == Message.ARENA_MESSAGE) {
                 /*
-                String arenamsg = event.getMessage();
-                String eventmsg = arenamsg.toLowerCase();
-                if (ba.getBotName().equals(twitterBot)) {
+                    String arenamsg = event.getMessage();
+                    String eventmsg = arenamsg.toLowerCase();
+                    if (ba.getBotName().equals(twitterBot)) {
                     if (eventmsg.contains("?go base") || eventmsg.contains("?go wbduel") || eventmsg.contains("?go spidduel") || eventmsg.contains("?go javduel")
                             || eventmsg.contains("?go hockey")) {
                         try {
@@ -271,15 +281,15 @@ public class socialmedia extends SubspaceBot {
                             Tools.printStackTrace(e);
                         }
                     } else if (eventmsg.contains("TWD") || eventmsg.contains("TWL")){
-                    	try {
-                			twitter.updateStatus("LEAGUE GAME: " + arenamsg);
-                		} catch (TwitterException e) {
-                			// TODO Auto-generated catch block
-                			Tools.printStackTrace(e);
-                		}
+                        try {
+                            twitter.updateStatus("LEAGUE GAME: " + arenamsg);
+                        } catch (TwitterException e) {
+                            // TODO Auto-generated catch block
+                            Tools.printStackTrace(e);
+                        }
                     }
-                }
-                }*/
+                    }
+                    }*/
             }
         }
     }
@@ -290,6 +300,7 @@ public class socialmedia extends SubspaceBot {
             mediaops.clear();
             //
             String ops[] = m_botSettings.getString("MediaOps").split(",");
+
             for (int i = 0; i < ops.length; i++)
                 mediaops.put(ops[i].toLowerCase(), ops[i]);
         } catch (Exception e) {
@@ -305,6 +316,7 @@ public class socialmedia extends SubspaceBot {
         String ops = m_botSettings.getString("MediaOps");
 
         int spot = ops.indexOf(message);
+
         if (spot == 0 && ops.length() == message.length()) {
             ops = "";
             m_botAction.sendChatMessage("Removed " + message + " as a Media Operator");
@@ -334,10 +346,12 @@ public class socialmedia extends SubspaceBot {
             m_botAction.sendChatMessage(message + " is already a Media Operator");
             return;
         }
+
         if (ops.length() < 1)
             m_botSettings.put("MediaOps", message);
         else
             m_botSettings.put("MediaOps", ops + "," + message);
+
         m_botAction.sendChatMessage("Added " + message + " as a Media Operator");
         m_botSettings.save();
         loadOps();
@@ -347,45 +361,50 @@ public class socialmedia extends SubspaceBot {
         loadOps();
         String hops = "Media Operators: ";
         Iterator<String> it1 = mediaops.values().iterator();
+
         while (it1.hasNext())
             if (it1.hasNext())
                 hops += it1.next() + ", ";
             else
                 hops += it1.next();
+
         m_botAction.sendChatMessage(hops);
     }
 
     private void cmd_help(String name, String msg) {
         String[] strs = { "+-------------------------------------------------------------------------+",
-                "|                  SSCU Trench Wars Social Media Bot                      |",
-                "|                           by Dezmond                                    |",
-                "|                  Player Commands for : " + ba.getBotName() + "          |",
-                "|                                                                         |",
-                "| Commands:                                                               |",
-                "| !help                  - Displays this message                          |",
-                "| !about                 - Who am I and what do I do?                     |",
-                "|                                                                         |",
-                "+-------------------------------------------------------------------------+", };
+                          "|                  SSCU Trench Wars Social Media Bot                      |",
+                          "|                           by Dezmond                                    |",
+                          "|                  Player Commands for : " + ba.getBotName() + "          |",
+                          "|                                                                         |",
+                          "| Commands:                                                               |",
+                          "| !help                  - Displays this message                          |",
+                          "| !about                 - Who am I and what do I do?                     |",
+                          "|                                                                         |",
+                          "+-------------------------------------------------------------------------+",
+                        };
         String[] staff = { "|                                                                         |",
-                "+-------------------------------------------------------------------------+",
-                "|                  Ops & SMod Commands (Twitter)                          |",
-                "| !tpost                 - Posts a status update with <msg>               |",
-                "| !go <arena>            - Sends the bot to <arena>                       |",
-                "| !die                   - Kills bot                                      |",
-                "| !listops               - List Ops                                       |",
-                "| !addop                 - Add Op                                         |",
-                "| !deop                  - De Op                                          |",
-                "+-------------------------------------------------------------------------+", };
+                           "+-------------------------------------------------------------------------+",
+                           "|                  Ops & SMod Commands (Twitter)                          |",
+                           "| !tpost                 - Posts a status update with <msg>               |",
+                           "| !go <arena>            - Sends the bot to <arena>                       |",
+                           "| !die                   - Kills bot                                      |",
+                           "| !listops               - List Ops                                       |",
+                           "| !addop                 - Add Op                                         |",
+                           "| !deop                  - De Op                                          |",
+                           "+-------------------------------------------------------------------------+",
+                         };
         String[] stafffb = { "|                                                                         |",
-                "+--------------------------------------------------------------------------+",
-                "|                 Ops & SMod Commands (Facebook)                           |",
-                "| !fbpost                 - Posts a status update with <msg>               |",
-                "| !go <arena>             - Sends the bot to <arena>                       |",
-                "| !die                    - Kills bot                                      |",
-                "| !listops                - List Ops                                       |",
-                "| !addop                  - Add Op                                         |",
-                "| !deop                   - De Op                                          |",
-                "+--------------------------------------------------------------------------+", };
+                             "+--------------------------------------------------------------------------+",
+                             "|                 Ops & SMod Commands (Facebook)                           |",
+                             "| !fbpost                 - Posts a status update with <msg>               |",
+                             "| !go <arena>             - Sends the bot to <arena>                       |",
+                             "| !die                    - Kills bot                                      |",
+                             "| !listops                - List Ops                                       |",
+                             "| !addop                  - Add Op                                         |",
+                             "| !deop                   - De Op                                          |",
+                             "+--------------------------------------------------------------------------+",
+                           };
         ba.smartPrivateMessageSpam(name, strs);
 
         if (oplist.isSmod(name.toLowerCase()) || mediaops.containsKey(name.toLowerCase())) {

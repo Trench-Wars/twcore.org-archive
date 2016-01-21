@@ -33,69 +33,69 @@ import twcore.core.events.WatchDamage;
 import twcore.core.events.WeaponFired;
 
 /*
- * A module is something that can be disabled/enabled.
- * It has a functionnality to the pub system.
- * 
- * Some are more importants than others like :
- * - MoneySystem
- * - PlayerManager
- * 
- * Also, some modules are dependants to others module
- * Dependencies:
- * - TO BE COMPLETED
- * 
- */
+    A module is something that can be disabled/enabled.
+    It has a functionnality to the pub system.
+
+    Some are more importants than others like :
+    - MoneySystem
+    - PlayerManager
+
+    Also, some modules are dependants to others module
+    Dependencies:
+    - TO BE COMPLETED
+
+*/
 public abstract class AbstractModule {
 
-	protected BotAction m_botAction;
-	protected PubContext context;
-	
-	protected String name;
-	
-	protected boolean enabled = false;
-	
-	public AbstractModule(BotAction botAction, PubContext context, String name) {
-		this.m_botAction = botAction;
-		this.context = context;
-		this.name = name;
-		requestEvents(m_botAction.getEventRequester());
-	}
-	
-	public void enable() {
-		this.enabled = true;
-	}
-	
-	public void disable() {
-		this.enabled = false;
-	}
-	
-	public boolean isEnabled() {
-		return enabled;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	
-	public abstract void start();
-	public abstract void stop();
-	
-	public abstract void requestEvents(EventRequester eventRequester);
-	public abstract void reloadConfig();
-	
-	public abstract void handleCommand(String sender, String command);
-	public abstract void handleModCommand(String sender, String command);
+    protected BotAction m_botAction;
+    protected PubContext context;
+
+    protected String name;
+
+    protected boolean enabled = false;
+
+    public AbstractModule(BotAction botAction, PubContext context, String name) {
+        this.m_botAction = botAction;
+        this.context = context;
+        this.name = name;
+        requestEvents(m_botAction.getEventRequester());
+    }
+
+    public void enable() {
+        this.enabled = true;
+    }
+
+    public void disable() {
+        this.enabled = false;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public abstract void start();
+    public abstract void stop();
+
+    public abstract void requestEvents(EventRequester eventRequester);
+    public abstract void reloadConfig();
+
+    public abstract void handleCommand(String sender, String command);
+    public abstract void handleModCommand(String sender, String command);
     public abstract void handleSmodCommand(String sender, String command);
-	
-	public abstract String[] getHelpMessage(String sender);
-	public abstract String[] getModHelpMessage(String sender);
+
+    public abstract String[] getHelpMessage(String sender);
+    public abstract String[] getModHelpMessage(String sender);
     public abstract String[] getSmodHelpMessage(String sender);
-	
+
     /**
-     * This method distributes the events to the appropriate event handlers.
-     *
-     * @param event is the event to distribute.
-     */
+        This method distributes the events to the appropriate event handlers.
+
+        @param event is the event to distribute.
+    */
 
     public void handleEvent(SubspaceEvent event)
     {
@@ -152,65 +152,65 @@ public abstract class AbstractModule {
         else if(event instanceof PlayerBanner)
             handleEvent((PlayerBanner) event);
     }
-	
+
     /**
-     * All of these stub functions handle the various events.
-     */
+        All of these stub functions handle the various events.
+    */
 
-    public void handleEvent(Message event){}
-    
-    public void handleEvent(ArenaList event){}
+    public void handleEvent(Message event) {}
 
-    public void handleEvent(PlayerEntered event){}
+    public void handleEvent(ArenaList event) {}
 
-    public void handleEvent(PlayerPosition event){}
+    public void handleEvent(PlayerEntered event) {}
 
-    public void handleEvent(PlayerLeft event){}
+    public void handleEvent(PlayerPosition event) {}
 
-    public void handleEvent(PlayerDeath event){}
-    
-    public void handleEvent(PlayerBanner event){}
+    public void handleEvent(PlayerLeft event) {}
 
-    public void handleEvent(Prize event){}
+    public void handleEvent(PlayerDeath event) {}
 
-    public void handleEvent(ScoreUpdate event){}
-    
-    public void handleEvent(ScoreReset event){}
-    
-    public void handleEvent(SoccerGoal event){}
+    public void handleEvent(PlayerBanner event) {}
 
-    public void handleEvent(WeaponFired event){}
+    public void handleEvent(Prize event) {}
 
-    public void handleEvent(FrequencyChange event){}
+    public void handleEvent(ScoreUpdate event) {}
 
-    public void handleEvent(FrequencyShipChange event){}
+    public void handleEvent(ScoreReset event) {}
 
-    public void handleEvent(LoggedOn event){}
+    public void handleEvent(SoccerGoal event) {}
 
-    public void handleEvent(FileArrived event){}
+    public void handleEvent(WeaponFired event) {}
 
-    public void handleEvent(ArenaJoined event){}
+    public void handleEvent(FrequencyChange event) {}
 
-    public void handleEvent(WatchDamage event){}
+    public void handleEvent(FrequencyShipChange event) {}
 
-    public void handleEvent(BallPosition event){}
-    
-    public void handleEvent(TurretEvent event){}
+    public void handleEvent(LoggedOn event) {}
 
-    public void handleEvent(FlagPosition event){}
+    public void handleEvent(FileArrived event) {}
 
-    public void handleEvent(FlagDropped event){}
-    
-    public void handleEvent(FlagVictory event){}
+    public void handleEvent(ArenaJoined event) {}
 
-    public void handleEvent(FlagReward event){}
-    
-    public void handleEvent(FlagClaimed event){}
-    
-    public void handleEvent(InterProcessEvent event){}
-	
-	public void handleEvent(SQLResultEvent event) {}
-	
-	public void handleDisconnect() {}
-	
+    public void handleEvent(WatchDamage event) {}
+
+    public void handleEvent(BallPosition event) {}
+
+    public void handleEvent(TurretEvent event) {}
+
+    public void handleEvent(FlagPosition event) {}
+
+    public void handleEvent(FlagDropped event) {}
+
+    public void handleEvent(FlagVictory event) {}
+
+    public void handleEvent(FlagReward event) {}
+
+    public void handleEvent(FlagClaimed event) {}
+
+    public void handleEvent(InterProcessEvent event) {}
+
+    public void handleEvent(SQLResultEvent event) {}
+
+    public void handleDisconnect() {}
+
 }

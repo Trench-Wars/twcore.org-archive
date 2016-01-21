@@ -1,10 +1,10 @@
 package twcore.bots.twl;
 
 /**
- * Modeled after Matchbot's MatchTypeID.
- * Values extracted from rules files.
- * @author Trancid
- */
+    Modeled after Matchbot's MatchTypeID.
+    Values extracted from rules files.
+    @author Trancid
+*/
 public abstract class MatchTypeID {
     public static final int NONE                        = 0;
     public static final int TWLD                        = 1;

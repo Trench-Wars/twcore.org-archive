@@ -4,100 +4,120 @@ package twcore.bots.duelbot;
 public class TournyGame {
 
 
-	private int gameId;
+    private int gameId;
 
-	private String playerOne;
-	private String playerTwo;
-	public int playerOneId;
-	public int playerTwoId;
-	private int leagueType;
-	private int realGameId;
-	private int players;
-	/*private int round;*/
+    private String playerOne;
+    private String playerTwo;
+    public int playerOneId;
+    public int playerTwoId;
+    private int leagueType;
+    private int realGameId;
+    private int players;
+    /*private int round;*/
 
-	private boolean replyOne = false;
-	private boolean replyTwo = false;
+    private boolean replyOne = false;
+    private boolean replyTwo = false;
 
-	private int expiration;
+    private int expiration;
 
-	public TournyGame( int gId, String pOne, String pTwo, int idOne,
-					   int idTwo, int id, int realId, int p ) {
+    public TournyGame( int gId, String pOne, String pTwo, int idOne,
+                       int idTwo, int id, int realId, int p ) {
 
-		gameId = gId;
-		playerOne = pOne;
-		playerTwo = pTwo;
-		playerOneId = idOne;
-		playerTwoId = idTwo;
-		leagueType = id;
-		realGameId = realId;
-		players = p;
+        gameId = gId;
+        playerOne = pOne;
+        playerTwo = pTwo;
+        playerOneId = idOne;
+        playerTwoId = idTwo;
+        leagueType = id;
+        realGameId = realId;
+        players = p;
 
-		expiration = (int)(System.currentTimeMillis()/1000)+60*5;
-	}
+        expiration = (int)(System.currentTimeMillis() / 1000) + 60 * 5;
+    }
 
-	public boolean hasExpired() {
+    public boolean hasExpired() {
 
-		if( (System.currentTimeMillis()/1000)-expiration > 300 ) return true;
-		else return false;
-	}
+        if( (System.currentTimeMillis() / 1000) - expiration > 300 ) return true;
+        else return false;
+    }
 
-	public String getType() {
+    public String getType() {
 
-		if( leagueType == 1 ) return "Warbird";
-		if( leagueType == 2 ) return "Javelin";
-		else return "Spider";
-	}
+        if( leagueType == 1 ) return "Warbird";
 
-	public boolean hasPlayer( String name ) {
+        if( leagueType == 2 ) return "Javelin";
+        else return "Spider";
+    }
 
-		name = name.toLowerCase();
+    public boolean hasPlayer( String name ) {
 
-		if( name.equals( playerOne.toLowerCase() ) || name.equals( playerTwo.toLowerCase() ) )
-			return true;
-		else
-			return false;
-	}
+        name = name.toLowerCase();
 
-	public boolean setResponse( String name ) {
+        if( name.equals( playerOne.toLowerCase() ) || name.equals( playerTwo.toLowerCase() ) )
+            return true;
+        else
+            return false;
+    }
 
-		if( name.equalsIgnoreCase( playerOne.toLowerCase() ) ) {
-			if( replyOne ) return true;
-			replyOne = true;
-			return false;
-		} else if( name.equalsIgnoreCase( playerTwo.toLowerCase() ) ) {
-			if( replyTwo ) return true;
-			replyTwo = true;
-			return false;
-		} else return true;
-	}
+    public boolean setResponse( String name ) {
 
-	public int getPlayerNumber( String name ) {
-		if( name.equalsIgnoreCase( playerOne ) ) {
-			return 1;
-		} else if( name.equalsIgnoreCase( playerTwo ) ) {
-			return 2;
-		}
-		return 1;
+        if( name.equalsIgnoreCase( playerOne.toLowerCase() ) ) {
+            if( replyOne ) return true;
 
-	}
+            replyOne = true;
+            return false;
+        } else if( name.equalsIgnoreCase( playerTwo.toLowerCase() ) ) {
+            if( replyTwo ) return true;
 
-	public String getOpponent( String name ) {
-		if( name.equals( playerOne ) ) return playerTwo;
-		else return playerOne;
-	}
+            replyTwo = true;
+            return false;
+        } else return true;
+    }
 
-	public boolean bothReady() {
-		return replyOne && replyTwo;
-	}
+    public int getPlayerNumber( String name ) {
+        if( name.equalsIgnoreCase( playerOne ) ) {
+            return 1;
+        } else if( name.equalsIgnoreCase( playerTwo ) ) {
+            return 2;
+        }
 
-	public int getGameType() { return leagueType; }
-	public String getPlayerOne() { return playerOne; }
-	public String getPlayerTwo() { return playerTwo; }
+        return 1;
 
-	public int getGameId() { return gameId; }
-	public int getRealGameId() { return realGameId; }
-	public int getPlayers() { return players; }
+    }
 
-	public void setPlayerOne( String p ) { playerOne = p; }
-	public void setPlayerTwo( String p ) { playerTwo = p; }
+    public String getOpponent( String name ) {
+        if( name.equals( playerOne ) ) return playerTwo;
+        else return playerOne;
+    }
+
+    public boolean bothReady() {
+        return replyOne && replyTwo;
+    }
+
+    public int getGameType() {
+        return leagueType;
+    }
+    public String getPlayerOne() {
+        return playerOne;
+    }
+    public String getPlayerTwo() {
+        return playerTwo;
+    }
+
+    public int getGameId() {
+        return gameId;
+    }
+    public int getRealGameId() {
+        return realGameId;
+    }
+    public int getPlayers() {
+        return players;
+    }
+
+    public void setPlayerOne( String p ) {
+        playerOne = p;
+    }
+    public void setPlayerTwo( String p ) {
+        playerTwo = p;
+    }
 }

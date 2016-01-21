@@ -6,7 +6,7 @@ import twcore.core.events.Message;
 import twcore.core.events.PlayerEntered;
 
 public class pubbotalias extends PubBotModule {
-    
+
     public void initializeModule() {
     }
 
@@ -21,15 +21,16 @@ public class pubbotalias extends PubBotModule {
 
         m_botAction.ipcSendMessage(getIPCChannel(), "info " + playerName + ":" + playerIP + ":" + playerMacID, getPubHubName(), "pubbotalias");
         m_botAction.ipcSendMessage("TWDOp Alias", "info " + playerName + ":" + playerIP + ":" + playerMacID, "TWDOpBot", "pubbotalias");
-        m_botAction.ipcSendMessage("StaffBot Watch", "info " + playerName + ":" + playerIP + ":" + playerMacID, "StaffBot", "pubbotalias");   
-        
+        m_botAction.ipcSendMessage("StaffBot Watch", "info " + playerName + ":" + playerIP + ":" + playerMacID, "StaffBot", "pubbotalias");
+
     }
 
     public void handleEvent(Message event) {
         String msg = event.getMessage();
+
         if (event.getMessageType() == Message.ARENA_MESSAGE && msg.startsWith("IP:"))
-                sendPlayerInfo(msg);
-        
+            sendPlayerInfo(msg);
+
 
     }
 
@@ -45,10 +46,13 @@ public class pubbotalias extends PubBotModule {
 
         if (beginIndex == -1)
             return null;
+
         beginIndex = beginIndex + infoName.length();
         endIndex = message.indexOf("  ", beginIndex);
+
         if (endIndex == -1)
             endIndex = message.length();
+
         return message.substring(beginIndex, endIndex);
     }
 }

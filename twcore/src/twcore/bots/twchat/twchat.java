@@ -56,16 +56,16 @@ public class twchat extends SubspaceBot {
     private static final String ECORE = "TWCore-Event";
     private static final String LCORE = "TWCore-League";
     private static final String STREAM = "TrenchStream";
-    
+
     private KeepStreamAlive stream;
-    
+
     private String debugger = "";
     private boolean DEBUG = false;
     public boolean signup = false;
     public boolean notify = false;
     public boolean staff = false;
     public boolean servignore = false;
-    
+
     // status of the database update task sqlDump
     private boolean status = false;
     // number of seconds between database updates
@@ -108,30 +108,38 @@ public class twchat extends SubspaceBot {
 
     public void handleEvent(Message event) {
         String name = event.getMessager();
+
         if (name == null || name.length() < 1)
             name = m_botAction.getPlayerName(event.getPlayerID());
+
         String message = event.getMessage();
         int type = event.getMessageType();
+
         if (type == Message.ARENA_MESSAGE) {
 
             if (message.startsWith("IP:"))
                 sendPlayerInfo(message);
+
             if (message.contains("Client: VIE 1.34")) {
                 String nameFromMessage = message.substring(0, message.indexOf(":", 0));
-                if(servignore == true){
+
+                if(servignore == true) {
                     m_botAction.sendSmartPrivateMessage("StaffBot", "SERVERIGNORE " + nameFromMessage);
                     m_botAction.sendChatMessage(2, nameFromMessage + " is using TW-Chat. Sending request to ignore server warnings...");
                 }
-                if(notify == true){
-                if (ops.isBotExact(nameFromMessage))
-                    return;
-                else
-                    m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
-                m_botAction.sendUnfilteredPrivateMessage(nameFromMessage, "*spec");
-                if (!message.equalsIgnoreCase("Player locked in spectator mode")) {
+
+                if(notify == true) {
+                    if (ops.isBotExact(nameFromMessage))
+                        return;
+                    else
+                        m_botAction.sendChatMessage(2, "Non Continuum Client Detected! (" + nameFromMessage + ")");
+
                     m_botAction.sendUnfilteredPrivateMessage(nameFromMessage, "*spec");
 
-                }
+                    if (!message.equalsIgnoreCase("Player locked in spectator mode")) {
+                        m_botAction.sendUnfilteredPrivateMessage(nameFromMessage, "*spec");
+
+                    }
                 }
             }
 
@@ -211,7 +219,7 @@ public class twchat extends SubspaceBot {
                 else if (message.startsWith("!dev"))
                     deviates(name);
             }
-            
+
 
             if (ops.isSmod(name)) {
                 if (message.equalsIgnoreCase("!show"))
@@ -242,16 +250,16 @@ public class twchat extends SubspaceBot {
                     m_botAction.die("!die by " + name);
                 else if (message.equalsIgnoreCase("!stream"))
                     cmd_stream(name);
-                else if (message.equalsIgnoreCase("!servignore")){
-                    if(servignore == false){
-                    servignore = true;
-                    ba.sendSmartPrivateMessage(name, "Enabled Server Warnings for TWChat users");
+                else if (message.equalsIgnoreCase("!servignore")) {
+                    if(servignore == false) {
+                        servignore = true;
+                        ba.sendSmartPrivateMessage(name, "Enabled Server Warnings for TWChat users");
                     } else {
-                    servignore = false;
-                    ba.sendSmartPrivateMessage(name, "Disabled Server Warnings for TWChat users");
+                        servignore = false;
+                        ba.sendSmartPrivateMessage(name, "Disabled Server Warnings for TWChat users");
 
                     }
-                   
+
                 }
             }
 
@@ -265,18 +273,23 @@ public class twchat extends SubspaceBot {
     public void handleEvent(FileArrived event) {
         if (!event.getFileName().equals("vip.txt"))
             return;
+
         HashSet<String> vipList = new HashSet<String>();
+
         try {
             File vipFile = m_botAction.getDataFile("vip.txt");
             BufferedReader reader = new BufferedReader(new FileReader(vipFile));
             String vip = reader.readLine();
+
             while (vip != null) {
                 vipList.add(vip.toLowerCase());
                 vip = reader.readLine();
             }
+
             reader.close();
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(vipFile, true));
+
             for (int i = 0; i < lastPlayer.size(); i++) {
                 try {
                     if (vipList.contains(lastPlayer.get(i).toLowerCase()))
@@ -287,12 +300,14 @@ public class twchat extends SubspaceBot {
                         Tools.printLog("Added player " + lastPlayer.get(i) + " to VIP.txt for TW-Chat");
                         m_botAction.sendChatMessage("Player " + lastPlayer.get(i) + " has signed up for TW-Chat.");
                     }
+
                     lastPlayer.remove(i);
                 } catch (Exception e) {
                     m_botAction.sendChatMessage("Error, Cannot edit VIP.txt for " + lastPlayer.get(i) + " " + e);
                     Tools.printStackTrace(e);
                 }
             }
+
             writer.flush();
             writer.close();
             m_botAction.putFile("vip.txt");
@@ -310,41 +325,50 @@ public class twchat extends SubspaceBot {
     public void handleEvent(SQLResultEvent event) {
         if (!event.getIdentifier().contains(":"))
             return;
+
         String[] id = event.getIdentifier().split(":");
         String squad = id[1];
         String name = id[2];
         String mems = "";
         int online = 0;
         ResultSet rs = event.getResultSet();
+
         try {
             if (rs.next()) {
                 String p = rs.getString("fcName");
                 mems += p;
+
                 if (outsiders.contains(p.toLowerCase()))
                     mems += "*";
+
                 online++;
+
                 while (rs.next()) {
                     p = rs.getString("fcName");
                     mems += ", " + p;
+
                     if (outsiders.contains(p.toLowerCase()))
                         mems += "*";
+
                     online++;
                 }
+
                 m_botAction.sendSmartPrivateMessage(name, squad + "(" + online + "): " + mems);
             } else
                 m_botAction.sendSmartPrivateMessage(name, squad + "(" + 0 + "): None found.");
         } catch (SQLException e) {
             Tools.printStackTrace(e);
         }
+
         m_botAction.SQLClose(rs);
     }
 
     //public void handleEvent(PlayerLeft event) {
     /*
-    String name = ba.getPlayerName(event.getPlayerID());
-    if (name == null)
+        String name = ba.getPlayerName(event.getPlayerID());
+        if (name == null)
         return;
-    if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
+        if (show.contains(name.toLowerCase()) && !online.contains(name.toLowerCase()))
         show.remove(name.toLowerCase());
     */
     //}
@@ -352,8 +376,10 @@ public class twchat extends SubspaceBot {
     public void handleEvent(PlayerEntered event) {
         Player player = ba.getPlayer(event.getPlayerID());
         String name = player.getPlayerName();
+
         if (name == null || ops.isBotExact(name))
             return;
+
         ba.sendUnfilteredPrivateMessage(player.getPlayerName(), "*einfo");
 
         if (staff == true)
@@ -362,7 +388,7 @@ public class twchat extends SubspaceBot {
             else
                 m_botAction.sendUnfilteredPrivateMessage(name, "*info");
     }
-    
+
     private void recordVIP(String name, String message) {
         try {
             Calendar c = Calendar.getInstance();
@@ -397,13 +423,17 @@ public class twchat extends SubspaceBot {
     public void handleEvent(InterProcessEvent event) {
         if (!event.getChannel().equals(IPC) || !status)
             return;
+
         synchronized (event.getObject()) {
             String bug = "ipc:";
+
             if (event.getObject() instanceof IPCEvent) {
                 IPCEvent ipc = (IPCEvent) event.getObject();
                 int type = ipc.getType();
+
                 if (event.getSenderName().equals(WHOBOT)) {
                     bug += "WhoBot sends ";
+
                     if (type == EventRequester.PLAYER_ENTERED) {
                         if (!ipc.isAll()) {
                             bug += ipc.getName() + " entering ";
@@ -415,6 +445,7 @@ public class twchat extends SubspaceBot {
                             bug += "mass entrance list ";
                             @SuppressWarnings("unchecked")
                             HashMap<String, Long> list = (HashMap<String, Long>) ipc.getList();
+
                             for (String name : list.keySet()) {
                                 updateQueue.put(name, true);
                                 online.add(name);
@@ -431,6 +462,7 @@ public class twchat extends SubspaceBot {
                         } else {
                             bug += "mass exit ";
                             Iterator<String> i = outsiders.iterator();
+
                             while (i.hasNext()) {
                                 String name = i.next();
                                 updateQueue.put(name, false);
@@ -443,13 +475,17 @@ public class twchat extends SubspaceBot {
                         Set<String> who = (Set<String>) ipc.getList();
                         Set<String> twc = outsiders;
                         String[] msg = { "Deviates(TWC): ", "Deviates(WHO): " };
+
                         for (String p : twc)
                             if (!who.contains(p))
                                 msg[0] += p + ", ";
+
                         msg[0] = msg[0].substring(0, msg[0].length() - 2);
+
                         for (String p : who)
                             if (!twc.contains(p))
                                 msg[1] += p + ", ";
+
                         msg[1] = msg[1].substring(0, msg[1].length() - 2);
                         ba.smartPrivateMessageSpam(stater, msg);
                         stater = "";
@@ -470,8 +506,10 @@ public class twchat extends SubspaceBot {
                     }
                 } else if (!ipc.isAll()) {
                     String name = ipc.getName().toLowerCase();
+
                     if (ops.isBotExact(name))
                         return;
+
                     if (type == EventRequester.PLAYER_ENTERED) {
                         updateQueue.put(name, true);
                         online.add(name);
@@ -488,8 +526,10 @@ public class twchat extends SubspaceBot {
                         bug += "bot entered new arena.";
                         @SuppressWarnings("unchecked")
                         Iterator<Player> i = (Iterator<Player>) ipc.getList();
+
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
+
                             if (!ops.isBotExact(name)) {
                                 updateQueue.put(name, true);
                                 online.add(name);
@@ -500,8 +540,10 @@ public class twchat extends SubspaceBot {
                         bug += "bot left arena.";
                         @SuppressWarnings("unchecked")
                         Iterator<Player> i = (Iterator<Player>) ipc.getList();
+
                         while (i.hasNext()) {
                             String name = i.next().getPlayerName().toLowerCase();
+
                             if (!ops.isBotExact(name)) {
                                 updateQueue.put(name, false);
                                 online.remove(name);
@@ -510,9 +552,11 @@ public class twchat extends SubspaceBot {
                         }
                     }
                 }
+
                 debug(bug);
             } else if (countBots && event.getObject() instanceof IPCMessage) {
                 IPCMessage ipc = (IPCMessage) event.getObject();
+
                 if (ipc.getRecipient().equals(m_botAction.getBotName())) {
                     if (ipc.getMessage().equals("countit"))
                         botCount++;
@@ -524,28 +568,35 @@ public class twchat extends SubspaceBot {
     public void handleEvent(ArenaList event) {
         if (stater.length() < 1)
             return;
+
         String msg = "";
         int pop = 0;
         Map<String, Integer> arenas = event.getArenaList();
+
         for (String a : arenas.keySet())
             pop += arenas.get(a);
+
         msg += "Pop=" + (pop - botCount) + " | Online=" + online.size() + " | Outsiders=" + outsiders.size() + " | Bots=" + botCount;
         String query = "SELECT COUNT(DISTINCT fcName) as c FROM tblPlayer WHERE fnOnline = 1";
+
         try {
             ResultSet rs = ba.SQLQuery(db, query);
+
             if (rs.next())
                 pop = rs.getInt("c");
+
             ba.SQLClose(rs);
         } catch (SQLException e) {
             pop = -1;
         }
+
         msg += " | Database=" + pop + " | Queued=" + updateQueue.size() + " | Last update " + (System.currentTimeMillis() - lastUpdate) / 1000
-                + " sec ago";
+               + " sec ago";
         ba.sendSmartPrivateMessage(stater, msg);
         stater = "";
         countBots = false;
     }
-    
+
     private void cmd_stream(String name) {
         if (stream != null) {
             stream.end();
@@ -558,52 +609,57 @@ public class twchat extends SubspaceBot {
 
     private void help(String name, String message) {
         String[] startCommands = { "+-------------------------------------------------------------------------------+",
-                "|                                 Trench Wars Chat                              |",
-                "| Hello! I can help you chat on the web, or look for online squad players!      |" };
-        String[] publicCommands = { 
-                "| !signup                     - Signs you up for the online TW Chat App         |",
-                "|------------------------------- Who Is Online ---------------------------------|",
-                "| !whohas <#>     - Lists all the squads who have <#> or more members online    |",
-                "| !squad <squad>  - Lists all the members of <squad> currently online and       |",
-                "|   or !s <squad>    the * means player is potentially afk",
-                "| !online <name>  - Shows if <name> is currently online according to list on bot|",
-                "| !stats          - Displays population and player online status information    |" };
+                                   "|                                 Trench Wars Chat                              |",
+                                   "| Hello! I can help you chat on the web, or look for online squad players!      |"
+                                 };
+        String[] publicCommands = {
+            "| !signup                     - Signs you up for the online TW Chat App         |",
+            "|------------------------------- Who Is Online ---------------------------------|",
+            "| !whohas <#>     - Lists all the squads who have <#> or more members online    |",
+            "| !squad <squad>  - Lists all the members of <squad> currently online and       |",
+            "|   or !s <squad>    the * means player is potentially afk",
+            "| !online <name>  - Shows if <name> is currently online according to list on bot|",
+            "| !stats          - Displays population and player online status information    |"
+        };
         String[] modCommands = { "|------------------------------- TW-Chat SMod+ ---------------------------------|",
-                "| >> Check aliases before add:  http://trenchwars.org/dezmond/twchatusers.php   |",
-                "| !get                        - Gets VIP.txt from server (do before !vipadd)    |",
-                "| !vipadd                     - Manually add this person to VIP.                |",
-                "| !die                        - Throw me off a bridge without a parachute       |",
-                "| !go <arena>                 - I'll go to the arena you specify.               |",
-                "| !show                       - Show people online using TW-Chat App            |",
-                "| !toggle                     - Disables/Enables ability to !signup             |",
-                "| !warns                      - Toggle staff warning notify                     |",
-                "| !notify                     - Toggles chat notify (stops !show)               |",
-                "| !put                        - Force putfile VIP.txt                           |",
-                "| !blacklist <name>           - Prevents <name> to !signup                      |",
-                "| !unblacklist <name>         - Removes blacklist on <name>                     |",
-                "| !blcontains                 - Lists people on the 'BlackList'                 |",
-                "|-------------------------------------------------------------------------------|",
-                "| !update         - Toggles the online status update process on and off         |",
-                "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
-                "| !si <squad>     - Lists members of <squad>, * means potentially afk by *locate|",
-                "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
-                "| !errors         - Displays the inconsistencies between bot list and db list   |",
-                "| !deviates       - Compares outsiders list to WhoBot's and returns deviations  |",
-                "| !whosonline     - Lists every single player found in the online list          |",
-                "| !refresh        - Resets entire database & calls for bots to update players   |", };
+                                 "| >> Check aliases before add:  http://trenchwars.org/dezmond/twchatusers.php   |",
+                                 "| !get                        - Gets VIP.txt from server (do before !vipadd)    |",
+                                 "| !vipadd                     - Manually add this person to VIP.                |",
+                                 "| !die                        - Throw me off a bridge without a parachute       |",
+                                 "| !go <arena>                 - I'll go to the arena you specify.               |",
+                                 "| !show                       - Show people online using TW-Chat App            |",
+                                 "| !toggle                     - Disables/Enables ability to !signup             |",
+                                 "| !warns                      - Toggle staff warning notify                     |",
+                                 "| !notify                     - Toggles chat notify (stops !show)               |",
+                                 "| !put                        - Force putfile VIP.txt                           |",
+                                 "| !blacklist <name>           - Prevents <name> to !signup                      |",
+                                 "| !unblacklist <name>         - Removes blacklist on <name>                     |",
+                                 "| !blcontains                 - Lists people on the 'BlackList'                 |",
+                                 "|-------------------------------------------------------------------------------|",
+                                 "| !update         - Toggles the online status update process on and off         |",
+                                 "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
+                                 "| !si <squad>     - Lists members of <squad>, * means potentially afk by *locate|",
+                                 "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
+                                 "| !errors         - Displays the inconsistencies between bot list and db list   |",
+                                 "| !deviates       - Compares outsiders list to WhoBot's and returns deviations  |",
+                                 "| !whosonline     - Lists every single player found in the online list          |",
+                                 "| !refresh        - Resets entire database & calls for bots to update players   |",
+                               };
         String[] devCommands = { "|-------------------------------------------------------------------------------|",
-                "| !update         - Toggles the online status update process on and off         |",
-                "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
-                "| !si <squad>     - Lists members of <squad>, * means potentially afk by *locate|",
-                "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
-                "| !stats          - Displays population and player online status information    |",
-                "| !errors         - Displays the inconsistencies between bot list and db list   |",
-                "| !whosonline     - Lists every single player found in the online list          |",
-                "| !refresh        - Resets entire database & calls for bots to update players   |", };
+                                 "| !update         - Toggles the online status update process on and off         |",
+                                 "| !info <name>    - Shows detailed information from the bot's lists about <name>|",
+                                 "| !si <squad>     - Lists members of <squad>, * means potentially afk by *locate|",
+                                 "| !delay <sec>    - Sets the delay between updates in seconds and restarts task |",
+                                 "| !stats          - Displays population and player online status information    |",
+                                 "| !errors         - Displays the inconsistencies between bot list and db list   |",
+                                 "| !whosonline     - Lists every single player found in the online list          |",
+                                 "| !refresh        - Resets entire database & calls for bots to update players   |",
+                               };
         String[] endCommands = { "\\-------------------------------------------------------------------------------/" };
 
         if (!m_botAction.getOperatorList().isZH(name))
             m_botAction.smartPrivateMessageSpam(name, startCommands);
+
         m_botAction.smartPrivateMessageSpam(name, publicCommands);
 
         if (m_botAction.getOperatorList().isSmod(name))
@@ -652,6 +708,7 @@ public class twchat extends SubspaceBot {
 
         if (!(player == null))
             reloadBlackList();
+
         if (blackList.contains(player.toLowerCase())) {
             m_botAction.sendSmartPrivateMessage(name, player + " is already blacklisted.");
         } else {
@@ -661,7 +718,8 @@ public class twchat extends SubspaceBot {
             String[] fields = { "fcName", "fcBy", "fdDate", "fnActive", };
 
             String[] values = { Tools.addSlashes(player), Tools.addSlashes(name), new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()),
-                    "1", };
+                                "1",
+                              };
             m_botAction.SQLInsertInto(dbInfo, "tblTWChat", fields, values);
             m_botAction.sendSmartPrivateMessage(name, "Added " + player + " to TW-Chat BlackList.");
             reloadBlackList();
@@ -674,11 +732,13 @@ public class twchat extends SubspaceBot {
 
         if (!(player == null))
             reloadBlackList();
+
         if (!blackList.contains(player.toLowerCase())) {
             m_botAction.sendSmartPrivateMessage(name, player + " isn't blacklisted!");
         } else {
             if (!m_botAction.SQLisOperational())
                 return;
+
             try {
                 m_botAction.SQLQueryAndClose(dbInfo, "UPDATE tblTWChat SET fnActive = 0 WHERE fcName = '" + player + "'");
                 blackList.remove(player);
@@ -692,12 +752,15 @@ public class twchat extends SubspaceBot {
     private void reloadBlackList() {
         if (!m_botAction.SQLisOperational())
             return;
+
         try {
             ResultSet result = m_botAction.SQLQuery(dbInfo, "SELECT * FROM tblTWChat WHERE fnActive = 1");
+
             while (result.next()) {
                 if (!blackList.contains(result.getString("fcName")))
                     blackList.add(result.getString("fcName"));
             }
+
             m_botAction.SQLClose(result);
         } catch (SQLException e) {
             Tools.printStackTrace(e);
@@ -707,15 +770,19 @@ public class twchat extends SubspaceBot {
 
     private void listBlackList(String name, String message) {
         reloadBlackList();
+
         if (blackList.size() < 150) {
             String msg = "BLACKLIST: ";
+
             for (String p : blackList) {
                 msg += p + ", ";
+
                 if (msg.length() > 200) {
                     ba.sendSmartPrivateMessage(name, msg.substring(0, msg.length() - 2));
                     msg = "BLACKLIST: ";
                 }
             }
+
             if (msg.length() > 9)
                 ba.sendSmartPrivateMessage(name, msg);
         } else {
@@ -739,10 +806,13 @@ public class twchat extends SubspaceBot {
 
         if (beginIndex == -1)
             return null;
+
         beginIndex = beginIndex + infoName.length();
         endIndex = message.indexOf("  ", beginIndex);
+
         if (endIndex == -1)
             endIndex = message.length();
+
         return message.substring(beginIndex, endIndex);
     }
 
@@ -775,19 +845,23 @@ public class twchat extends SubspaceBot {
         String people = "";
         m_botAction.sendSmartPrivateMessage(name, "People ONLINE using TW Chat App:");
         Iterator<String> list = show.iterator();
+
         if (!list.hasNext())
             m_botAction.sendSmartPrivateMessage(name, "No-one! :(");
 
         for (int k = 0; list.hasNext();) {
 
             String pName = (String) list.next();
+
             if (m_botAction.getOperatorList().isSysop(pName))
                 people += pName + " (SysOp), ";
             else if (m_botAction.getOperatorList().isSmodExact(pName))
                 people += pName + " (SMod), ";
             else
                 people += pName + ", ";
+
             k++;
+
             if (k % 10 == 0 || !list.hasNext()) {
                 if (people.length() > 2) {
                     m_botAction.sendSmartPrivateMessage(name, people.substring(0, people.length() - 2));
@@ -802,6 +876,7 @@ public class twchat extends SubspaceBot {
             m_botAction.sendSmartPrivateMessage(name, "You cannot signup to TW-Chat at this time.");
         } else {
             reloadBlackList();
+
             if (blackList.contains(name.toLowerCase())) {
                 m_botAction.sendSmartPrivateMessage(name, "You are blacklisted from using this feature.");
             } else {
@@ -813,17 +888,17 @@ public class twchat extends SubspaceBot {
     }
 
     public void toggle(String name, String message) {
-        if(!ba.getOperatorList().isSysop(name)){
+        if(!ba.getOperatorList().isSysop(name)) {
             ba.sendSmartPrivateMessage(name, "Sysop Only!");
         } else {
-        if (signup == false) {
-            signup = true;
-            m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
-        } else {
-            signup = false;
-            m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
+            if (signup == false) {
+                signup = true;
+                m_botAction.sendSmartPrivateMessage(name, "Signup ACTIVATED");
+            } else {
+                signup = false;
+                m_botAction.sendSmartPrivateMessage(name, "Signup DEACTIVATED");
+            }
         }
-    }
     }
 
     public void warns(String name, String message) {
@@ -860,13 +935,16 @@ public class twchat extends SubspaceBot {
     public void listOnline(String name) {
         if (online.size() < 150) {
             String msg = "ONLINE: ";
+
             for (String p : online) {
                 msg += p + ", ";
+
                 if (msg.length() > 200) {
                     ba.sendSmartPrivateMessage(name, msg.substring(0, msg.length() - 2));
                     msg = "ONLINE: ";
                 }
             }
+
             if (msg.length() > 9)
                 ba.sendSmartPrivateMessage(name, msg);
         } else {
@@ -876,6 +954,7 @@ public class twchat extends SubspaceBot {
 
     public void isOnline(String sender, String msg) {
         String name = msg.substring(msg.indexOf(" ") + 1);
+
         if (name == null || name.length() < 1)
             return;
 
@@ -888,17 +967,20 @@ public class twchat extends SubspaceBot {
     public void getInfo(String sender, String message) {
         String name = message.substring(message.indexOf(" ") + 1);
         String msg = name + ": ";
+
         if (online.contains(name.toLowerCase()))
             m_botAction.sendSmartPrivateMessage(sender, msg + "ONLINE");
         else
             m_botAction.sendSmartPrivateMessage(sender, msg + "OFFLINE");
 
         msg = "";
+
         if (updateQueue.containsKey(name.toLowerCase())) {
             if (updateQueue.get(name.toLowerCase()))
                 msg += "- QUEUED for ONLINE update";
             else
                 msg += "- QUEUED for OFFLINE update";
+
             ba.sendSmartPrivateMessage(sender, msg);
         }
     }
@@ -912,6 +994,7 @@ public class twchat extends SubspaceBot {
             public void run() {
                 if (p != null)
                     m_botAction.sendSmartPrivateMessage(p, "Commencing reset...");
+
                 m_botAction.ipcTransmit(IPC, new IPCMessage("who:refresh"));
             }
         };
@@ -920,10 +1003,12 @@ public class twchat extends SubspaceBot {
 
     public void getSquad(String name, String msg) {
         msg = msg.substring(msg.indexOf(" ") + 1);
+
         if (msg.length() < 1)
             return;
+
         m_botAction.SQLBackgroundQuery(db, "squad:" + msg + ":" + name, "SELECT fcName FROM tblPlayer WHERE fcSquad = '"
-                + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
+                                       + Tools.addSlashesToString(msg) + "' AND fnOnline = 1");
     }
 
     public void sqlReset() {
@@ -948,33 +1033,43 @@ public class twchat extends SubspaceBot {
     public void update() {
         if (status)
             ba.cancelTask(sqlDump);
+
         sqlDump = new TimerTask() {
             public void run() {
                 lastUpdate = System.currentTimeMillis();
+
                 if (updateQueue.isEmpty())
                     return;
+
                 String on = "(";
                 String off = "(";
+
                 synchronized (updateQueue) {
                     Iterator<String> i = updateQueue.keySet().iterator();
+
                     while (i.hasNext()) {
                         String name = i.next();
+
                         if (updateQueue.get(name))
                             on += "'" + Tools.addSlashesToString(name) + "',";
                         else
                             off += "'" + Tools.addSlashesToString(name) + "',";
+
                         i.remove();
                     }
                 }
+
                 on = on.substring(0, on.length() - 1);
                 on += ")";
                 off = off.substring(0, off.length() - 1);
                 off += ")";
                 String query = "";
+
                 if (on.length() > 2) {
                     query = "UPDATE tblPlayer SET fnOnline = 1 WHERE fcName IN " + on;
                     ba.SQLBackgroundQuery(db, null, query);
                 }
+
                 if (off.length() > 2) {
                     query = "UPDATE tblPlayer SET fnOnline = 0 WHERE fcName IN " + off;
                     ba.SQLBackgroundQuery(db, null, query);
@@ -991,26 +1086,36 @@ public class twchat extends SubspaceBot {
             ba.sendSmartPrivateMessage(name, "Online list empty.");
             return;
         }
+
         String on = "(";
+
         for (String n : online)
             on += "'" + Tools.addSlashesToString(n) + "',";
+
         on = on.substring(0, on.lastIndexOf(',')) + ")";
         String msg = "Inconsistencies: ";
         String query = "SELECT fcName FROM tblPlayer WHERE fcName NOT IN " + on + " AND fnOnline = 1";
+
         try {
             ResultSet rs = ba.SQLQuery(db, query);
             String n = "";
+
             if (rs.next()) {
                 n = rs.getString("fcName");
+
                 if (updateQueue.containsKey(n.toLowerCase()))
                     n += "(Q)";
+
                 msg += n;
+
                 while (rs.next()) {
                     if (updateQueue.containsKey(n.toLowerCase()))
                         n += "(Q)";
+
                     msg += ", " + n;
                 }
             }
+
             ba.SQLClose(rs);
             ba.sendSmartPrivateMessage(name, msg);
         } catch (SQLException e) {
@@ -1021,30 +1126,38 @@ public class twchat extends SubspaceBot {
 
     private void outsiders(String name) {
         String msg = "Outsiders: ";
+
         for (String n : outsiders)
             msg += n + ", ";
+
         ba.sendSmartPrivateMessage(name, msg.substring(0, msg.length() - 2));
     }
 
     private void whoHas(String name, String cmd) {
         if (cmd.indexOf(" ") < 0 || cmd.length() < 9)
             return;
+
         try {
             int x = Integer.valueOf(cmd.substring(cmd.indexOf(" ") + 1));
+
             if (x < 2) {
                 ba.sendSmartPrivateMessage(name, "Number of players too small.");
                 return;
             }
+
             String result = "Squads with (" + x + "+): ";
             String query = "SELECT fcSquad, COUNT(fcSquad) as c FROM tblPlayer WHERE fnOnline = 1 GROUP BY fcSquad ORDER BY c DESC LIMIT 25";
             ResultSet rs = ba.SQLQuery(db, query);
+
             while (rs.next()) {
                 int c = rs.getInt("c");
+
                 if (c >= x)
                     result += rs.getString("fcSquad") + "(" + c + ") ";
                 else
                     break;
             }
+
             ba.SQLClose(rs);
             ba.sendSmartPrivateMessage(name, result);
         } catch (SQLException e) {
@@ -1055,30 +1168,39 @@ public class twchat extends SubspaceBot {
     public void getPlayer(String name, String cmd) {
         if (!cmd.contains(" "))
             return;
+
         String p = cmd.substring(cmd.indexOf(" ") + 1);
         String msg = "";
         debug("Getting player db info for " + p);
+
         try {
             ResultSet rs = ba.SQLQuery(db, "SELECT fcName, fcSquad, ftUpdated, fdLastSeen, fnOnline FROM tblPlayer WHERE fcName = '"
-                    + Tools.addSlashesToString(p) + "' LIMIT 1");
+                                       + Tools.addSlashesToString(p) + "' LIMIT 1");
+
             if (rs.next()) {
                 String squad = rs.getString("fcSquad");
                 String on = "OFFLINE";
+
                 if (rs.getInt("fnOnline") == 1)
                     on = "ONLINE";
+
                 msg = "" + rs.getString("fcName") + ": Squad - ";
+
                 if (squad != null)
                     msg += squad;
                 else
                     msg += "null";
+
                 msg += " | Last update - " + rs.getString("ftUpdated") + " | " + on + " Seen - " + rs.getString("fdLastSeen");
             } else
                 msg = "No record found for " + p;
+
             ba.SQLClose(rs);
         } catch (SQLException e) {
             Tools.printStackTrace(e);
             ba.sendSmartPrivateMessage(name, "SQL error on player: " + p);
         }
+
         ba.sendSmartPrivateMessage(name, msg);
     }
 
@@ -1102,24 +1224,25 @@ public class twchat extends SubspaceBot {
         if (DEBUG)
             ba.sendSmartPrivateMessage(debugger, "[DEBUG] " + msg);
     }
-    
+
     private class KeepStreamAlive extends TimerTask {
-        
+
         public KeepStreamAlive() {
             if (stream != null)
                 ba.cancelTask(stream);
+
             stream = this;
             ba.scheduleTask(stream, 5000, 5 * Tools.TimeInMillis.MINUTE);
         }
-        
+
         public void run() {
             ba.sendSmartPrivateMessage(STREAM, "stay alive");
         }
-        
+
         public void end() {
             stream = null;
             ba.cancelTask(this);
         }
-        
+
     }
 }

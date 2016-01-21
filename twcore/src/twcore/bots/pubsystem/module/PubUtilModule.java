@@ -28,12 +28,12 @@ public class PubUtilModule extends AbstractModule {
 
     private static final String MAP_NAME = "pubmap";
     private static final String db = "pubstats";
-    
+
     //private PreparedStatement psPlayTime;
-    
+
     // LOCATION
     public static enum Location {
-        
+
         FLAGROOM,
         MID,
         LOWER,
@@ -43,7 +43,7 @@ public class PubUtilModule extends AbstractModule {
         SPAWN,
         SAFE
     }
-    
+
     // XXX: If you change this enum, you will also have to match the Location to Region manually in getLocation
     public static enum Region {
         MID,
@@ -53,24 +53,24 @@ public class PubUtilModule extends AbstractModule {
         TUNNELS,
         CRAM,
         LOWER,
-        ROOF,    
-        SPAWN,    
-        
+        ROOF,
+        SPAWN,
+
         SPACE,
         SAFE,
         BUYZONE,
-        
+
         UNKNOWN,
     }
     private MapRegions regions;
-    
+
     private HashMap<String, Location> locations;
     private TreeMap<String, Staffer> staffers;
-    
+
     //Part of anti in spawn check.
     //private TimerTask checkForAntiInSpawn;
-    
-    private boolean privFreqEnabled = true;     // True if private frequencies are enabled    
+
+    private boolean privFreqEnabled = true;     // True if private frequencies are enabled
     private boolean levAttachEnabled = true;    // True if Lev can attach on public freq
     private long uptime = 0;
     //private String dummy;   // So it's not reinstantiated w/ the constantly-used method getLocation
@@ -87,28 +87,28 @@ public class PubUtilModule extends AbstractModule {
         SendTime sendTimes = new SendTime();
         m_botAction.scheduleTask(sendTimes, 5 * Tools.TimeInMillis.MINUTE, 5 * Tools.TimeInMillis.MINUTE);
         //psPlayTime = m_botAction.createPreparedStatement(db, "playtime", "INSERT INTO tblStaffer (fcName, fnPlayTime) VALUES(?,?) ON DUPLICATE KEY UPDATE fnPlayTime = fnPlayTime + VALUES(fnPlayTime)");
-        
-       /* checkForAntiInSpawn = new TimerTask() {
-            public void run() {
-                for( Player p : m_botAction.getPlayingPlayers() ) {
-                    //Player p = m_botAction.getPlayer(event.getPlayerID());
-                    if (p!=null) {
-                        int reg = regions.getRegion(p);
-                        if (reg == Region.SPAWN.ordinal() && p.hasAntiwarpOn()) {
-                            m_botAction.specificPrize(p.getPlayerID(), -Tools.Prize.ANTIWARP);
-                            m_botAction.sendPrivateMessage(p.getPlayerID(), "ANTI-WARP is ILLEGAL in spawn area and has been removed from your ship. Continued use of antiwarp in spawn may result in a ban from purchasing antiwarp.");
-                        }
-                    }
-                }                
-            }
-        };
-        // Check anti status of all players every 3sec. This won't instantly catch everyone, but if
-        // someone is hanging around spawn using anti, it will see it. Furthermore, using anti in
-        // spawn is rather obvious and can be reported by old-fashioned means, like any other cheating.
-        // Good compromise between performance and efficacy. Checking each position packet slows bot down.
-        m_botAction.scheduleTask( checkForAntiInSpawn, 3 * Tools.TimeInMillis.SECOND, 3 * Tools.TimeInMillis.SECOND ); */
+
+        /*  checkForAntiInSpawn = new TimerTask() {
+             public void run() {
+                 for( Player p : m_botAction.getPlayingPlayers() ) {
+                     //Player p = m_botAction.getPlayer(event.getPlayerID());
+                     if (p!=null) {
+                         int reg = regions.getRegion(p);
+                         if (reg == Region.SPAWN.ordinal() && p.hasAntiwarpOn()) {
+                             m_botAction.specificPrize(p.getPlayerID(), -Tools.Prize.ANTIWARP);
+                             m_botAction.sendPrivateMessage(p.getPlayerID(), "ANTI-WARP is ILLEGAL in spawn area and has been removed from your ship. Continued use of antiwarp in spawn may result in a ban from purchasing antiwarp.");
+                         }
+                     }
+                 }
+             }
+            };
+            // Check anti status of all players every 3sec. This won't instantly catch everyone, but if
+            // someone is hanging around spawn using anti, it will see it. Furthermore, using anti in
+            // spawn is rather obvious and can be reported by old-fashioned means, like any other cheating.
+            // Good compromise between performance and efficacy. Checking each position packet slows bot down.
+            m_botAction.scheduleTask( checkForAntiInSpawn, 3 * Tools.TimeInMillis.SECOND, 3 * Tools.TimeInMillis.SECOND ); */
     }
-    
+
     public void reloadRegions() {
         try {
             regions.clearRegions();
@@ -123,7 +123,7 @@ public class PubUtilModule extends AbstractModule {
             Tools.printStackTrace(e);
         }
     }
-    
+
     public MapRegions getRegions() {
         return regions;
     }
@@ -133,19 +133,20 @@ public class PubUtilModule extends AbstractModule {
     }
 
     /**
-     * Support added for additional regions not found in Location. Fixes killothon/timedgame issues.    
-     * Due to how Location is used (testing if Loc =/!= X), we can't just add new Locations
-     * without changing logic in many places.
-     * @param x xTileLocation
-     * @param y yTileLocation
-     * @return The location that matches the specific coordinates. When nothing is found: Location.SPACE
-     * @deprecated {@link Region} and {@link #getRegion(int, int)} are favoured above this and should be used instead.
-     */
+        Support added for additional regions not found in Location. Fixes killothon/timedgame issues.
+        Due to how Location is used (testing if Loc =/!= X), we can't just add new Locations
+        without changing logic in many places.
+        @param x xTileLocation
+        @param y yTileLocation
+        @return The location that matches the specific coordinates. When nothing is found: Location.SPACE
+        @deprecated {@link Region} and {@link #getRegion(int, int)} are favoured above this and should be used instead.
+    */
     @Deprecated
     //TODO: REMOVE LOCATION AND ONLY WORK BASED ON REGION. LOCATION IS UNNECESSARY AND RESULTS IN BLOAT
     public Location getLocation(int x, int y) {
         Region region = getRegion(x, y);
         Location location = null;
+
         if (region != null) {
             try {
                 location = Location.valueOf(region.toString());
@@ -160,6 +161,7 @@ public class PubUtilModule extends AbstractModule {
                     location = null;
             }
         }
+
         if (location != null) {
             return location;
         } else {
@@ -171,6 +173,7 @@ public class PubUtilModule extends AbstractModule {
         if (getLocation(x, y).equals(location)) {
             return true;
         }
+
         return false;
     }
 
@@ -180,21 +183,22 @@ public class PubUtilModule extends AbstractModule {
 
     public void handleEvent(Message event) {
     }
-    
+
     @Override
     public void handleEvent(TurretEvent event) {
         if (!enabled) return;
-        
+
         Player p1 = m_botAction.getPlayer(event.getAttacheeID());
         Player p2 = m_botAction.getPlayer(event.getAttacherID());
-        
+
         if (p1 != null) {
             // Attacher stats
             PubPlayer pubPlayer = context.getPlayerManager().getPlayer(p1.getPlayerName());
+
             if (pubPlayer != null) {
                 if (event.isAttaching()) {
                     pubPlayer.handleAttach();
-                } else if (p2 != null && !event.isAttaching() && p2.getShipType() == 4){
+                } else if (p2 != null && !event.isAttaching() && p2.getShipType() == 4) {
                     pubPlayer.setLastDetachLevTerr();
                 }
             }
@@ -202,9 +206,10 @@ public class PubUtilModule extends AbstractModule {
 
         if (p2 != null) {
             PubPlayer pubPlayer2 = context.getPlayerManager().getPlayer(p2.getPlayerName());
+
             if (pubPlayer2 != null && p2.getShipType() == Tools.Ship.LEVIATHAN) {
                 if(event.isAttaching()) {
-                // Attachee check up                    
+                    // Attachee check up
                     if (!levAttachEnabled ) {
                         // Public freq?
                         if (p2.getFrequency() == 0 || p2.getFrequency() == 1) {
@@ -220,33 +225,39 @@ public class PubUtilModule extends AbstractModule {
             }
         }
     }
-    
+
     public void handleEvent(FrequencyShipChange event) {
         if (!enabled) return;
-        
+
         String name = m_botAction.getPlayerName(event.getPlayerID());
+
         if (name == null) return;
+
         if (m_botAction.getOperatorList().isZH(name)) {
             int ship = event.getShipType();
+
             if (ship > 0) {
                 if (staffers.containsKey(name))
                     staffers.get(name).enter();
                 else
                     staffers.put(name, new Staffer(name));
             } else if (staffers.containsKey(name)) {
-                    staffers.get(name).exit();
+                staffers.get(name).exit();
             }
         }
     }
-    
+
     public void handleEvent(PlayerEntered event) {
         if (!enabled) return;
 
         String name = m_botAction.getPlayerName(event.getPlayerID());
+
         if (name == null)
             return;
+
         if (m_botAction.getOperatorList().isZH(name)) {
             int ship = event.getShipType();
+
             if (ship > 0) {
                 if (staffers.containsKey(name))
                     staffers.get(name).enter();
@@ -262,25 +273,27 @@ public class PubUtilModule extends AbstractModule {
         //tutorials.remove(m_botAction.getPlayerName(event.getPlayerID()));
         //checkForDoors();
         String name = m_botAction.getPlayerName(event.getPlayerID());
+
         if (name != null && staffers.containsKey(name))
             staffers.remove(name).exit();
     }
-    
+
     /**
-     * Moves the bot from one arena to another.  The bot must not be
-     * started for it to move.
-     *
-     * @param sender is the person issuing the command.
-     * @param argString is the new arena to go to.
-     * @throws RuntimeException if the bot is currently running.
-     * @throws IllegalArgumentException if the bot is already in that arena.
-     */
+        Moves the bot from one arena to another.  The bot must not be
+        started for it to move.
+
+        @param sender is the person issuing the command.
+        @param argString is the new arena to go to.
+        @throws RuntimeException if the bot is currently running.
+        @throws IllegalArgumentException if the bot is already in that arena.
+    */
     private void doGoCmd(String sender, String argString) {
         String currentArena = m_botAction.getArenaName();
 
         if (context.isStarted()) {
             m_botAction.sendPrivateMessage(sender, "Bot is currently running pub settings in " + currentArena + ".  Please !stop before trying to move.");
         }
+
         if (currentArena.equalsIgnoreCase(argString)) {
             m_botAction.sendPrivateMessage(sender, "Bot is already in that arena.");
         }
@@ -291,23 +304,26 @@ public class PubUtilModule extends AbstractModule {
     }
 
     /**
-     * Toggles if private frequencies are allowed or not.
-     *
-     * @param sender is the sender of the command.
-     */
+        Toggles if private frequencies are allowed or not.
+
+        @param sender is the sender of the command.
+    */
     private void doPrivFreqsCmd(String sender, String verbose ) {
         privFreqEnabled = !privFreqEnabled;
 
         if (privFreqEnabled) {
             context.getPlayerManager().fixFreqs();
+
             if (!context.hasJustStarted() && verbose.equals("on")) {
                 m_botAction.sendArenaMessage("[SETTING] Private Frequencies enabled.");
             }
+
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully enabled.");
         } else {
             if (!context.hasJustStarted() && verbose.equals("on")) {
                 m_botAction.sendArenaMessage("[SETTING] Private Frequencies disabled.");
             }
+
             m_botAction.sendSmartPrivateMessage(sender, "Private frequencies succesfully disabled.");
         }
     }
@@ -317,14 +333,17 @@ public class PubUtilModule extends AbstractModule {
 
         if (levAttachEnabled) {
             context.getPlayerManager().fixFreqs();
+
             if (!context.hasJustStarted()) {
                 m_botAction.sendArenaMessage("[SETTING] Leviathan attach capability enabled on public frequencies.");
             }
+
             m_botAction.sendSmartPrivateMessage(sender, "Leviathan can now attach on a ter in public freq.");
         } else {
             if (!context.hasJustStarted()) {
                 m_botAction.sendArenaMessage("[SETTING] Leviathan attach capability disabled on public frequencies.");
             }
+
             m_botAction.sendSmartPrivateMessage(sender, "Leviathan cannot attach anymore on a ter in public freq.");
         }
     }
@@ -350,17 +369,19 @@ public class PubUtilModule extends AbstractModule {
     }
 
     /**
-     * Logs the bot off if not enabled.
-     *
-     * @param sender is the person issuing the command.
-     * @throws RuntimeException if the bot is running pure pub settings.
-     */
+        Logs the bot off if not enabled.
+
+        @param sender is the person issuing the command.
+        @throws RuntimeException if the bot is running pure pub settings.
+    */
     private void doDieCmd(String sender) {
-    	try {
-    		context.getMoneySystem().printFruitStatsToLog();
-    	} catch (Exception e) {}
+        try {
+            context.getMoneySystem().printFruitStatsToLog();
+        } catch (Exception e) {}
+
         m_botAction.sendSmartPrivateMessage(sender, "Bot logging off.");
         m_botAction.setObjects();
+
         try {
             m_botAction.scheduleTask(new DieTask(), 300);
         } catch( IllegalStateException e) {
@@ -370,8 +391,8 @@ public class PubUtilModule extends AbstractModule {
     }
 
     /**
-     * Shows last seen location of a given individual.
-     */
+        Shows last seen location of a given individual.
+    */
     private void doWhereIsCmd(String sender, String argString, boolean isStaff) {
 
         Player p = m_botAction.getPlayer(sender);
@@ -387,6 +408,7 @@ public class PubUtilModule extends AbstractModule {
         }
 
         Player p2 = m_botAction.getFuzzyPlayer(argString);
+
         if (p2 == null) {
             m_botAction.sendSmartPrivateMessage(sender, "Player '" + argString + "' not found.");
             return;
@@ -396,6 +418,7 @@ public class PubUtilModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(sender, p2.getPlayerName() + " last seen: In Spec");
             return;
         }
+
         if (p.getFrequency() != p2.getFrequency() && !isStaff) {
             m_botAction.sendSmartPrivateMessage(sender, p2.getPlayerName() + " is not on your team.");
             return;
@@ -403,27 +426,30 @@ public class PubUtilModule extends AbstractModule {
 
         m_botAction.sendSmartPrivateMessage(sender, p2.getPlayerName() + " last seen: " + getPlayerLocation(p2.getXTileLocation(), p2.getYTileLocation()));
     }
-    
+
     /**
-     * Clears mines of a bad shark (someone who is blocking FR with mines when there is no other shark and few players total).
-     * 
-     * @param sender Person issuing the command.
-     * @param target Name of the bad shark in question
-     */
+        Clears mines of a bad shark (someone who is blocking FR with mines when there is no other shark and few players total).
+
+        @param sender Person issuing the command.
+        @param target Name of the bad shark in question
+    */
     public void doBadSharkCmd(String sender, String target) {
         Player p = m_botAction.getFuzzyPlayer(target);
+
         if( p == null ) {
             m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
             return;
         }
-        
+
         if( p.getShipType() != Tools.Ship.SHARK) {
             m_botAction.sendSmartPrivateMessage(sender, "That's no shark.");
             return;
         }
+
         m_botAction.spectatePlayerImmediately(p.getPlayerID());
-        
+
         Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
+
         if( i == null)
             return;
 
@@ -431,14 +457,17 @@ public class PubUtilModule extends AbstractModule {
         int totalPlayers = 0;
 
         Player dummy;
+
         while( i.hasNext() ) {
             dummy = (Player)i.next();
+
             if( dummy != null) {
                 if( dummy.getShipType() == Tools.Ship.SHARK ) {
                     if( dummy.getFrequency() != p.getFrequency() ) {
                         opposingTotal++;
                     }
                 }
+
                 totalPlayers++;
             }
         }
@@ -447,6 +476,7 @@ public class PubUtilModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(sender, "This command isn't meant to be used with larger populations.");
             return;
         }
+
         if( opposingTotal > 0 ) {
             m_botAction.sendSmartPrivateMessage(sender, "There's " + opposingTotal + " Shark(s) playing against this player who should be able to handle the mines.");
             return;
@@ -454,12 +484,12 @@ public class PubUtilModule extends AbstractModule {
 
         m_botAction.sendSmartPrivateMessage(sender, "Clearing " + p.getPlayerName() + "'s mines. BAD SHARK!" );
         m_botAction.sendPrivateMessage(p.getPlayerID(), "SPORTSMANSHIP REMINDER: Mining the entrance to the flag room when there is no other Shark (ship 8) and there are few players is considered to be VERY CHEAP! Please do not place entrance-blocking mines until another Shark is playing." );
-        
+
         m_botAction.warpTo(p.getPlayerID(), context.getGameFlagTime().warpSafeLeft);
         TimerTask badShark = new BadSharkTask(p.getPlayerID(), p.getXTileLocation(), p.getYTileLocation());
         m_botAction.scheduleTask(badShark, 1000);
     }
-    
+
     class BadSharkTask extends TimerTask {
         private int pid;
         private int x;
@@ -470,9 +500,9 @@ public class PubUtilModule extends AbstractModule {
             this.x = x;
             this.y = y;
         }
-        
+
         public void run() {
-            m_botAction.warpTo(pid, x, y);            
+            m_botAction.warpTo(pid, x, y);
         }
     }
 
@@ -482,36 +512,45 @@ public class PubUtilModule extends AbstractModule {
         if (Location.UNKNOWN.equals(location)) {
             return "Unknown";
         }
+
         if (Location.FLAGROOM.equals(location)) {
             return "Flagroom";
         }
+
         if (Location.MID.equals(location)) {
             return "Mid Base";
         }
+
         if (Location.LOWER.equals(location)) {
             return "Lower Base";
         }
+
         if (Location.ROOF.equals(location)) {
             return "Roof";
         }
+
         if (Location.SPAWN.equals(location)) {
             return "Spawn";
         }
+
         if (Location.SAFE.equals(location)) {
             return "Safe";
         }
+
         if (Location.SPACE.equals(location)) {
             return "Space";
         }
 
         return "Unknown";
     }
-    
+
     public Region getRegion(int x, int y) {
         int r = regions.getRegion(x, y);
         Region region = null;
+
         if (r >= 0)
             region = Region.values()[r];
+
         return region;
     }
 
@@ -521,27 +560,35 @@ public class PubUtilModule extends AbstractModule {
         if (Region.UNKNOWN.equals(location)) {
             return "Not yet spotted";
         }
+
         if (Region.FLAGROOM.equals(location)) {
             return "in Flagroom";
         }
+
         if (Region.MID.equals(location)) {
             return "in Mid Base";
         }
+
         if (Region.LOWER.equals(location)) {
             return "in Lower Base";
         }
+
         if (Region.ROOF.equals(location)) {
             return "on Roof";
         }
+
         if (Region.SPAWN.equals(location)) {
             return "in Spawn";
         }
+
         if (Region.SAFE.equals(location)) {
             return "in Safe";
         }
+
         if (Region.BUYZONE.equals(location)) {
             return "in Buyzone";
         }
+
         if (Region.SPACE.equals(location)) {
             return "in Space";
         }
@@ -556,13 +603,14 @@ public class PubUtilModule extends AbstractModule {
             //doSetTileCmd(sender, command.substring(9));
         } else if (command.startsWith("!whereis ")) {
             doWhereIsCmd(sender, command.substring(9), m_botAction.getOperatorList().isBot(sender));
-        } else if (command.equals("!restrictions")) 
+        } else if (command.equals("!restrictions"))
             context.getPlayerManager().doRestrictionsCmd(sender);
     }
 
     @Override
     public void handleModCommand(String sender, String command) {
         boolean dev = m_botAction.getOperatorList().isDeveloper(sender);
+
         if (command.startsWith("!go ") && dev) {
             doGoCmd(sender, command.substring(4));
         } else if (command.equals("!stop") && dev) {
@@ -600,17 +648,18 @@ public class PubUtilModule extends AbstractModule {
 
     @Override
     public String[] getHelpMessage(String sender) {
-        return new String[]{
-                    pubsystem.getHelpLine("!whereis <name>   -- Shows last seen location of <name> (if on your team)."),
-                    pubsystem.getHelpLine("!restrictions     -- Lists all current ship restrictions."),
-                    //pubsystem.getHelpLine("!settile <name>   -- Change the current tileset."),
-                    //pubsystem.getHelpLine("                     Choice: bluetech (default), boki, monolith.")
-                };
+        return new String[] {
+                   pubsystem.getHelpLine("!whereis <name>   -- Shows last seen location of <name> (if on your team)."),
+                   pubsystem.getHelpLine("!restrictions     -- Lists all current ship restrictions."),
+                   //pubsystem.getHelpLine("!settile <name>   -- Change the current tileset."),
+                   //pubsystem.getHelpLine("                     Choice: bluetech (default), boki, monolith.")
+               };
     }
 
     @Override
     public String[] getModHelpMessage(String sender) {
         boolean dev = m_botAction.getOperatorList().isDeveloper(sender);
+
         if (dev) {
             String[] string = {
                 pubsystem.getHelpLine("!privfreqs        -- Toggles private frequencies & check for imbalances."),
@@ -629,7 +678,7 @@ public class PubUtilModule extends AbstractModule {
                 //pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
                 //pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
                 //pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")
-                };
+            };
             return string;
         } else {
             String[] string = {
@@ -637,7 +686,7 @@ public class PubUtilModule extends AbstractModule {
                 //pubsystem.getHelpLine("!newplayer <name> -- Sends new player helper objon to <name>."),
                 //pubsystem.getHelpLine("!next <name>      -- Sends the next helper objon to <name>."),
                 //pubsystem.getHelpLine("!end <name>       -- Removes all objons for <name>.")
-                };
+            };
             return string;
         }
     }
@@ -663,10 +712,12 @@ public class PubUtilModule extends AbstractModule {
         try {
             if (!m_botAction.getBotSettings().getString("location").isEmpty()) {
                 String[] pointsLocation = m_botAction.getBotSettings().getString("location").split(",");
+
                 for (String number : pointsLocation) {
                     String[] data = m_botAction.getBotSettings().getString("location" + number).split(",");
                     String name = data[0];
                     Location loc = Location.valueOf(name.toUpperCase());
+
                     for (int i = 1; i < data.length; i++) {
                         String[] coords = data[i].split(":");
                         int x = Integer.parseInt(coords[0]);
@@ -681,16 +732,16 @@ public class PubUtilModule extends AbstractModule {
         }
 
         /*
-        String tileSet = m_botAction.getBotSettings().getString("tileset_default");
-        try {
+            String tileSet = m_botAction.getBotSettings().getString("tileset_default");
+            try {
             defaultTileSet = Tileset.valueOf(tileSet.toUpperCase());
-        } catch (Exception e) {
+            } catch (Exception e) {
             defaultTileSet = Tileset.BLUETECH;
-        }
+            }
 
-        tilesetObjects = new HashMap<Tileset, Integer>();
-        tilesetObjects.put(Tileset.BOKI, 0);
-        tilesetObjects.put(Tileset.MONOLITH, 1);
+            tilesetObjects = new HashMap<Tileset, Integer>();
+            tilesetObjects.put(Tileset.BOKI, 0);
+            tilesetObjects.put(Tileset.MONOLITH, 1);
         */
         if (m_botAction.getBotSettings().getInt("utility_enabled") == 1) {
             enabled = true;
@@ -709,9 +760,9 @@ public class PubUtilModule extends AbstractModule {
 
     @Override
     public String[] getSmodHelpMessage(String sender) {
-        return new String[]{};
+        return new String[] {};
     }
-    
+
     private class SendTime extends TimerTask {
 
         @Override
@@ -723,23 +774,23 @@ public class PubUtilModule extends AbstractModule {
                 }
             }
         }
-        
+
     }
-    
+
     /**
-     * Staffer class is used to track the play time of staff members.
-     *
-     * @author WingZero
-     */
+        Staffer class is used to track the play time of staff members.
+
+        @author WingZero
+    */
     private class Staffer {
-        
+
         String name;
         long entryTime;
         long exitTime;
         int playTime;
         boolean playing;
         String date;
-        
+
         public Staffer(String name) {
             this.name = name;
             entryTime = System.currentTimeMillis();
@@ -750,15 +801,16 @@ public class PubUtilModule extends AbstractModule {
             DateFormat f = new SimpleDateFormat("yyyy-MM-dd");
             date = f.format(entryTime);
             String q = "INSERT INTO tblStaffer (fcName, fnPlayTime, fdDate) " +
-        		        "SELECT * FROM (SELECT '" + Tools.addSlashesToString(name) + "', 0, '" + date + "') as tmp " +
-        				"WHERE NOT EXISTS (SELECT '" + Tools.addSlashesToString(name) + "' FROM tblStaffer WHERE fcName = '" + Tools.addSlashesToString(name) + "' AND fdDate = '" + date + "')";
+                       "SELECT * FROM (SELECT '" + Tools.addSlashesToString(name) + "', 0, '" + date + "') as tmp " +
+                       "WHERE NOT EXISTS (SELECT '" + Tools.addSlashesToString(name) + "' FROM tblStaffer WHERE fcName = '" + Tools.addSlashesToString(name) + "' AND fdDate = '" + date + "')";
+
             try {
                 m_botAction.SQLQueryAndClose(db, q);
             } catch (SQLException e) {
                 Tools.printStackTrace(e);
             }
         }
-        
+
         public void exit() {
             if (playing) {
                 playing = false;
@@ -768,7 +820,7 @@ public class PubUtilModule extends AbstractModule {
                 sendTime();
             }
         }
-        
+
         public void enter() {
             if (!playing) {
                 playing = true;
@@ -776,7 +828,7 @@ public class PubUtilModule extends AbstractModule {
                 exitTime = -1;
             }
         }
-        
+
         public void sendTime() {
             if (playTime > 0) {
                 m_botAction.SQLBackgroundQuery(db, null, "UPDATE tblStaffer SET fnPlayTime = fnPlayTime + " + playTime + " WHERE fcName = '"  + Tools.addSlashesToString(name) + "' AND fdDate = '" + date + "'");
@@ -787,14 +839,14 @@ public class PubUtilModule extends AbstractModule {
     }
 
     /**
-     * This private class logs the bot off.  It is used to give a slight delay
-     * to the log off process.
-     */
+        This private class logs the bot off.  It is used to give a slight delay
+        to the log off process.
+    */
     private class DieTask extends TimerTask {
 
         /**
-         * This method logs the bot off.
-         */
+            This method logs the bot off.
+        */
         public void run() {
             m_botAction.cancelTasks();
             m_botAction.die("DieTask initiated");

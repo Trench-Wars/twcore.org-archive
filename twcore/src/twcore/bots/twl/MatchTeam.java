@@ -1,15 +1,15 @@
 package twcore.bots.twl;
 
 /*
- * MatchTeam.java
- *
- * Created on August 19, 2002, 10:27 PM
- */
+    MatchTeam.java
+
+    Created on August 19, 2002, 10:27 PM
+*/
 
 /**
- *
- * @author  Administrator
- */
+
+    @author  Administrator
+*/
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -137,7 +137,9 @@ public class MatchTeam {
         if (m_rules.getInt("rosterjoined") == 1) {
             populateCaptainList();
         };
+
         m_checkIPMID = m_rules.getInt("strictmidip") == 1;
+
         m_debug = m_rules.getInt("debug") == 1;
     }
 
@@ -154,20 +156,21 @@ public class MatchTeam {
     public void populateCaptainList() {
         try {
             ResultSet rs =
-                    m_botAction.SQLQuery(
-                            dbConn,
-                            "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblTeamUser, tblUserRank WHERE "
-                                    + "tblUser.fnUserID = tblTeamUser.fnUserID AND tblTeamUser.fnCurrentTeam = 1 "
-                                    + "AND tblTeamUser.fnTeamID = "
-                                    + m_fnTeamID
-                                    + " AND tblUser.fnUserID = tblUserRank.fnUserID "
-                                    + "AND tblUser.fnUserID = tblUserRank.fnUserID AND tblUserRank.fnRankID IN (3,4) ORDER BY tblUser.fcUserName");
+                m_botAction.SQLQuery(
+                    dbConn,
+                    "SELECT DISTINCT tblUser.fcUserName FROM tblUser, tblTeamUser, tblUserRank WHERE "
+                    + "tblUser.fnUserID = tblTeamUser.fnUserID AND tblTeamUser.fnCurrentTeam = 1 "
+                    + "AND tblTeamUser.fnTeamID = "
+                    + m_fnTeamID
+                    + " AND tblUser.fnUserID = tblUserRank.fnUserID "
+                    + "AND tblUser.fnUserID = tblUserRank.fnUserID AND tblUserRank.fnRankID IN (3,4) ORDER BY tblUser.fcUserName");
 
             m_captains = new LinkedList<String>();
 
             while (rs.next()) {
                 m_captains.add(rs.getString("fcUserName").toLowerCase());
             }
+
             m_botAction.SQLClose(rs);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -175,14 +178,15 @@ public class MatchTeam {
     }
 
     /**
-     * Can get various weapon info and the player who used it
-     * Get repel used count
-     *
-     * @param event WeaponFired event
-     */
+        Can get various weapon info and the player who used it
+        Get repel used count
+
+        @param event WeaponFired event
+    */
     public void handleEvent(WeaponFired event) {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
         MatchPlayer p = getPlayer(playerName);
+
         if(event.isMine()) {
             p.reportWeaponFired(WeaponFired.WEAPON_MINE);
         } else {
@@ -210,6 +214,7 @@ public class MatchTeam {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
 
         MatchPlayer p = getPlayer(playerName);
+
         if ((event.getShipType() == 0) && (p.getPlayerState() == MatchPlayer.IN_GAME)) {
             if (m_round.m_fnRoundState < 4) {
                 sendPrivateMessageToCaptains(playerName + " lagged out or manually specced", 13);
@@ -223,6 +228,7 @@ public class MatchTeam {
                     }
                 }
             }
+
             p.lagout(false);
         }
     }
@@ -260,6 +266,7 @@ public class MatchTeam {
     public void handleEvent(PlayerLeft event) {
         String playerName = m_botAction.getPlayer(event.getPlayerID()).getPlayerName();
         MatchPlayer p = getPlayer(playerName);
+
         if ((m_round.m_fnRoundState < 4) && (p.getPlayerState() == MatchPlayer.IN_GAME)) {
             sendPrivateMessageToCaptains(playerName + " lagged out or left the arena", 13);
 
@@ -268,6 +275,7 @@ public class MatchTeam {
                 p.reportDeath();
             }
         }
+
         p.lagout(true);
         p.setIPMIDChecked(false);
     }
@@ -275,11 +283,12 @@ public class MatchTeam {
     public void handleEvent(Message event) {
         MatchPlayer matchPlayer;
 
-        if( event.getMessageType() == Message.ARENA_MESSAGE ){
+        if( event.getMessageType() == Message.ARENA_MESSAGE ) {
             String msg = event.getMessage();
+
             // Check resolution against rules
             if( msg.indexOf( "Res:" ) != -1 && m_rules.getInt("resolutionxmax") != 0 && m_rules.getInt("resolutionymax") != 0) {
-                int start = msg.indexOf("Res: ")+5;
+                int start = msg.indexOf("Res: ") + 5;
                 String name = msg.substring( 0, msg.indexOf( ":" ) );
                 String resolution = msg.substring(start, msg.indexOf(" ", start));
 
@@ -289,37 +298,38 @@ public class MatchTeam {
                 int yResolution = Integer.parseInt(resolution.split("x")[1]);
                 int xResolutionMax = m_rules.getInt("resolutionxmax");
                 int yResolutionMax = m_rules.getInt("resolutionymax");
-            
+
                 //QUICKFIX for season 19: 1440x900 or 1280x1024
                 if(xResolution <= 1440)
                 {
-                	xResolutionMax = 1440;
-                	yResolutionMax = 900;
+                    xResolutionMax = 1440;
+                    yResolutionMax = 900;
                 }
-                
+
                 if(xResolution <= 1280)
                 {
-                	xResolutionMax = 1280;
-                	yResolutionMax = 1024;
+                    xResolutionMax = 1280;
+                    yResolutionMax = 1024;
                 }
-                               	
-                
+
+
                 //Set Limits to 1440x900 to make this work
 
                 if(xResolution > xResolutionMax || yResolution > yResolutionMax) {
                     MatchPlayer p = getPlayer( name );
+
                     if( p != null && m_round.m_fnRoundState == 1) {
                         p.getOutOfGame();
                         m_players.remove( p );
-                        sendPrivateMessageToCaptains( name + " has a resolution ("+xResolution+"x"+yResolution+") that is higher then resolution limits. Player removed from your team." );
+                        sendPrivateMessageToCaptains( name + " has a resolution (" + xResolution + "x" + yResolution + ") that is higher then resolution limits. Player removed from your team." );
                         m_botAction.sendPrivateMessage( name , "You've been put to spectator because your resolution is violating the resolution limits. Please change your resolution.");
                     }
                     else if (p != null && (m_round.m_fnRoundState == 2 || m_round.m_fnRoundState == 3))
                     {
-                    	m_botAction.specWithoutLock(p.getPlayerName());
-                    	sendPrivateMessageToCaptains( name + " has a resolution ("+xResolution+"x"+yResolution+") that is higher then resolution limits. Player is now a spectator." );
+                        m_botAction.specWithoutLock(p.getPlayerName());
+                        sendPrivateMessageToCaptains( name + " has a resolution (" + xResolution + "x" + yResolution + ") that is higher then resolution limits. Player is now a spectator." );
                         m_botAction.sendPrivateMessage( name , "You've been put to spectator because your resolution is violating the resolution limits. Please change your resolution.");
-                    	
+
                     }
                 }
             }
@@ -340,6 +350,7 @@ public class MatchTeam {
         if ((isStaff) || (isCaptain(name))) {
             if (m_rules.getInt("captainfixed") == 0)
                 help.add("!setcaptain <player>                     - changes captain to <player>. Note: there can be only 1 captain");
+
             if (m_round.m_fnRoundState == 1) {
                 help.add("!list                                    - lists all players on this team");
                 help.add("!add <player>:<ship>                     - adds player, <ship> only required for basing");
@@ -349,6 +360,7 @@ public class MatchTeam {
                 help.add("!ready                                   - use this when you're done setting your lineup");
                 help.add("!addplayer                               - request to add an extra player");
                 help.add("!lagout <player>                         - puts <player> back in the game");
+
                 if (m_rules.getInt("blueout") == 1)
                     help.add("!blueout                                 - enable/disable blueout");
             } else if (m_round.m_fnRoundState == 3) {
@@ -357,12 +369,16 @@ public class MatchTeam {
                 help.add("!addplayer                               - request to add an extra player");
                 help.add("!lagout <player>                         - puts <player> back in the game");
                 help.add("!sub <playerA>:<playerB>                 - substitutes <playerA> with <playerB>");
+
                 if (m_rules.getInt("shipswitches") != 0)
                     help.add("!switch <player>:<player>                - exchanges the ship of both players");
+
                 if (m_rules.getInt("shipchanges") != 0)
                     help.add("!change <player>:<ship>                  - sets the player in the specified ship");
+
                 if (m_rules.getInt("blueout") == 1)
                     help.add("!blueout                                 - enable/disable blueout");
+
                 //                help.add("!lagger <player>                         - make me check <player>'s lag again (in case his lag increased during the game)");
             }
         } else if (getPlayer(name) != null) {
@@ -382,59 +398,78 @@ public class MatchTeam {
     public void parseCommand(String name, String command, String[] parameters, boolean isStaff) {
         try {
             if ((isStaff) || (isCaptain(name))) {
-                
+
                 if (command.equals("!debug"))
                     debugger(name);
 
                 if (m_rules.getInt("captainfixed") == 0)
                     if (command.equals("!setcaptain"))
                         command_setcaptain(name, parameters);
+
                 if (m_round.m_fnRoundState == 1) {
                     if (command.equals("!list"))
                         command_list(name, parameters);
+
                     if (command.equals("!add"))
                         command_add(name, parameters);
+
                     if (command.equals("!addplayer"))
                         command_addplayer(name, parameters);
+
                     if (command.equals("!remove"))
                         command_remove(name, parameters);
+
                     if (command.equals("!switch"))
                         command_switch(name, parameters);
+
                     if (command.equals("!change"))
                         command_change(name, parameters);
+
                     if (command.equals("!ready"))
                         command_ready(name, parameters);
+
                     if (command.equals("!lagout"))
                         command_lagout(name, parameters);
+
                     if (command.equals("!blueout"))
                         command_blueout(name, parameters);
                 } else if (m_round.m_fnRoundState == 2) {
                     if (command.equals("!blueout"))
                         command_blueout(name, parameters);
+
                     if (command.equals("!addplayer"))
                         command_addplayer(name, parameters);
                 } else if (m_round.m_fnRoundState == 3) {
                     if (command.equals("!add"))
                         command_add(name, parameters);
+
                     if (command.equals("!addplayer"))
                         command_addplayer(name, parameters);
+
                     if (command.equals("!list"))
                         command_list(name, parameters);
+
                     if (command.equals("!lagout"))
                         command_lagout(name, parameters);
+
                     if (command.equals("!sub"))
                         command_sub(name, parameters);
+
                     if (command.equals("!switch"))
                         command_switch(name, parameters);
+
                     if (command.equals("!change"))
                         command_change(name, parameters);
+
                     if (command.equals("!blueout"))
                         command_blueout(name, parameters);
+
                     //                    if (command.equals("!lagger")) command_lagger(name, parameters);
                 };
             } else if (getPlayer(name) != null) {
                 if (command.equals("!list"))
                     command_list(name, parameters);
+
                 if ((command.equals("!lagout")) && (parameters.length == 0))
                     command_lagout(name, parameters);
             };
@@ -458,19 +493,23 @@ public class MatchTeam {
                 newCapt = parameters[0];
                 Player p;
                 p = m_botAction.getPlayer(newCapt);
+
                 if( p == null )
                     p = m_botAction.getFuzzyPlayer(newCapt);
+
                 if (p != null) {
                     newCapt = p.getPlayerName();
+
                     if (newCapt.equalsIgnoreCase(m_botAction.getBotName())) {
                         m_logger.sendPrivateMessage(name, "You can't set me as a captain!");
                         return;
                     }
+
                     if (m_botAction.getOperatorList().isBotExact(newCapt)) {
                         m_logger.sendPrivateMessage(name, "You can't set a bot as a captain!");
                         return;
                     }
-                    
+
                     if (!isCaptain(newCapt)) {
                         if ((m_rules.getInt("squadjoined") == 0)
                                 || ((m_rules.getInt("squadjoined") == 1) && (p.getSquadName().equalsIgnoreCase(m_fcTeamName)))) {
@@ -480,6 +519,7 @@ public class MatchTeam {
                                         m_captains.add(p.getPlayerName().toLowerCase());
                                     else
                                         m_captains.set(0, p.getPlayerName().toLowerCase());
+
                                     m_logger.sendArenaMessage(p.getPlayerName() + " assigned as captain for " + getTeamName());
                                 } else
                                     m_logger.sendPrivateMessage(name, "Player '" + newCapt + "' is captain of the other team");
@@ -503,20 +543,26 @@ public class MatchTeam {
         try {
             String answer;
             int fnShip = m_rules.getInt("ship");
+
             if ((fnShip == 0) && (parameters.length == 2))
                 fnShip = Integer.parseInt(parameters[1]);
+
             if (fnShip != 0) {
                 Player p;
                 p = m_botAction.getPlayer(parameters[0]);
+
                 if( p == null )
                     p = m_botAction.getFuzzyPlayer(parameters[0]);
+
                 parameters[0] = p.getPlayerName();
                 answer = addPlayer(p.getPlayerName(), fnShip, true, false);
+
                 if (answer.equals("yes")) {
                     m_logger.sendPrivateMessage(name, "Player " + p.getPlayerName() + " added to " + m_fcTeamName);
                     m_logger.sendPrivateMessage(p.getPlayerName(), "You've been put in the game");
 
                     m_botAction.sendUnfilteredPrivateMessage( p.getPlayerName(), "*einfo" );
+
                     if (m_rules.getInt("pickbyturn") == 1) {
                         m_turn = !m_turn;
                         m_round.determineNextPick();
@@ -535,6 +581,7 @@ public class MatchTeam {
         if (!m_addPlayer) {
             if (m_round.m_game.getPlayersNum() < m_rules.getInt("players")) {
                 m_addPlayer = true;
+
                 if (!m_round.checkAddPlayer(m_fcTeamName)) {
                     m_botAction.sendPrivateMessage(name, "Your request of adding an extra player has been sent to opposing team.");
                 }
@@ -567,6 +614,7 @@ public class MatchTeam {
 
                 return;
             }
+
             m_logger.sendPrivateMessage(name, "Player not found");
         } catch (Exception e) {
             m_logger.sendPrivateMessage(name, "Could not remove player, unknown error in command_remove (" + e.getMessage() + ")");
@@ -606,25 +654,33 @@ public class MatchTeam {
         m_logger.sendPrivateMessage(name, m_fcTeamName + ":");
 
         answ = "";
+
         for (i = 0; i < players.length; i++) {
             p = players[i];
+
             if (p.getPlayerName().length() > 15)
                 answ = answ + p.getPlayerName().substring(0, 15);
             else
                 answ = answ + p.getPlayerName();
+
             for (j = 0; j < (15 - p.getPlayerName().length()); j++)
                 answ = answ + " ";
+
             answ = answ + "- ";
             answ = answ + p.getPlayerStateName();
+
             for (j = 0; j < (12 - p.getPlayerStateName().length()); j++)
                 answ = answ + " ";
+
             answ = answ + "- " + p.getShipType();
+
             if (i % 2 == 1) {
                 m_logger.sendPrivateMessage(name, answ);
                 answ = "";
             } else
                 answ = answ + "          ";
         };
+
         if (!answ.equals(""))
             m_logger.sendPrivateMessage(name, answ);
     }
@@ -638,6 +694,7 @@ public class MatchTeam {
             if (parameters.length == 2) {
                 pA = getPlayer(parameters[0]);
                 pB = getPlayer(parameters[1]);
+
                 if (pA != null) {
                     if (pA.isAllowedToPlay()) {
                         if (pB != null) {
@@ -655,9 +712,11 @@ public class MatchTeam {
                                     m_round.events.add(MatchRoundEvent.switchPlayer(pA.m_dbPlayer.getUserID(), pB.m_dbPlayer.getUserID()));
 
                                 m_logger.sendArenaMessage(
-                                        pA.m_fcPlayerName + " (" + pB.getShipType() + ") and " + pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
+                                    pA.m_fcPlayerName + " (" + pB.getShipType() + ") and " + pB.m_fcPlayerName + " (" + pA.getShipType() + ") switched ships.");
+
                                 if (m_round.m_fnRoundState == 3) {
                                     m_fnShipSwitches++;
+
                                     if (m_rules.getInt("shipswitches") != -1)
                                         m_logger.sendPrivateMessage(name, "You have " + (m_rules.getInt("shipswitches") - m_fnShipSwitches) + " shipswitches left");
                                 };
@@ -683,13 +742,13 @@ public class MatchTeam {
         if ((m_fnShipChanges < m_rules.getInt("shipchanges")) || (m_rules.getInt("shipchanges") == -1)) {
             if (parameters.length == 2) {
                 pA = getPlayer(parameters[0]);
-                
+
                 try {
                     newShip = Integer.parseInt(parameters[1]);
                 } catch (Exception e) {
                     newShip = 0;
                 }
-                
+
                 if (pA != null) {
                     if (pA.isReadyToPlay()) {
                         if ((newShip >= 1) && (newShip <= 8)) {
@@ -699,6 +758,7 @@ public class MatchTeam {
                                 // on round state 3, all maxima and minima should be checked
                                 if ((m_round.m_fnRoundState == 3) || (m_round.m_fnRoundState == 1)) {
                                     int oldShip = pA.getShipType();
+
                                     // when the player leaves that ship, does it get under the minimum?
                                     if ((m_rules.getInt("minship" + oldShip) == 0) || (m_rules.getInt("minship" + oldShip) < getPlayersRosteredInShip(oldShip))) {
                                         // when the player enters the new ship, does it get over the maximum?
@@ -710,6 +770,7 @@ public class MatchTeam {
                                             pA.m_switchedShip = true;
 
                                             m_logger.sendArenaMessage(pA.m_fcPlayerName + " changed from ship " + oldShip + " to ship " + newShip);
+
                                             if ((m_rules.getInt("shipchanges") != -1) && (m_round.m_fnRoundState == 3)) {
                                                 m_fnShipChanges++;
                                                 m_logger.sendPrivateMessage(name, "You have " + (m_rules.getInt("shipchanges") - m_fnShipChanges) + " shipchanges left");
@@ -740,6 +801,7 @@ public class MatchTeam {
         if (!m_fbReadyToGo) {
             // does the team meet the requirements to start:
             String message = isAllowedToBegin();
+
             if (message.equals("yes")) {
                 m_fbReadyToGo = true;
                 m_logger.sendArenaMessage(m_fcTeamName + " is ready to begin");
@@ -769,17 +831,18 @@ public class MatchTeam {
             lagger = parameters[0];
 
         p = getPlayer(lagger);
+
         if (p != null && (m_rules.getInt("rosterjoined") == 0 || getTeamName().equalsIgnoreCase(m_botAction.getPlayer(lagger).getSquadName()))) {
             // put player back in, returns message to report if it's successful
             message = p.lagin();
-        
+
             if (message.equals("yes")) {
-            	//Check Resolution Limits
-            	m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
-            	
+                //Check Resolution Limits
+                m_botAction.sendUnfilteredPrivateMessage(p.getPlayerName(), "*einfo");
+
                 if (m_rules.getInt("storegame") != 0)
                     m_round.events.add(MatchRoundEvent.lagin(p.m_dbPlayer.getUserID()));
-                
+
                 if (commandByOther)
                     m_logger.sendPrivateMessage(name, "Player is back in, " + p.getLagoutsLeft() + " lagouts left");
             } else {
@@ -796,20 +859,20 @@ public class MatchTeam {
 
     // substitutes a player with another
     public void command_sub(String name, String[] parameters) {
-        /* definitions:
-         * v m_fnSubstitutes < rules.substitutes or rules.substitutes == -1
-         * v playerA to be substituted
-         * v playerB to be the substite
-         * ----
-         * v m_round.m_fnRoundState should be (3 - playing)
-         * v playerA should be in the m_players list
-         * v playerA should either be (1 - in game) or (3 - lagged)
-         * v playerB should be in the arena
-         * when playerB is not registered:
-         * v call command_addp from here
-         * when playerB is registered:
-         * v playerB should be either (2 - substituted) or ( 0 - not in game)
-         */
+        /*  definitions:
+            v m_fnSubstitutes < rules.substitutes or rules.substitutes == -1
+            v playerA to be substituted
+            v playerB to be the substite
+            ----
+            v m_round.m_fnRoundState should be (3 - playing)
+            v playerA should be in the m_players list
+            v playerA should either be (1 - in game) or (3 - lagged)
+            v playerB should be in the arena
+            when playerB is not registered:
+            v call command_addp from here
+            when playerB is registered:
+            v playerB should be either (2 - substituted) or ( 0 - not in game)
+        */
 
         // check if the given substitute command is legal
         // if subdelaytime > 0 then create a timertask to call the substitute routine in subdelaytime seconds
@@ -825,16 +888,19 @@ public class MatchTeam {
 
                 if (m_round.m_fnRoundState == 3) {
                     pA = getPlayer(playerA);
+
                     if (pA != null) {
                         subdelaytime = m_rules.getInt("subdelaytime");
+
                         if (subdelaytime > 5)
                             subdelaytime = 5;
 
                         // Randomize delay with +(0-3) seconds
-                        subdelaytime = subdelaytime + Math.round(new Float(Math.random()*3));
+                        subdelaytime = subdelaytime + Math.round(new Float(Math.random() * 3));
 
                         if (subdelaytime > 0) {
                             m_logger.sendPrivateMessage(name, "Your substitute request will be processed in a few seconds");
+
                             // if the timertask isn't busy then create timertask
                             if ((nme == "-ready-") && (plA == "-ready-") && (plB == "-ready-")) {
                                 nme = name;
@@ -862,6 +928,7 @@ public class MatchTeam {
                 m_logger.sendPrivateMessage(name, "Specify the player to be substituted, and the substitute");
         } else
             m_logger.sendPrivateMessage(name, "There are no more substitutes allowed");
+
         if (pA != null)
             pA.setAboutToBeSubbed(false);
     };
@@ -875,16 +942,20 @@ public class MatchTeam {
         if ((m_fnSubstitutes < m_rules.getInt("substitutes")) || (m_rules.getInt("substitutes") == -1)) {
             if (m_round.m_fnRoundState == 3) {
                 pA = getPlayer(playerA);
+
                 if (pA != null) {
                     pA.setAboutToBeSubbed(true);
+
                     if ((pA.getPlayerState() == 1 || pA.getPlayerState() == 3) && pA.getPlayerState() != 4) {
                         ppB = m_botAction.getFuzzyPlayer(playerB);
+
                         if (ppB != null) {
                             pB = getPlayer(ppB.getPlayerName());
 
                             // If playerB isn't in the arena.
                             if (pB == null) {
                                 answer = addPlayer(ppB.getPlayerName(), pA.getShipType(), false, true);
+
                                 if (answer.equals("yes"))
                                     pB = getPlayer(ppB.getPlayerName());
                                 else
@@ -900,11 +971,12 @@ public class MatchTeam {
                                     pB.setShip(pA.getShipType());
                                     m_logger.sendPrivateMessage(pB.getPlayerName(), "You are subbed in the game");
                                     m_fnSubstitutes++;
+
                                     if (m_rules.getInt("deaths") == -1)
                                         m_logger.sendArenaMessage(pA.getPlayerName() + " has been substituted by " + pB.getPlayerName());
                                     else
                                         m_logger.sendArenaMessage(
-                                                pA.getPlayerName() + " has been substituted by " + pB.getPlayerName() + ", with " + subDeathsLeft + " deaths left");
+                                            pA.getPlayerName() + " has been substituted by " + pB.getPlayerName() + ", with " + subDeathsLeft + " deaths left");
 
                                     if (m_rules.getInt("storegame") != 0)
                                         m_round.events.add(MatchRoundEvent.subPlayer(pA.m_dbPlayer.getUserID(), pB.m_dbPlayer.getUserID()));
@@ -922,6 +994,7 @@ public class MatchTeam {
                             m_logger.sendPrivateMessage(name, playerB + " isn't in the arena");
                     } else
                         m_logger.sendPrivateMessage(name, pA.getPlayerName() + " isn't in the game");
+
                     pA.setAboutToBeSubbed(false);
                 } else
                     m_logger.sendPrivateMessage(name, playerA + " doesn't play for your team");
@@ -929,6 +1002,7 @@ public class MatchTeam {
                 m_logger.sendPrivateMessage(name, "Game hasn't started yet");
         } else
             m_logger.sendPrivateMessage(name, "There are no more substitutes allowed");
+
         if (pA != null)
             pA.setAboutToBeSubbed(false);
     }
@@ -936,6 +1010,7 @@ public class MatchTeam {
     public void command_blueout(String name, String[] parameters) {
         if (m_rules.getInt("blueout") == 1) {
             m_blueoutState = !m_blueoutState;
+
             if (m_blueoutState == true) {
                 if (m_round.m_blueoutState != 1)
                     m_round.requestBlueout(m_blueoutState);
@@ -947,6 +1022,7 @@ public class MatchTeam {
             } else {
                 if (m_round.getOtherTeam(m_fnFrequency).getBlueoutState() == false)
                     m_round.requestBlueout(m_blueoutState);
+
                 m_logger.sendPrivateMessage(name, "If the other team also requested to turn off blueout, blueout will be taken off.");
             }
         }
@@ -982,8 +1058,10 @@ public class MatchTeam {
         // when rosterjoined=1, has to exist in the Roster database
         if (m_rules.getInt("rosterjoined") == 1) {
             DBPlayerData dbP = new DBPlayerData(m_botAction, dbConn, name);
+
             if (!m_fcTeamName.equalsIgnoreCase(dbP.getTeamName()))
                 return "Player isn't on the squad roster";
+
             //            if(isDoubleSquadding(name))
             //                return "Player is not elligible to play because he / she is double squadding.";
             // if eligibleafter specified, player has to be on the roster for x days
@@ -993,6 +1071,7 @@ public class MatchTeam {
                 signup.setTime(dbP.getTeamSignedUp());
                 signup.add(GregorianCalendar.DATE, m_rules.getInt("eligibleafter"));
                 double msDiff = (today.getTimeInMillis() - signup.getTimeInMillis()) / 1000 / 60 / 60;
+
                 if (msDiff < 0)
                     return "Player isn't eligible yet, he will be eligible " + (-msDiff) + " hours";
             }
@@ -1001,10 +1080,13 @@ public class MatchTeam {
             if (m_rules.getInt("matchtype") < MatchTypeID.MAX) {
                 try {
                     ResultSet s = m_botAction.SQLQuery(dbConn, "SELECT tblTWL__LockDate.fdTWL__LockDate AS lockDate FROM tblTWL__LockDate, tblTeamUser WHERE tblTWL__LockDate.fcTWL__LockType = 'hard' AND tblTeamUser.fnUserID = '" + dbP.getUserID() + "' AND (tblTeamUser.fdJoined < tblTWL__LockDate.fdTWL__LockDate OR (tblTeamUser.fnTeamID = 11890 AND tblTeamUser.fnTWL = 1));");
+
                     if (!s.next()) {
                         return "Player was rostered after the roster lock and is ineligible for TWL games";
                     }
+
                     ResultSet s2 = m_botAction.SQLQuery(dbConn, "SELECT * FROM tblTWL__Player WHERE fnUserID = '" + dbP.getUserID() + "'");
+
                     if (!s2.next()) {
                         return "Player is not rostered as a TWL player";
                     }
@@ -1026,16 +1108,19 @@ public class MatchTeam {
 
         // player should be in the arena
         p = m_botAction.getPlayer(name);
+
         if (p == null)
             return "Player is not in this arena";
 
         // there should be room in the team
         playersAvail = getPlayersIsWasInGame();
+
         if (playersAvail >= m_round.m_game.getPlayersNum())
             return "Team is full, maximum of " + m_round.m_game.getPlayersNum();
 
         // maximum number of that ship shouldn't be reached
         int maxShips = m_rules.getInt("maxship" + ship);
+
         if (maxShips != 0) {
             if (maxShips == -1)
                 return "Ship " + ship + " is not allowed";
@@ -1139,20 +1224,24 @@ public class MatchTeam {
     public boolean teamForfeit() {
         return m_fnForfeit == 2;
     }
-    
+
     // addPlayer, including errormessages
     public String addPlayer(String playerName, int fnShip, boolean getInGame, boolean fbSilent) {
         try {
             String answer;
+
             if ((fnShip >= 1) && (fnShip <= 8)) {
                 Player p;
                 p = m_botAction.getPlayer(playerName);
+
                 if( p == null )
                     p = m_botAction.getFuzzyPlayer(playerName);
+
                 answer = playerAllowedToPlay(p.getPlayerName(), fnShip);
+
                 if (answer.equals("yes")) {
                     addPlayerFinal(p.getPlayerName(), fnShip, getInGame, fbSilent);
-                    
+
                     return "yes";
                 } else
                     return answer;
@@ -1168,19 +1257,21 @@ public class MatchTeam {
     @SuppressWarnings("unchecked")
     public void addPlayerFinal(String fcPlayerName, int fnShipType, boolean getInGame, boolean fbSilent) {
         MatchPlayer p;
+
         if (!useDatabase) {
             p = new MatchPlayer(fcPlayerName, this);
             p.setShipAndFreq(fnShipType, m_fnFrequency);
-            
+
             if (getInGame) {
-                
+
                 if (m_round.m_fnRoundState == 3) {
                     if (m_rules.getInt("storegame") != 0)
                         m_round.events.add(MatchRoundEvent.addPlayer(p.m_dbPlayer.getUserID(), fnShipType));
                 }
-                
+
                 p.getInGame(fbSilent);
             }
+
             m_players.add(p);
         }
     }
@@ -1190,8 +1281,10 @@ public class MatchTeam {
         if (getPlayersRostered() < m_rules.getInt("players")) {
             m_turn = true;
             String andShip = "";
+
             if (m_rules.getInt("ship") == -1)
                 andShip = " and specify ship";
+
             m_logger.sendArenaMessage(getTeamName() + ", pick a player" + andShip);
         }
     }
@@ -1208,6 +1301,7 @@ public class MatchTeam {
     // checks if the team has players in-game
     public boolean isDead() {
         MatchPlayer p;
+
         if (m_round.m_fnRoundState != 3)
             return false;
 
@@ -1216,6 +1310,7 @@ public class MatchTeam {
 
         while (i.hasNext()) {
             p = i.next();
+
             if ((p.getPlayerState() == MatchPlayer.IN_GAME)
                     || ((p.getPlayerState() == MatchPlayer.LAGGED) && ((System.currentTimeMillis() - p.getLaggedTime()) <= m_rules.getInt("lagoutextension") * 1000)))
                 retval++;
@@ -1233,33 +1328,36 @@ public class MatchTeam {
 
         if (m_round.m_fnRoundState != 3 || !winBy.equals("race") || raceTo < 0)
             return false;
+
         return getTeamScore() >= raceTo;
     }
 
     /**
-     * Sets the flag control flag
-     * Then it sets a timertask to countdown the remainder of the time to win
-     * If team holds flag till that time and the timertask expires it updates
-     * scores and checks if the team won.
-     *
-     * @author FoN
-     */
+        Sets the flag control flag
+        Then it sets a timertask to countdown the remainder of the time to win
+        If team holds flag till that time and the timertask expires it updates
+        scores and checks if the team won.
+
+        @author FoN
+    */
     public void ownFlag(int playerID) {
         if (m_round.m_fnRoundState == 3 && m_flagOwned == false) {
             String playerName = m_botAction.getPlayer(playerID).getPlayerName();
             MatchPlayer p = getPlayer(playerName);
+
             if (p != null)
                 p.reportFlagClaimed();
+
             m_flagCarrierID = playerID;
             m_flagOwned = true;
         }
     }
 
     /**
-     * Unset the flag control flag and updates score
-     *
-     * @author FoN
-     */
+        Unset the flag control flag and updates score
+
+        @author FoN
+    */
     public void disownFlag() {
         if (m_round.m_fnRoundState == 3 && m_flagOwned == true) {
             m_flagCarrierID = 0;
@@ -1268,27 +1366,27 @@ public class MatchTeam {
     }
 
     /**
-     * Returns if this team has the flag
-     * @return boolean which is true if this team has the flag
-     */
+        Returns if this team has the flag
+        @return boolean which is true if this team has the flag
+    */
     public boolean hasFlag() {
         return m_flagOwned;
     }
 
     /**
-     * Returns the ID of the player who currently carries a flag. Meant to be used for games with 1 flag only.
-     * @return the PlayerID of the flagcarrier of this team
-     */
+        Returns the ID of the player who currently carries a flag. Meant to be used for games with 1 flag only.
+        @return the PlayerID of the flagcarrier of this team
+    */
     public int getFlagCarrier() {
         return this.m_flagCarrierID;
     }
-    
+
     /**
-     * Method getTimeScore.
-     *
-     * @author FoN
-     * @return int which returns the updated score if this team owns the flag
-     */
+        Method getTimeScore.
+
+        @author FoN
+        @return int which returns the updated score if this team owns the flag
+    */
     public int getTimeScore() {
         if (m_fnForfeit == 0)
             return m_teamTime;
@@ -1296,15 +1394,16 @@ public class MatchTeam {
             return m_rules.getInt("forfeit_winner_score");
         else if (m_fnForfeit == 2)
             return m_rules.getInt("forfeit_loser_score");
+
         return 0;
     }
 
     /**
-     * Method addTimePoint
-     * This is called every sec by a repeated timer when the game starts
-     *
-     * @author FoN
-     */
+        Method addTimePoint
+        This is called every sec by a repeated timer when the game starts
+
+        @author FoN
+    */
     public void addTimePoint() {
         if (m_flagOwned)
             m_teamTime += 1;
@@ -1345,6 +1444,7 @@ public class MatchTeam {
                     return answ;
             }
         }
+
         return best;
     }
 
@@ -1359,6 +1459,7 @@ public class MatchTeam {
 
         while (i.hasNext()) {
             rightnow = i.next();
+
             if (best == null)
                 best = rightnow;
             else if (rightnow.getPoints() > best.getPoints())
@@ -1390,6 +1491,7 @@ public class MatchTeam {
             return m_rules.getInt("forfeit_winner_score");
         else if (m_fnForfeit == 2)
             return m_rules.getInt("forfeit_loser_score");
+
         return 0;
     }
 
@@ -1407,11 +1509,13 @@ public class MatchTeam {
     public int getTotalRepelsUsed() {
         int reps = 0;
         ListIterator<MatchPlayer> i = m_players.listIterator();
+
         while (i.hasNext())
             reps += i.next().getRepelsUsed();
+
         return reps;
     }
-    
+
     // get total score
     public int getTotalScore() {
         ListIterator<MatchPlayer> i = m_players.listIterator();
@@ -1486,6 +1590,7 @@ public class MatchTeam {
 
         while (i.hasNext()) {
             p = i.next();
+
             if ((p.isAllowedToPlay()) && (p.getShipType() == shipType))
                 retval++;
         }
@@ -1496,12 +1601,15 @@ public class MatchTeam {
     // checks if all minimum numbers of ships are met
     public String minimumShipAmountsMet() {
         int minShips, curShips;
+
         for (int i = 1; i <= 8; i++) {
             minShips = m_rules.getInt("minship" + i);
             curShips = getPlayersRosteredInShip(i);
+
             if (curShips < minShips)
                 return "You need at least " + minShips + " of type " + i + ", there are currently " + curShips;
         }
+
         return "yes";
     }
 
@@ -1527,6 +1635,7 @@ public class MatchTeam {
 
     public void sendPrivateMessageToCaptains(String text, int soundCode) {
         ListIterator<String> i = m_captains.listIterator();
+
         while (i.hasNext()) {
             m_logger.sendPrivateMessage(i.next(), text, soundCode);
         }
@@ -1539,12 +1648,15 @@ public class MatchTeam {
     public void reportLaggerLag(int ping) {
         if (m_fcLaggerName != null) {
             int maxPing = m_rules.getInt("maxping");
+
             if (maxPing == 0)
                 maxPing = 1000;
+
             if (ping > maxPing) {
                 m_logger.doubleSpec(m_fcLaggerName);
                 m_logger.sendPrivateMessage(m_fcLaggerName, "your lag is too high to play in this game. Max ping: " + maxPing + ", your ping: " + ping);
             }
+
             m_fcLaggerName = null;
         }
     }
@@ -1560,52 +1672,56 @@ public class MatchTeam {
 
         while (i.hasNext()) {
             temp = i.next();
+
             if (m_botAction.getPlayer(temp) != null) {
                 if (isFirst)
                     isFirst = false;
                 else
                     answ = answ + ", ";
+
                 answ = answ + temp;
             }
         }
+
         return answ;
     }
 
     public LinkedList<String> getCaptainsList() {
         return m_captains;
     }
-    
+
     public String getTeamName() {
         return m_fcTeamName;
     }
-    
+
     public int getFrequency() {
         return m_fnFrequency;
     }
-    
+
     public boolean isReadyToGo() {
         return m_fbReadyToGo;
     }
-    
+
     public boolean addEPlayer() {
         return m_addPlayer;
     }
-    
+
     public void setAddPlayer(boolean b) {
         m_addPlayer = b;
     }
-    
+
     public boolean getBlueoutState() {
         return m_blueoutState;
     }
 
-    public boolean isPlayerOnTeam( String name ){
+    public boolean isPlayerOnTeam( String name ) {
         MatchPlayer player;
         ListIterator<MatchPlayer> i = m_players.listIterator();
 
-        while( i.hasNext() ){
+        while( i.hasNext() ) {
             player = i.next();
-            if( player.getPlayerName().toLowerCase().compareTo( name.toLowerCase() ) == 0 ){
+
+            if( player.getPlayerName().toLowerCase().compareTo( name.toLowerCase() ) == 0 ) {
                 return true;
             }
         }
@@ -1614,13 +1730,13 @@ public class MatchTeam {
     }
 
     /**
-     * Please use the global constants defined in the stats file so we don't introduce bugs
-     * @author Someoneelse, Edited by FoN
-     *
-     * @param duelG: Is it a duel game ie not base
-     * @param wbG: Is it a wb game ie not javs
-     * @return The array of strings to print game summary
-     */
+        Please use the global constants defined in the stats file so we don't introduce bugs
+        @author Someoneelse, Edited by FoN
+
+        @param duelG: Is it a duel game ie not base
+        @param wbG: Is it a wb game ie not javs
+        @return The array of strings to print game summary
+    */
     public ArrayList<String> getDScores(boolean duelG, boolean wbG) {
 
         ArrayList<String> out = new ArrayList<String>();
@@ -1712,13 +1828,15 @@ public class MatchTeam {
         int startPos = length - curLength;
         String result = "";
 
-        for (int i=0; i < startPos; i++) result = result + " ";
+        for (int i = 0; i < startPos; i++) result = result + " ";
+
         result = result + fragment;
-        for (int j=result.length(); j < length; j++) result = result + " ";
+
+        for (int j = result.length(); j < length; j++) result = result + " ";
 
         return result;
     }
-    
+
     public void debugger(String name) {
         if (!DEBUG) {
             debugger = name;

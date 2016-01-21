@@ -34,10 +34,10 @@ import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
- * THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
- * 
- * We're working on it, Guano... we're working on it. :>   - qan
- */
+    THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
+
+    We're working on it, Guano... we're working on it. :>   - qan
+*/
 
 public class pubhubalias extends PubBotModule {
     public static final String DATABASE = "website";
@@ -67,10 +67,10 @@ public class pubhubalias extends PubBotModule {
     private static final String DEFAULT_HEADER = "Unknown Column";
 
     private static final String DATE_FIELD_PREFIX = "fd";
-    
+
     public final String TWChatMID = "1693149144";
 
-    
+
     /** Sorting options for !showwatches and !showmywatches */
     private static enum SortField { NONE, DATE, TRIGGER, ISSUER };
 
@@ -96,12 +96,12 @@ public class pubhubalias extends PubBotModule {
     private HashSet<String> aliasops = new HashSet<String>();
     private HashSet<String> bangops = new HashSet<String>();
     private Hider hider;
-    
+
     private boolean privateAliases;
 
     /**
-     * This method initializes the module.
-     */
+        This method initializes the module.
+    */
     public void initializeModule() {
         justAdded = Collections.synchronizedSet(new HashSet<String>());
         deleteNextTime = Collections.synchronizedSet(new HashSet<String>());
@@ -110,7 +110,7 @@ public class pubhubalias extends PubBotModule {
         watchedMIDs = Collections.synchronizedMap(new HashMap<String, WatchComment>());
         watchedLNames = Collections.synchronizedMap(new HashMap<String, WatchComment>());
         watchedRNames = Collections.synchronizedMap(new HashMap<String, WatchComment>());
-        watchedPNames = Collections.synchronizedMap(new HashMap<String, WatchComment>()); 
+        watchedPNames = Collections.synchronizedMap(new HashMap<String, WatchComment>());
         clearRecordTask = new ClearRecordTask();
         hider = new Hider(m_botAction);
 
@@ -124,20 +124,23 @@ public class pubhubalias extends PubBotModule {
     }
 
     private boolean isTWDOp(String name) {
-        if (name==null || twdops==null)
+        if (name == null || twdops == null)
             return false;
+
         return twdops.contains(name.toLowerCase());
     }
 
     private boolean isBangOp(String name) {
-        if (name==null || bangops==null)
+        if (name == null || bangops == null)
             return false;
+
         return bangops.contains(name.toLowerCase());
     }
-    
+
     private boolean isAliasOp(String name) {
-        if (name==null || aliasops==null)
+        if (name == null || aliasops == null)
             return false;
+
         return aliasops.contains(name.toLowerCase());
     }
 
@@ -145,7 +148,7 @@ public class pubhubalias extends PubBotModule {
         eventRequester.request(EventRequester.MESSAGE);
         eventRequester.request(EventRequester.FILE_ARRIVED);
     }
-    
+
     public void handleEvent(FileArrived event) {
         hider.handleEvent(event);
     }
@@ -156,13 +159,13 @@ public class pubhubalias extends PubBotModule {
 
             //long t = System.currentTimeMillis();
             String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fcUserName = '"
-                    + Tools.addSlashes(playerName) + "'", "fnIP");
+                               + Tools.addSlashes(playerName) + "'", "fnIP");
 
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fcUserName = '"
-                    + Tools.addSlashes(playerName) + "'", "fnMachineId");
+                                + Tools.addSlashes(playerName) + "'", "fnMachineId");
 
             String queryString = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE fnIP IN " + ipResults + " AND fnMachineID IN "
-                    + midResults + " " + getOrderBy();
+                                 + midResults + " " + getOrderBy();
 
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
@@ -170,16 +173,17 @@ public class pubhubalias extends PubBotModule {
                 displayAltNickAllResults(sender, queryString, headers, "fcUserName");
             else
                 displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
+
             //m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
     }
-    
+
 
     /*
-    private void doAltNick2Cmd(String sender, String playerName, boolean all) {
+        private void doAltNick2Cmd(String sender, String playerName, boolean all) {
         Integer id = -1;
         try {
             ResultSet resultSet = m_botAction.SQLQuery(DATABASE, "SELECT fnUserID FROM `tblUser` WHERE fcUserName='" + Tools.addSlashes(playerName) + "'");
@@ -206,7 +210,7 @@ public class pubhubalias extends PubBotModule {
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) FROM `tblAlias` WHERE fnUserID='" + id + "'", "fnMachineId");
             String queryString = "SELECT fcUserName FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID WHERE (fnIP IN " + ipResults + " " + "AND fnMachineID IN "
                     + midResults + ")" + getOrderBy();
-                    
+
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
             else if (all)
@@ -218,7 +222,7 @@ public class pubhubalias extends PubBotModule {
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
-    }
+        }
     */
 
     private void doAltNickCmd(String sender, String playerName, boolean all) {
@@ -226,39 +230,40 @@ public class pubhubalias extends PubBotModule {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
             //long t = System.currentTimeMillis();
-            String queryString = 
+            String queryString =
                 //"SET @userId = (SELECT fnUserId FROM tblUser WHERE fcUserName='"
                 //+ Tools.addSlashes(playerName) + "' LIMIT 0,1);"
-                  " SELECT U.fcUserName, A.* FROM tblAlias A JOIN tblUser U ON A.fnUserId = U.fnUserId WHERE "
+                " SELECT U.fcUserName, A.* FROM tblAlias A JOIN tblUser U ON A.fnUserId = U.fnUserId WHERE "
                 + " fnIP IN ( SELECT DISTINCT(fnIP) FROM tblAlias WHERE fnUserId ="
-                + " (SELECT fnUserId FROM tblUser WHERE fcUserName='" + Tools.addSlashes(playerName) + "' LIMIT 0,1) ) AND" 
+                + " (SELECT fnUserId FROM tblUser WHERE fcUserName='" + Tools.addSlashes(playerName) + "' LIMIT 0,1) ) AND"
                 + " fnMachineId IN ( SELECT DISTINCT(fnMachineID) FROM tblAlias WHERE fnUserId ="
                 + "(SELECT fnUserId FROM tblUser WHERE fcUserName='" + Tools.addSlashes(playerName) + "' LIMIT 0,1) ) "
                 + getOrderBy();
-            
+
             if (all)
                 displayAltNickAllResults(sender, queryString, headers, "fcUserName");
             else
                 displayAltNickResults(sender, playerName, queryString, headers, "fcUserName");
+
             //m_botAction.sendSmartPrivateMessage(sender, "Execution time: " + (System.currentTimeMillis() - t) + "ms" );
 
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
     }
-    
+
     private void doAltNickOrCmd(String sender, String playerName, boolean all) {
         try {
             String[] headers = { NAME_FIELD, IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
 
             String ipResults = getSubQueryResultString("SELECT DISTINCT(fnIP) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
-                    + Tools.addSlashes(playerName) + "'", "fnIP");
+                               + Tools.addSlashes(playerName) + "'", "fnIP");
 
             String midResults = getSubQueryResultString("SELECT DISTINCT(fnMachineId) " + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE fcUserName = '"
-                    + Tools.addSlashes(playerName) + "'", "fnMachineId");
+                                + Tools.addSlashes(playerName) + "'", "fnMachineId");
 
             String queryString = "SELECT * FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID " + "WHERE (fnIP IN " + ipResults + " " + "OR fnMachineID IN "
-                    + midResults + ") AND fnMachineID > 1 " + getOrderBy();
+                                 + midResults + ") AND fnMachineID > 1 " + getOrderBy();
 
             if (ipResults == null || midResults == null)
                 m_botAction.sendChatMessage("Player not found in database.");
@@ -290,6 +295,7 @@ public class pubhubalias extends PubBotModule {
     private String getOrderBy() {
         if (m_sortByName)
             return "ORDER BY fcUserName";
+
         return "ORDER BY fdUpdated DESC";
     }
 
@@ -329,12 +335,14 @@ public class pubhubalias extends PubBotModule {
                 throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
 
             boolean hide = hider.isHidden(playerName);
-            
+
             ArrayList<String> results = new ArrayList<String>();
             results.add(getResultHeaders(headers));
+
             while (resultSet.next()) {
                 if (!hide && numResults <= m_maxRecords)
                     results.add(getResultLine(resultSet, headers));
+
                 numResults++;
             }
 
@@ -342,7 +350,9 @@ public class pubhubalias extends PubBotModule {
                 results.add(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
             else
                 results.add("Altnick returned " + numResults + " results.");
+
             m_botAction.SQLClose(resultSet);
+
             if (privateAliases)
                 m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
             else
@@ -356,11 +366,11 @@ public class pubhubalias extends PubBotModule {
     private void doInfoAllCmd(String sender, String playerName) {
         try {
             String[] headers = { IP_FIELD, MID_FIELD, TIMES_UPDATED_FIELD, LAST_UPDATED_FIELD };
-            displayAltNickAllResults(sender, 
-                    "SELECT * "
-                            + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
-                            + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' "
-                            + getOrderBy(), headers, null);
+            displayAltNickAllResults(sender,
+                                     "SELECT * "
+                                     + "FROM `tblAlias` INNER JOIN `tblUser` ON `tblAlias`.fnUserID = `tblUser`.fnUserID "
+                                     + "WHERE fcUserName = '" + Tools.addSlashesToString(playerName) + "' "
+                                     + getOrderBy(), headers, null);
         } catch (SQLException e) {
             throw new RuntimeException("SQL Error: " + e.getMessage(), e);
         }
@@ -394,7 +404,7 @@ public class pubhubalias extends PubBotModule {
 
         ArrayList<String> results = new ArrayList<String>();
         results.add(getResultHeaders(headers));
-        
+
         while (resultSet.next()) {
             if (uniqueField != null)
                 curResult = resultSet.getString(uniqueField);
@@ -402,6 +412,7 @@ public class pubhubalias extends PubBotModule {
             if (uniqueField == null || !prevResults.contains(curResult)) {
                 if (numResults <= m_maxRecords)
                     results.add(getResultLine(resultSet, headers));
+
                 prevResults.add(curResult);
                 numResults++;
             }
@@ -411,6 +422,7 @@ public class pubhubalias extends PubBotModule {
             results.add(numResults - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
         else
             results.add("Altnick returned " + numResults + " results.");
+
         m_botAction.SQLClose(resultSet);
         m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
     }
@@ -425,13 +437,15 @@ public class pubhubalias extends PubBotModule {
 
         if (resultSet == null)
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
-        
+
         boolean hide = false;
+
         if (player != null && hider.isHidden(player))
             hide = true;
 
         ArrayList<String> results = new ArrayList<String>();
         results.add(getResultHeaders(headers));
+
         while (resultSet.next()) {
             if (uniqueField != null)
                 curResult = resultSet.getString(uniqueField);
@@ -439,12 +453,13 @@ public class pubhubalias extends PubBotModule {
             if (uniqueField == null || !prevResults.contains(curResult)) {
                 if (hide || (hider.isHidden(curResult.substring(0, (curResult.length() > 24 ? 24 : curResult.length())).trim()))) {
                     hiddenResults++;
-                } else {                
+                } else {
                     if (shownResults < m_maxRecords) {
                         results.add(getResultLine(resultSet, headers));
                         shownResults++;
                     }
                 }
+
                 prevResults.add(curResult);
                 totalResults++;
             }
@@ -453,12 +468,14 @@ public class pubhubalias extends PubBotModule {
         if (shownResults >= m_maxRecords)
             results.add(shownResults + " results shown, " + (totalResults - shownResults) + " repressed.  !maxrecords # to show if available (current: " + m_maxRecords + ")");
         else {
-            if (opList.isSysopExact(sender) || bangops.contains(sender)) 
+            if (opList.isSysopExact(sender) || bangops.contains(sender))
                 results.add(shownResults + " results shown" + (hiddenResults > 0 ? ", " + (hiddenResults) + " hidden." : ". (None hidden)") );
             else
                 results.add("All " + shownResults + " results shown." );
         }
+
         m_botAction.SQLClose(resultSet);
+
         if (privateAliases)
             m_botAction.smartPrivateMessageSpam(sender, results.toArray(new String[results.size()]));
         else
@@ -467,9 +484,9 @@ public class pubhubalias extends PubBotModule {
     }
 
     /*
-    private void displayAltNickResults(String player, String queryString, String[] headers) throws SQLException {
+        private void displayAltNickResults(String player, String queryString, String[] headers) throws SQLException {
         displayAltNickResults(player, queryString, headers, null);
-    }
+        }
     */
 
     private String getResultHeaders(String[] displayFields) {
@@ -485,6 +502,7 @@ public class pubhubalias extends PubBotModule {
 
             resultHeaders.append(padString(fieldHeader, padding));
         }
+
         return resultHeaders.toString().trim();
     }
 
@@ -502,34 +520,45 @@ public class pubhubalias extends PubBotModule {
                 fieldValue = resultSet.getDate(displayField).toString();
             else
                 fieldValue = resultSet.getString(displayField);
+
             resultLine.append(padString(fieldValue, padding));
         }
+
         return resultLine.toString().trim();
     }
 
     private String getFieldHeader(String displayField) {
         if (displayField.equalsIgnoreCase(NAME_FIELD))
             return NAME_HEADER;
+
         if (displayField.equalsIgnoreCase(IP_FIELD))
             return IP_HEADER;
+
         if (displayField.equalsIgnoreCase(MID_FIELD))
             return MID_HEADER;
+
         if (displayField.equalsIgnoreCase(TIMES_UPDATED_FIELD))
             return TIMES_UPDATED_HEADER;
+
         if (displayField.equalsIgnoreCase(LAST_UPDATED_FIELD))
             return DATE_UPDATED_HEADER;
+
         return DEFAULT_HEADER;
     }
 
     private int getFieldPadding(String displayField) {
         if (displayField.equalsIgnoreCase(NAME_FIELD))
             return NAME_PADDING;
+
         if (displayField.equalsIgnoreCase(IP_FIELD))
             return IP_PADDING;
+
         if (displayField.equalsIgnoreCase(MID_FIELD))
             return MID_PADDING;
+
         if (displayField.equalsIgnoreCase(TIMES_UPDATED_FIELD))
             return TIMES_UPDATED_PADDING;
+
         if (displayField.equalsIgnoreCase(LAST_UPDATED_FIELD))
             return DATE_UPDATED_PADDING;
 
@@ -542,14 +571,19 @@ public class pubhubalias extends PubBotModule {
 
         if (resultSet == null)
             throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
+
         if (!resultSet.next())
             return null;
+
         for (;;) {
             subQueryResultString.append(resultSet.getString(columnName));
+
             if (!resultSet.next())
                 break;
+
             subQueryResultString.append(", ");
         }
+
         subQueryResultString.append(") ");
         m_botAction.SQLClose(resultSet);
 
@@ -557,11 +591,11 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Compares IP and MID info of two names, and shows where they match.
-     * 
-     * @param argString
-     * @throws SQLException
-     */
+        Compares IP and MID info of two names, and shows where they match.
+
+        @param argString
+        @throws SQLException
+    */
     public void doCompareCmd(String argString) throws SQLException {
         StringTokenizer argTokens = new StringTokenizer(argString, ":");
 
@@ -573,10 +607,10 @@ public class pubhubalias extends PubBotModule {
 
         try {
             ResultSet p1Set = m_botAction.SQLQuery(DATABASE, "SELECT * " + "FROM tblUser U, tblAlias A " + "WHERE U.fcUserName = '" + Tools.addSlashesToString(player1Name) + "' "
-                    + "AND U.fnUserID = A.fnUserID " + "ORDER BY A.fdUpdated DESC");
+                                                   + "AND U.fnUserID = A.fnUserID " + "ORDER BY A.fdUpdated DESC");
 
             ResultSet p2Set = m_botAction.SQLQuery(DATABASE, "SELECT * " + "FROM tblUser U, tblAlias A " + "WHERE U.fcUserName = '" + Tools.addSlashesToString(player2Name) + "' "
-                    + "AND U.fnUserID = A.fnUserID " + "ORDER BY A.fdUpdated DESC");
+                                                   + "AND U.fnUserID = A.fnUserID " + "ORDER BY A.fdUpdated DESC");
 
             if (p1Set == null || p2Set == null)
                 throw new RuntimeException("ERROR: Null result set returned; connection may be down.");
@@ -588,6 +622,7 @@ public class pubhubalias extends PubBotModule {
 
             LinkedList<String> IPs = new LinkedList<String>();
             LinkedList<Integer> MIDs = new LinkedList<Integer>();
+
             while (p1Set.previous()) {
                 IPs.add(p1Set.getString("A.fcIPString"));
                 MIDs.add(p1Set.getInt("A.fnMachineID"));
@@ -601,13 +636,16 @@ public class pubhubalias extends PubBotModule {
                 matchIP = false;
                 matchMID = false;
                 display = "";
+
                 if (MIDs.contains(p2Set.getInt("A.fnMachineID")))
                     matchMID = true;
+
                 if (IPs.contains(p2Set.getString("A.fcIPString")))
                     matchIP = true;
 
                 if (matchMID == true)
                     display += "MID match: " + p2Set.getInt("A.fnMachineID") + " ";
+
                 if (matchIP == true)
                     display += " IP match: " + p2Set.getString("A.fcIPString");
 
@@ -621,8 +659,10 @@ public class pubhubalias extends PubBotModule {
 
             m_botAction.SQLClose(p1Set);
             m_botAction.SQLClose(p2Set);
+
             if (results == 0)
                 m_botAction.sendChatMessage("No matching IPs or MIDs found.");
+
             if (results > m_maxRecords)
                 m_botAction.sendChatMessage(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
         } catch (SQLException e) {
@@ -633,58 +673,58 @@ public class pubhubalias extends PubBotModule {
 
     public void doHelpCmd(String sender) {
         String[] message = { "ALIAS CHAT COMMANDS: ",
-                "!AltNick  <PlayerName>         - Alias by <PlayerName> (!altnickorig for old alg.)",
-                "!AltOr    <PlayerName>         - Alias by <PlayerName> using IP OR MID",
-                "!AltIP    <IP>                 - Alias by <IP>",
-                "!PartialIP <IP>                - Alias by <PARTIALIP>",
-                "!AltMID   <MacID>              - Alias by <MacID>",
-                "!Info     <PlayerName>         - Shows stored info of <PlayerName>",
-                "!Compare  <Player1>:<Player2>  - Compares and shows matches",
-                "!MaxResults <#>                - Changes the max. number of results to return",
-                "!NameWatch <Name>:<reason>     - Watches logins for <Name> with the specified <reason>",
-                "!NameWatch <Name>              - Disables the login watch for <Name>",
-                "!LNameWatch <Name>:<reason>    - Watches logins that start with <Name> with the specified <reason>",
-                "!LNameWatch <Name>             - Disables the left partial login watch for <Name>",
-                "!RNameWatch <Name>:<reason>    - Watches logins that end with <Name> with the specified <reason>",
-                "!RNameWatch <Name>             - Disables the right partial login watch for <Name>",
-                "!PNameWatch <Name>:<reason>    - Watches logins that contain <Name> with the specified <reason>",
-                "!PNameWatch <Name>             - Disables the partial login watch for <Name>",
-                "!IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>",
-                "!IPWatch   <IP>                - Disables the login watch for <IP>",
-                "!MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>",
-                "!MIDWatch  <MID>               - Disables the login watch for <MID>",
-                "!ClearNameWatch                - Clears all login watches for names (disabled)",
-                "!ClearIPWatch                  - Clears all login watches for IPs (disabled)",
-                "!ClearMIDWatch                 - Clears all login watches for MIDs (disabled)",
-                "!ShowWatches [<Sort>:<Dir>]    - Shows all current login watches, optionally sorted by <Sort>",
-                "                               Sort options: d(ate), t(rigger), i(ssuer); Dir: A(scending), D(escending)",
-                "!ShowMyWatches [<Sort>:<Dir>]  - Same as !ShowWatches, but only displays your own watches",
-                "!SortByName / !SortByDate      - Selects sorting method",
-                "!update                        - Updates TWDOps list",
-                //"!aliasop <name>                - Gives <name> alias access",
-                //"!aliasdeop <name>              - Removes alias access for <name>",
-                "!listaliasops (!lao)           - Lists current alias-ops"
+                             "!AltNick  <PlayerName>         - Alias by <PlayerName> (!altnickorig for old alg.)",
+                             "!AltOr    <PlayerName>         - Alias by <PlayerName> using IP OR MID",
+                             "!AltIP    <IP>                 - Alias by <IP>",
+                             "!PartialIP <IP>                - Alias by <PARTIALIP>",
+                             "!AltMID   <MacID>              - Alias by <MacID>",
+                             "!Info     <PlayerName>         - Shows stored info of <PlayerName>",
+                             "!Compare  <Player1>:<Player2>  - Compares and shows matches",
+                             "!MaxResults <#>                - Changes the max. number of results to return",
+                             "!NameWatch <Name>:<reason>     - Watches logins for <Name> with the specified <reason>",
+                             "!NameWatch <Name>              - Disables the login watch for <Name>",
+                             "!LNameWatch <Name>:<reason>    - Watches logins that start with <Name> with the specified <reason>",
+                             "!LNameWatch <Name>             - Disables the left partial login watch for <Name>",
+                             "!RNameWatch <Name>:<reason>    - Watches logins that end with <Name> with the specified <reason>",
+                             "!RNameWatch <Name>             - Disables the right partial login watch for <Name>",
+                             "!PNameWatch <Name>:<reason>    - Watches logins that contain <Name> with the specified <reason>",
+                             "!PNameWatch <Name>             - Disables the partial login watch for <Name>",
+                             "!IPWatch   <IP>:<reason>       - Watches logins for <IP> with the specified <reason>",
+                             "!IPWatch   <IP>                - Disables the login watch for <IP>",
+                             "!MIDWatch  <MID>:<reason>      - Watches logins for <MID> with the specified <reason>",
+                             "!MIDWatch  <MID>               - Disables the login watch for <MID>",
+                             "!ClearNameWatch                - Clears all login watches for names (disabled)",
+                             "!ClearIPWatch                  - Clears all login watches for IPs (disabled)",
+                             "!ClearMIDWatch                 - Clears all login watches for MIDs (disabled)",
+                             "!ShowWatches [<Sort>:<Dir>]    - Shows all current login watches, optionally sorted by <Sort>",
+                             "                               Sort options: d(ate), t(rigger), i(ssuer); Dir: A(scending), D(escending)",
+                             "!ShowMyWatches [<Sort>:<Dir>]  - Same as !ShowWatches, but only displays your own watches",
+                             "!SortByName / !SortByDate      - Selects sorting method",
+                             "!update                        - Updates TWDOps list",
+                             //"!aliasop <name>                - Gives <name> alias access",
+                             //"!aliasdeop <name>              - Removes alias access for <name>",
+                             "!listaliasops (!lao)           - Lists current alias-ops"
 
-        };
+                           };
         m_botAction.smartPrivateMessageSpam(sender, message);
     }
 
     public void doCheatSheet(String sender) {
         String[] message = { "ALIAS CHAT CHEAT SHEET: ",
-                "!AltIP             - !ai           !MIDWatch       - !mw",
-                "!AltMID            - !am           !IPWatch        - !iw",
-                "!AltNick           - !an           !NameWatch      - !nw",
-                "!Info              -               !PNameWatch     - !pnw",
-                "!AltOr             - !ao           !LNameWatch     - !lnw",
-                "!PartialIP         - !pip          !RNameWatch     - !rnw",
-                "!Compare           -               !ShowWatches    - !sw",
-                "!MaxResults        - !mr           !ShowMyWatches  - !smw",
-                "!update            -               !SortByName     - !sbn",
-                "!ListAliasOps      - !lao          !SortByDate     - !sbd"
-        };
+                             "!AltIP             - !ai           !MIDWatch       - !mw",
+                             "!AltMID            - !am           !IPWatch        - !iw",
+                             "!AltNick           - !an           !NameWatch      - !nw",
+                             "!Info              -               !PNameWatch     - !pnw",
+                             "!AltOr             - !ao           !LNameWatch     - !lnw",
+                             "!PartialIP         - !pip          !RNameWatch     - !rnw",
+                             "!Compare           -               !ShowWatches    - !sw",
+                             "!MaxResults        - !mr           !ShowMyWatches  - !smw",
+                             "!update            -               !SortByName     - !sbn",
+                             "!ListAliasOps      - !lao          !SortByDate     - !sbd"
+                           };
         m_botAction.smartPrivateMessageSpam(sender, message);
     }
-    
+
     public void doRecordInfoCmd(String sender) {
         m_botAction.sendChatMessage("Players recorded in the hashmap: " + (justAdded.size() + deleteNextTime.size()));
     }
@@ -692,26 +732,33 @@ public class pubhubalias extends PubBotModule {
     public void doAltTWLCmd(String argString) {
         try {
             ResultSet resultSet = m_botAction.SQLQuery(DATABASE, "SELECT U2.fcUserName, T.fcTeamName " + "FROM tblAlias A1, tblAlias A2, tblUser U1, tblUser U2, tblTeam T, tblTeamUser TU "
-                    + "WHERE U1.fcUserName = '" + Tools.addSlashesToString(argString) + "' " + "AND A1.fnUserID = U1.fnUserID " + "AND A1.fnIP = A2.fnIP " + "AND A1.fnMachineID = A2.fnMachineID "
-                    + "AND A2.fnUserID = U2.fnUserID " + "AND TU.fnUserID = U2.fnUserID " + "AND TU.fnCurrentTeam = 1 " + "AND TU.fnTeamID = T.fnTeamID " + "AND T.fdDeleted = '0000-00-00 00:00:00' "
-                    + "ORDER BY U2.fcUserName, T.fcTeamName");
+                                  + "WHERE U1.fcUserName = '" + Tools.addSlashesToString(argString) + "' " + "AND A1.fnUserID = U1.fnUserID " + "AND A1.fnIP = A2.fnIP " + "AND A1.fnMachineID = A2.fnMachineID "
+                                  + "AND A2.fnUserID = U2.fnUserID " + "AND TU.fnUserID = U2.fnUserID " + "AND TU.fnCurrentTeam = 1 " + "AND TU.fnTeamID = T.fnTeamID " + "AND T.fdDeleted = '0000-00-00 00:00:00' "
+                                  + "ORDER BY U2.fcUserName, T.fcTeamName");
 
             int results = 0;
             String lastName = "";
             String currName;
+
             if (resultSet == null)
                 throw new RuntimeException("ERROR: Cannot connect to database.");
+
             for (; resultSet.next(); results++) {
                 if (results <= m_maxRecords) {
                     currName = resultSet.getString("U2.fcUserName");
+
                     if (!currName.equalsIgnoreCase(lastName))
                         m_botAction.sendChatMessage("Name: " + padString(currName, 25) + " Squad: " + resultSet.getString("T.fcTeamName"));
+
                     lastName = currName;
                 }
             }
+
             m_botAction.SQLClose(resultSet);
+
             if (results == 0)
                 m_botAction.sendChatMessage("Player is not on a TWL squad.");
+
             if (results > m_maxRecords)
                 m_botAction.sendChatMessage(results - m_maxRecords + " records not shown.  !maxrecords # to show (current: " + m_maxRecords + ")");
         } catch (SQLException e) {
@@ -720,8 +767,8 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-	 *
-	 */
+
+    */
     public void doMaxRecordsCmd(String maxRecords) {
         try {
             m_maxRecords = Integer.parseInt(maxRecords);
@@ -732,11 +779,11 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Starts watching for an IP starting with a given string.
-     * 
-     * @param IP
-     *            IP to watch for
-     */
+        Starts watching for an IP starting with a given string.
+
+        @param IP
+                  IP to watch for
+    */
     public void doIPWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String IP = params[0].trim();
@@ -755,6 +802,7 @@ public class pubhubalias extends PubBotModule {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for IPs starting with " + IP);
             }
+
             String date = sdf.format(System.currentTimeMillis());
             watchedIPs.put(IP, new WatchComment(date, sender + ": " + comment));
             saveWatches();
@@ -819,10 +867,12 @@ public class pubhubalias extends PubBotModule {
 
             if (counter == 6) {
                 counter = 0;
+
                 if (aliasops.size() <= 6)
                     m_botAction.sendChatMessage(output.substring(0, output.length() - 2));
                 else
                     m_botAction.sendChatMessage(output);
+
                 output = "";
             }
         }
@@ -833,14 +883,15 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Starts watching for a name to log on.
-     * 
-     * @param name
-     *            Name to watch for
-     */
+        Starts watching for a name to log on.
+
+        @param name
+                  Name to watch for
+    */
     public void doNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String name = params[0].trim();
+
         if (watchedNames.containsKey(name.toLowerCase()) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
             watchedNames.remove(name.toLowerCase());
             m_botAction.sendChatMessage("Login watching disabled for '" + name + "'.");
@@ -855,22 +906,24 @@ public class pubhubalias extends PubBotModule {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
             }
+
             String date = sdf.format(System.currentTimeMillis());
             watchedNames.put(name.toLowerCase(), new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
-    
+
     /**
-     * Starts watching for a left partial name to log on.
-     * 
-     * @param name
-     *            Name to watch for
-     */
+        Starts watching for a left partial name to log on.
+
+        @param name
+                  Name to watch for
+    */
     public void doLNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String name = params[0].trim();
         String lcname = name.toLowerCase();
+
         if (watchedLNames.containsKey(lcname) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
             watchedLNames.remove(lcname);
             m_botAction.sendChatMessage("Login watching disabled for '" + name + "'.");
@@ -885,22 +938,24 @@ public class pubhubalias extends PubBotModule {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
             }
+
             String date = sdf.format(System.currentTimeMillis());
             watchedLNames.put(lcname, new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
-    
+
     /**
-     * Starts watching for a name to log on.
-     * 
-     * @param name
-     *            Name to watch for
-     */
+        Starts watching for a name to log on.
+
+        @param name
+                  Name to watch for
+    */
     public void doRNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String name = params[0].trim();
         String lcname = name.toLowerCase();
+
         if (watchedRNames.containsKey(lcname) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
             watchedRNames.remove(lcname);
             m_botAction.sendChatMessage("Login watching disabled for '" + name + "'.");
@@ -915,22 +970,24 @@ public class pubhubalias extends PubBotModule {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
             }
+
             String date = sdf.format(System.currentTimeMillis());
             watchedRNames.put(lcname, new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
-    
+
     /**
-     * Starts watching for a name to log on.
-     * 
-     * @param name
-     *            Name to watch for
-     */
+        Starts watching for a name to log on.
+
+        @param name
+                  Name to watch for
+    */
     public void doPNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String name = params[0].trim();
         String lcname = name.toLowerCase();
+
         if (watchedPNames.containsKey(lcname) && (params.length == 1 || params[1] == null || params[1].length() == 0)) {
             watchedPNames.remove(lcname);
             m_botAction.sendChatMessage("Login watching disabled for '" + name + "'.");
@@ -945,18 +1002,19 @@ public class pubhubalias extends PubBotModule {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for '" + name + "'.");
             }
+
             String date = sdf.format(System.currentTimeMillis());
             watchedPNames.put(lcname.toLowerCase(), new WatchComment(date, sender + ": " + comment));
             saveWatches();
         }
     }
-    
+
     /**
-     * Starts watching for a given MacID.
-     * 
-     * @param MID
-     *            MID to watch for
-     */
+        Starts watching for a given MacID.
+
+        @param MID
+                  MID to watch for
+    */
     public void doMIDWatchCmd(String sender, String message) {
         String[] params = message.split(":");
         String MID = params[0].trim();
@@ -975,6 +1033,7 @@ public class pubhubalias extends PubBotModule {
             } else {
                 m_botAction.sendChatMessage("Login watching enabled for MID: " + MID);
             }
+
             String date = sdf.format(System.currentTimeMillis());
             watchedMIDs.put(MID, new WatchComment(date, sender + ": " + comment));
             saveWatches();
@@ -983,8 +1042,8 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Stops all IP watching.
-     */
+        Stops all IP watching.
+    */
     public void doClearIPWatchCmd() {
         watchedIPs.clear();
         m_botAction.sendChatMessage("All watched IPs cleared.");
@@ -992,8 +1051,8 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Stops all name watching.
-     */
+        Stops all name watching.
+    */
     public void doClearNameWatchCmd() {
         watchedNames.clear();
         m_botAction.sendChatMessage("All watched names cleared.");
@@ -1001,8 +1060,8 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Stops all MacID watching.
-     */
+        Stops all MacID watching.
+    */
     public void doClearMIDWatchCmd() {
         watchedMIDs.clear();
         m_botAction.sendChatMessage("All watched MIDs cleared.");
@@ -1010,39 +1069,40 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Stops all left hand name watching.
-     */
+        Stops all left hand name watching.
+    */
     public void doClearLNameWatchCmd() {
         watchedLNames.clear();
         m_botAction.sendChatMessage("All watched left names cleared.");
         saveWatches();
     }
-    
+
     /**
-     * Stops all right hand name watching.
-     */
+        Stops all right hand name watching.
+    */
     public void doClearRNameWatchCmd() {
         watchedRNames.clear();
         m_botAction.sendChatMessage("All watched right names cleared.");
         saveWatches();
     }
-    
+
     /**
-     * Stops all partial name watching.
-     */
+        Stops all partial name watching.
+    */
     public void doClearPNameWatchCmd() {
         watchedPNames.clear();
         m_botAction.sendChatMessage("All watched partial names cleared.");
         saveWatches();
     }
-    
+
     /**
-     * Shows current watches.
-     */
+        Shows current watches.
+    */
     public void doShowWatchesCmd() {
         if (watchedIPs.size() == 0) {
             m_botAction.sendChatMessage("IP:   (none)");
         }
+
         for (String IP : watchedIPs.keySet()) {
             WatchComment com = watchedIPs.get(IP);
             m_botAction.sendChatMessage(com.date + " IP:   " + IP + "  ( " + com.comment + " )");
@@ -1051,6 +1111,7 @@ public class pubhubalias extends PubBotModule {
         if (watchedMIDs.size() == 0) {
             m_botAction.sendChatMessage("MID:  (none)");
         }
+
         for (String MID : watchedMIDs.keySet()) {
             WatchComment com = watchedMIDs.get(MID);
             m_botAction.sendChatMessage(com.date + " MID:  " + MID + "  ( " + com.comment + " )");
@@ -1059,70 +1120,74 @@ public class pubhubalias extends PubBotModule {
         if (watchedNames.size() == 0) {
             m_botAction.sendChatMessage("Name: (none)");
         }
+
         for (String Name : watchedNames.keySet()) {
             WatchComment com = watchedNames.get(Name);
             m_botAction.sendChatMessage(com.date + " Name: " + Name + "  ( " + com.comment + " )");
         }
-        
+
         if (watchedLNames.size() == 0) {
             m_botAction.sendChatMessage("Left Name: (none)");
         }
+
         for (String Name : watchedLNames.keySet()) {
             WatchComment com = watchedLNames.get(Name);
             m_botAction.sendChatMessage(com.date + " Left Name: " + Name + "  ( " + com.comment + " )");
         }
-        
+
         if (watchedRNames.size() == 0) {
             m_botAction.sendChatMessage("Right Name: (none)");
         }
+
         for (String Name : watchedRNames.keySet()) {
             WatchComment com = watchedRNames.get(Name);
             m_botAction.sendChatMessage(com.date + " Right Name: " + Name + "  ( " + com.comment + " )");
         }
-        
+
         if (watchedPNames.size() == 0) {
             m_botAction.sendChatMessage("Partial Name: (none)");
         }
+
         for (String Name : watchedPNames.keySet()) {
             WatchComment com = watchedPNames.get(Name);
             m_botAction.sendChatMessage(com.date + " Partial Name: " + Name + "  ( " + com.comment + " )");
         }
     }
-    
+
     /**
-     * New version for {@link #doShowWatchesCmd()}, handles the !showwatches and !showmywatches commands.
-     * <p>
-     * This version combines the standard result provided by !showwatches with optional parameters, being:
-     * <ul>
-     *  <li>Sort by date issued;
-     *  <li>Sort by trigger;
-     *  <li>Sort by issuer.
-     * </ul>
-     * The above can be combined by any of the following:
-     * <ul>
-     *  <li>Ascending or descending sort;
-     *  <li>Only show the watches issued by the user of the command.
-     * </ul>
-     * <p>
-     * Please do note that any sorting is done per "group" and that the result is still displayed in the appropriate chat.
-     * @param name Issuer of the command.
-     * @param args Optional arguments: [<code><</code>{d(ate), t(rigger), i(ssuer)}>:<code><</code>{a(scending), d(escending)}>]
-     * @param showAll True if all watches are to be shown, false if only the issuer's watches are to be shown.
-     */
+        New version for {@link #doShowWatchesCmd()}, handles the !showwatches and !showmywatches commands.
+        <p>
+        This version combines the standard result provided by !showwatches with optional parameters, being:
+        <ul>
+        <li>Sort by date issued;
+        <li>Sort by trigger;
+        <li>Sort by issuer.
+        </ul>
+        The above can be combined by any of the following:
+        <ul>
+        <li>Ascending or descending sort;
+        <li>Only show the watches issued by the user of the command.
+        </ul>
+        <p>
+        Please do note that any sorting is done per "group" and that the result is still displayed in the appropriate chat.
+        @param name Issuer of the command.
+        @param args Optional arguments: [<code><</code>{d(ate), t(rigger), i(ssuer)}>:<code><</code>{a(scending), d(escending)}>]
+        @param showAll True if all watches are to be shown, false if only the issuer's watches are to be shown.
+    */
     public void doShowWatchesCmd(String name, String args, boolean showAll) {
         SortField sortBy = SortField.NONE;
         boolean sortDirection = false;
         boolean nothingFound = true;
         Map<String, WatchComment> tmpWatchComments = new TreeMap<String, WatchComment>();
-        
+
         if(!args.isEmpty()) {
             String[] splitArgs = args.toLowerCase().split(":");
-            
+
             if(splitArgs.length != 2) {
                 m_botAction.sendSmartPrivateMessage(name, "Invalid arguments, please consult !help.");
                 return;
             }
-            
+
             if(splitArgs[0].startsWith("d"))
                 sortBy = SortField.DATE;
             else if(splitArgs[0].startsWith("t"))
@@ -1131,10 +1196,10 @@ public class pubhubalias extends PubBotModule {
                 sortBy = SortField.ISSUER;
             else
                 sortBy = SortField.NONE;
-            
+
             sortDirection = splitArgs[1].startsWith("a");
         }
-        
+
         if (watchedIPs.size() == 0) {
             m_botAction.sendSmartPrivateMessage(name, "IP:   (none)");
         } else {
@@ -1142,20 +1207,23 @@ public class pubhubalias extends PubBotModule {
                 tmpWatchComments = WatchListSorter.sortByValue(watchedIPs, sortBy, sortDirection);
             else
                 tmpWatchComments = watchedIPs;
+
             for (String IP : tmpWatchComments.keySet()) {
                 WatchComment com = tmpWatchComments.get(IP);
+
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
-                
+
                 m_botAction.sendSmartPrivateMessage(name, com.date + " IP:   " + Tools.formatString(IP, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
+
             if(nothingFound)
                 m_botAction.sendSmartPrivateMessage(name, "IP:   (none)");
         }
-        
+
         nothingFound = true;
-        
+
         if (watchedMIDs.size() == 0) {
             m_botAction.sendSmartPrivateMessage(name, "MID:  (none)");
         } else {
@@ -1163,41 +1231,47 @@ public class pubhubalias extends PubBotModule {
                 tmpWatchComments = WatchListSorter.sortByValue(watchedMIDs, sortBy, sortDirection);
             else
                 tmpWatchComments = watchedMIDs;
+
             for (String MID : tmpWatchComments.keySet()) {
                 WatchComment com = tmpWatchComments.get(MID);
+
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
-                
+
                 m_botAction.sendSmartPrivateMessage(name, com.date + " MID:  " + Tools.formatString(MID, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
+
             if(nothingFound)
                 m_botAction.sendSmartPrivateMessage(name, "MID:  (none)");
         }
-        
+
         nothingFound = true;
-        
+
         if (watchedNames.size() == 0) {
             m_botAction.sendSmartPrivateMessage(name, "Name: (none)");
         } else {
-            if(sortBy != SortField.NONE) 
+            if(sortBy != SortField.NONE)
                 tmpWatchComments = WatchListSorter.sortByValue(watchedNames, sortBy, sortDirection);
             else
                 tmpWatchComments = watchedNames;
+
             for (String Name : tmpWatchComments.keySet()) {
                 WatchComment com = tmpWatchComments.get(Name);
+
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
-                
+
                 m_botAction.sendSmartPrivateMessage(name, com.date + " Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
+
             if(nothingFound)
                 m_botAction.sendSmartPrivateMessage(name, "Name: (none)");
         }
-        
+
         nothingFound = true;
-        
+
         if (watchedLNames.size() == 0) {
             m_botAction.sendSmartPrivateMessage(name, "Left Name:    (none)");
         } else {
@@ -1205,20 +1279,23 @@ public class pubhubalias extends PubBotModule {
                 tmpWatchComments = WatchListSorter.sortByValue(watchedLNames, sortBy, sortDirection);
             else
                 tmpWatchComments = watchedLNames;
+
             for (String Name : tmpWatchComments.keySet()) {
                 WatchComment com = tmpWatchComments.get(Name);
+
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
-                
+
                 m_botAction.sendSmartPrivateMessage(name, com.date + " Left Name:    " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
+
             if(nothingFound)
                 m_botAction.sendSmartPrivateMessage(name, "Left Name:    (none)");
         }
-        
+
         nothingFound = true;
-        
+
         if (watchedRNames.size() == 0) {
             m_botAction.sendSmartPrivateMessage(name, "Right Name:   (none)");
         } else {
@@ -1226,20 +1303,23 @@ public class pubhubalias extends PubBotModule {
                 tmpWatchComments = WatchListSorter.sortByValue(watchedRNames, sortBy, sortDirection);
             else
                 tmpWatchComments = watchedRNames;
+
             for (String Name : tmpWatchComments.keySet()) {
                 WatchComment com = tmpWatchComments.get(Name);
+
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
-                
+
                 m_botAction.sendSmartPrivateMessage(name, com.date + " Right Name:   " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
+
             if(nothingFound)
                 m_botAction.sendSmartPrivateMessage(name, "Right Name:   (none)");
         }
-        
+
         nothingFound = true;
-        
+
         if (watchedPNames.size() == 0) {
             m_botAction.sendSmartPrivateMessage(name, "Partial Name: (none)");
         } else {
@@ -1247,21 +1327,25 @@ public class pubhubalias extends PubBotModule {
                 tmpWatchComments = WatchListSorter.sortByValue(watchedPNames, sortBy, sortDirection);
             else
                 tmpWatchComments = watchedPNames;
+
             for (String Name : tmpWatchComments.keySet()) {
                 WatchComment com = tmpWatchComments.get(Name);
+
                 if(!showAll && !com.comment.startsWith(name))
                     continue;
-                
+
                 m_botAction.sendSmartPrivateMessage(name, com.date + " Partial Name: " + Tools.formatString(Name, 19) + "  ( " + com.comment + " )");
                 nothingFound = false;
             }
+
             if(nothingFound)
                 m_botAction.sendSmartPrivateMessage(name, "Partial Name: (none)");
         }
     }
-    
+
     private void doPrivateAliases() {
         privateAliases = !privateAliases;
+
         if (privateAliases) {
             m_botAction.sendChatMessage("Alias command output will now be directed to PRIVATE messages.");
             m_botAction.getBotSettings().put("PrivateAliases", 1);
@@ -1281,13 +1365,15 @@ public class pubhubalias extends PubBotModule {
         if(message.contains(" ")) {
             int index = message.indexOf(" ");
             command = command.substring(0, index);
+
             if(message.length() > ++index)
                 args = message.substring(index).trim();
         }
+
         /*
-         * Extra check for smod and twdop added
-         * -fantus
-         */
+            Extra check for smod and twdop added
+            -fantus
+        */
         if (!m_botAction.getOperatorList().isSmod(sender) && !isTWDOp(sender) && !isAliasOp(sender)) {
             return;
         }
@@ -1307,14 +1393,14 @@ public class pubhubalias extends PubBotModule {
             } else if (command.equals("!altnickorig")   || command.equals("!ano")) {
                 doORIGAltNickCmd(sender, args, false);
                 record(sender, message);
-            /*
-            } else if (command.startsWith("!altnick2 ")) {
-                doAltNick2Cmd(sender, message.substring(10).trim(), false);
-                record(sender, message);
-            } else if (command.startsWith("!altnick3 ")) {
-                doAltNick3Cmd(sender, message.substring(10).trim(), false);
-                record(sender, message);
-            */
+                /*
+                    } else if (command.startsWith("!altnick2 ")) {
+                    doAltNick2Cmd(sender, message.substring(10).trim(), false);
+                    record(sender, message);
+                    } else if (command.startsWith("!altnick3 ")) {
+                    doAltNick3Cmd(sender, message.substring(10).trim(), false);
+                    record(sender, message);
+                */
             } else if (command.equals("!altor")         || command.equals("!ao")) {
                 doAltNickOrCmd(sender, args, false);
                 record(sender, message);
@@ -1324,9 +1410,9 @@ public class pubhubalias extends PubBotModule {
             } else if (command.equals("!altmid")        || command.equals("!am")) {
                 doAltMacIdCmd(sender, args);
                 record(sender, message);
-            } 
-            //			else if(command.startsWith("!alttwl "))
-            //				doAltTWLCmd(message.substring(8).trim());
+            }
+            //          else if(command.startsWith("!alttwl "))
+            //              doAltTWLCmd(message.substring(8).trim());
             else if (command.equals("!info")) {
                 doInfoCmd(sender, args);
                 record(sender, message);
@@ -1339,7 +1425,7 @@ public class pubhubalias extends PubBotModule {
             else if (command.equals("!compare")) {
                 doCompareCmd(args);
                 record(sender, message);
-            } 
+            }
             else if (command.equals("!maxrecords")      || command.equals("!mr"))
                 doMaxRecordsCmd(args);
             else if (command.equals("!ipwatch")         || command.equals("!iw"))
@@ -1354,24 +1440,24 @@ public class pubhubalias extends PubBotModule {
                 doRNameWatchCmd(sender, args);
             else if (command.equals("!pnamewatch")      || command.equals("!pnw"))
                 doPNameWatchCmd(sender, args);
-            /* Disabled for now. No reason to clear a full list.
-            else if (command.equals("!clearipwatch")    || command.equals("!ciw"))
+            /*  Disabled for now. No reason to clear a full list.
+                else if (command.equals("!clearipwatch")    || command.equals("!ciw"))
                 doClearIPWatchCmd();
-            else if (command.equals("!clearnamewatch")  || command.equals("!cnw"))
+                else if (command.equals("!clearnamewatch")  || command.equals("!cnw"))
                 doClearNameWatchCmd();
-            else if (command.equals("!clearmidwatch")   || command.equals("!cmw"))
+                else if (command.equals("!clearmidwatch")   || command.equals("!cmw"))
                 doClearMIDWatchCmd();
-            else if (command.equals("!clearlnamewatch") || command.equals("!clw"))
+                else if (command.equals("!clearlnamewatch") || command.equals("!clw"))
                 doClearLNameWatchCmd();
-            else if (command.equals("!clearrnamewatch") || command.equals("!crw"))
+                else if (command.equals("!clearrnamewatch") || command.equals("!crw"))
                 doClearRNameWatchCmd();
-            else if (command.equals("!clearpnamewatch") || command.equals("!cpw"))
+                else if (command.equals("!clearpnamewatch") || command.equals("!cpw"))
                 doClearPNameWatchCmd();
-             */
+            */
             else if (command.equals("!showwatches")     || command.equals("!sw"))
                 doShowWatchesCmd(sender, args, true);
-//            else if (command.equals("!showwatches"))
-//                doShowWatchesCmd();
+            //            else if (command.equals("!showwatches"))
+            //                doShowWatchesCmd();
             else if (command.equals("!showmywatches")   || command.equals("!smw"))
                 doShowWatchesCmd(sender, args, false);
             else if (command.equals("!sortbyname")      || command.equals("!sbn")) {
@@ -1388,9 +1474,9 @@ public class pubhubalias extends PubBotModule {
             } else if (command.equals("!listaliasops")  || command.equals("!lao"))
                 doListAliasOps();
             /*
-            else if (command.equals("!aliasop"))
+                else if (command.equals("!aliasop"))
                 doAddAliasOp(sender, args);
-            else if (command.equals("!aliasdeop"))
+                else if (command.equals("!aliasdeop"))
                 doRemAliasOp(sender, args);
             */
             else if (command.equals("!altall") && (opList.isSysopExact(sender) || bangops.contains(sender))) {
@@ -1438,8 +1524,10 @@ public class pubhubalias extends PubBotModule {
             return;
 
         StringTokenizer recordArgs = new StringTokenizer(argString, ":");
+
         if (recordArgs.countTokens() != 3)
             throw new IllegalArgumentException("ERROR: Could not write player information.");
+
         String playerName = recordArgs.nextToken();
         String playerIP = recordArgs.nextToken();
         String playerMacID = recordArgs.nextToken();
@@ -1450,6 +1538,7 @@ public class pubhubalias extends PubBotModule {
         checkLName(playerName, playerIP, playerMacID);
         checkRName(playerName, playerIP, playerMacID);
         checkPName(playerName, playerIP, playerMacID);
+
         if (playerMacID.equals(TWChatMID))  // Do not record TW Chat users in alias system
             return;
 
@@ -1460,15 +1549,15 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Check if a name is being watched for, and notify on chat if so.
-     * 
-     * @param name
-     *            Name to check
-     * @param IP
-     *            IP of player
-     * @param MacId
-     *            MacID of player
-     */
+        Check if a name is being watched for, and notify on chat if so.
+
+        @param name
+                  Name to check
+        @param IP
+                  IP of player
+        @param MacId
+                  MacID of player
+    */
     public void checkName(String name, String IP, String MacID) {
         if (watchedNames.containsKey(name.toLowerCase())) {
             m_botAction.sendChatMessage("NAMEWATCH: '" + name + "' logged in.  (IP: " + IP + ", MID: " + MacID + ")");
@@ -1477,16 +1566,16 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Check if a name is being watched for, and notify on chat if so.
-     * Used for left partial matches. (Starts with)
-     * 
-     * @param name
-     *            Name to check
-     * @param IP
-     *            IP of player
-     * @param MacId
-     *            MacID of player
-     */
+        Check if a name is being watched for, and notify on chat if so.
+        Used for left partial matches. (Starts with)
+
+        @param name
+                  Name to check
+        @param IP
+                  IP of player
+        @param MacId
+                  MacID of player
+    */
     public void checkLName(String name, String IP, String MacID) {
         for (String startName : watchedLNames.keySet()) {
             if (name.toLowerCase().startsWith(startName)) {
@@ -1495,18 +1584,18 @@ public class pubhubalias extends PubBotModule {
             }
         }
     }
-    
+
     /**
-     * Check if a name is being watched for, and notify on chat if so.
-     * Used for right partial matches. (Ends with)
-     * 
-     * @param name
-     *            Name to check
-     * @param IP
-     *            IP of player
-     * @param MacId
-     *            MacID of player
-     */
+        Check if a name is being watched for, and notify on chat if so.
+        Used for right partial matches. (Ends with)
+
+        @param name
+                  Name to check
+        @param IP
+                  IP of player
+        @param MacId
+                  MacID of player
+    */
     public void checkRName(String name, String IP, String MacID) {
         for (String startName : watchedRNames.keySet()) {
             if (name.toLowerCase().endsWith(startName)) {
@@ -1515,18 +1604,18 @@ public class pubhubalias extends PubBotModule {
             }
         }
     }
-    
+
     /**
-     * Check if a name is being watched for, and notify on chat if so.
-     * Used for partial matches. (Contains)
-     * 
-     * @param name
-     *            Name to check
-     * @param IP
-     *            IP of player
-     * @param MacId
-     *            MacID of player
-     */
+        Check if a name is being watched for, and notify on chat if so.
+        Used for partial matches. (Contains)
+
+        @param name
+                  Name to check
+        @param IP
+                  IP of player
+        @param MacId
+                  MacID of player
+    */
     public void checkPName(String name, String IP, String MacID) {
         for (String startName : watchedPNames.keySet()) {
             if (name.toLowerCase().contains(startName)) {
@@ -1535,17 +1624,17 @@ public class pubhubalias extends PubBotModule {
             }
         }
     }
-    
+
     /**
-     * Check if an IP is being watched for, and notify on chat if so.
-     * 
-     * @param name
-     *            Name of player
-     * @param IP
-     *            IP to check
-     * @param MacId
-     *            MacID of player
-     */
+        Check if an IP is being watched for, and notify on chat if so.
+
+        @param name
+                  Name of player
+        @param IP
+                  IP to check
+        @param MacId
+                  MacID of player
+    */
     public void checkIP(String name, String IP, String MacID) {
         for (String IPfragment : watchedIPs.keySet()) {
             if (IP.startsWith(IPfragment)) {
@@ -1556,15 +1645,15 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Check if an MID is being watched for, and notify on chat if so.
-     * 
-     * @param name
-     *            Name of player
-     * @param IP
-     *            IP of player
-     * @param MacId
-     *            MacID to check
-     */
+        Check if an MID is being watched for, and notify on chat if so.
+
+        @param name
+                  Name of player
+        @param IP
+                  IP of player
+        @param MacId
+                  MacID to check
+    */
     public void checkMID(String name, String IP, String MacID) {
         if (watchedMIDs.containsKey(MacID)) {
             m_botAction.sendChatMessage("MIDWATCH: Match on '" + name + "' - " + MacID + "  IP: " + IP);
@@ -1573,11 +1662,11 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * This method handles an InterProcess event.
-     * 
-     * @param event
-     *            is the IPC event to handle.
-     */
+        This method handles an InterProcess event.
+
+        @param event
+                  is the IPC event to handle.
+    */
     public void handleEvent(InterProcessEvent event) {
         // If the event.getObject() is anything else then the IPCMessage (pubbotchatIPC f.ex) then return
         if (event.getObject() instanceof IPCMessage == false) {
@@ -1599,8 +1688,8 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * This method handles the destruction of this module.
-     */
+        This method handles the destruction of this module.
+    */
 
     public void cancel() {
         m_botAction.cancelTask(clearRecordTask);
@@ -1621,9 +1710,11 @@ public class pubhubalias extends PubBotModule {
         try {
             long ip32Bit = make32BitIp(playerIP);
             ResultSet resultSet = m_botAction.SQLQuery(DATABASE, "SELECT * " + "FROM tblAlias " + "WHERE fnUserID = " + userID + " " + "AND fnIP = " + ip32Bit + " " + "AND fnMachineID = "
-                    + playerMacID);
+                                  + playerMacID);
+
             if (!resultSet.next())
                 return -1;
+
             int results = resultSet.getInt("fnAliasID");
             m_botAction.SQLClose(resultSet);
             return results;
@@ -1636,7 +1727,7 @@ public class pubhubalias extends PubBotModule {
         try {
             long ip32Bit = make32BitIp(playerIP);
             String query = "INSERT INTO tblAlias " + "(fnUserID, fcIPString, fnIP, fnMachineID, fnTimesUpdated, fdRecorded, fdUpdated) " + "VALUES (" + userID + ", '" + playerIP + "', " + ip32Bit
-                    + ", " + playerMacID + ", 1, NOW(), NOW())";
+                           + ", " + playerMacID + ", 1, NOW(), NOW())";
             ResultSet r = m_botAction.SQLQuery(DATABASE, query);
             m_botAction.SQLClose(r);
         } catch (SQLException e) {
@@ -1656,6 +1747,7 @@ public class pubhubalias extends PubBotModule {
     private void updateTWDOps() {
         try {
             ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
+
             if (r == null)
                 return;
 
@@ -1665,6 +1757,7 @@ public class pubhubalias extends PubBotModule {
                 String name = r.getString("fcUsername");
                 twdops.add(name.toLowerCase());
             }
+
             m_botAction.SQLClose(r);
         } catch (SQLException e) {
             throw new RuntimeException("ERROR: Unable to update twdop list.");
@@ -1674,6 +1767,7 @@ public class pubhubalias extends PubBotModule {
     private void updateBangOps() {
         try {
             ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '31' AND tblUser.fnUserID = tblUserRank.fnUserID");
+
             if (r == null)
                 return;
 
@@ -1683,15 +1777,17 @@ public class pubhubalias extends PubBotModule {
                 String name = r.getString("fcUsername");
                 bangops.add(name.toLowerCase());
             }
+
             m_botAction.SQLClose(r);
         } catch (SQLException e) {
             throw new RuntimeException("ERROR: Unable to update bangop list.");
         }
     }
-    
+
     private void updateAliasOps() {
         try {
             ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '20' AND tblUser.fnUserID = tblUserRank.fnUserID");
+
             if (r == null)
                 return;
 
@@ -1701,6 +1797,7 @@ public class pubhubalias extends PubBotModule {
                 String name = r.getString("fcUserName");
                 aliasops.add(name.toLowerCase());
             }
+
             m_botAction.SQLClose(r);
         } catch (SQLException e) {
             throw new RuntimeException("ERROR: Unable to update alias-op list.");
@@ -1724,10 +1821,13 @@ public class pubhubalias extends PubBotModule {
         // Load the IP watches from the configuration
         while (loop) {
             String IPWatch = cfg.getString("IPWatch" + i);
+
             if (IPWatch != null && IPWatch.trim().length() > 0) {
                 String[] IPWatchSplit = IPWatch.split(":", 3);
+
                 if (IPWatchSplit.length == 3)       // Check for corrupted data
                     watchedIPs.put(IPWatchSplit[1], new WatchComment(IPWatchSplit[0], IPWatchSplit[2]));
+
                 i++;
             } else {
                 loop = false;
@@ -1740,10 +1840,13 @@ public class pubhubalias extends PubBotModule {
 
         while (loop) {
             String MIDWatch = cfg.getString("MIDWatch" + i);
+
             if (MIDWatch != null && MIDWatch.trim().length() > 0) {
                 String[] MIDWatchSplit = MIDWatch.split(":", 3);
+
                 if (MIDWatchSplit.length == 3)       // Check for corrupted data
                     watchedMIDs.put(MIDWatchSplit[1], new WatchComment(MIDWatchSplit[0], MIDWatchSplit[2]));
+
                 i++;
             } else {
                 loop = false;
@@ -1756,10 +1859,13 @@ public class pubhubalias extends PubBotModule {
 
         while (loop) {
             String NameWatch = cfg.getString("NameWatch" + i);
+
             if (NameWatch != null && NameWatch.trim().length() > 0) {
                 String[] NameWatchSplit = NameWatch.split(":", 3);
+
                 if (NameWatchSplit.length == 3)       // Check for corrupted data
                     watchedNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
+
                 i++;
             } else {
                 loop = false;
@@ -1772,48 +1878,57 @@ public class pubhubalias extends PubBotModule {
 
         while (loop) {
             String NameWatch = cfg.getString("LeftNameWatch" + i);
+
             if (NameWatch != null && NameWatch.trim().length() > 0) {
                 String[] NameWatchSplit = NameWatch.split(":", 3);
+
                 if (NameWatchSplit.length == 3)       // Check for corrupted data
                     watchedLNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
+
                 i++;
             } else {
                 loop = false;
             }
         }
-        
+
         // Load the Right Partial Name watches from the configuration
         loop = true;
         i = 1;
 
         while (loop) {
             String NameWatch = cfg.getString("RightNameWatch" + i);
+
             if (NameWatch != null && NameWatch.trim().length() > 0) {
                 String[] NameWatchSplit = NameWatch.split(":", 3);
+
                 if (NameWatchSplit.length == 3)       // Check for corrupted data
                     watchedRNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
+
                 i++;
             } else {
                 loop = false;
             }
         }
-        
+
         // Load the Partial Name watches from the configuration
         loop = true;
         i = 1;
 
         while (loop) {
             String NameWatch = cfg.getString("PartialNameWatch" + i);
+
             if (NameWatch != null && NameWatch.trim().length() > 0) {
                 String[] NameWatchSplit = NameWatch.split(":", 3);
+
                 if (NameWatchSplit.length == 3)       // Check for corrupted data
                     watchedPNames.put(NameWatchSplit[1], new WatchComment(NameWatchSplit[0], NameWatchSplit[2]));
+
                 i++;
             } else {
                 loop = false;
             }
         }
-        
+
         // Done loading watches
     }
 
@@ -1828,6 +1943,7 @@ public class pubhubalias extends PubBotModule {
             cfg.put("IPWatch" + i, com.date + ":" + IP + ":" + com.comment);
             i++;
         }
+
         // Clear any other still stored IP watches
         while (loop) {
             if (cfg.getString("IPWatch" + i) != null) {
@@ -1847,6 +1963,7 @@ public class pubhubalias extends PubBotModule {
             cfg.put("MIDWatch" + i, com.date + ":" + MID + ":" + com.comment);
             i++;
         }
+
         // Clear any other still stored MID watches
         while (loop) {
             if (cfg.getString("MIDWatch" + i) != null) {
@@ -1866,6 +1983,7 @@ public class pubhubalias extends PubBotModule {
             cfg.put("NameWatch" + i, com.date + ":" + Name + ":" + com.comment);
             i++;
         }
+
         // Clear any other still stored Name watches
         while (loop) {
             if (cfg.getString("NameWatch" + i) != null) {
@@ -1875,7 +1993,7 @@ public class pubhubalias extends PubBotModule {
                 loop = false;
             }
         }
-        
+
         i = 1;
         loop = true;
 
@@ -1885,6 +2003,7 @@ public class pubhubalias extends PubBotModule {
             cfg.put("LeftNameWatch" + i, com.date + ":" + Name + ":" + com.comment);
             i++;
         }
+
         // Clear any other still stored LName watches
         while (loop) {
             if (cfg.getString("LeftNameWatch" + i) != null) {
@@ -1894,7 +2013,7 @@ public class pubhubalias extends PubBotModule {
                 loop = false;
             }
         }
-        
+
         i = 1;
         loop = true;
 
@@ -1904,6 +2023,7 @@ public class pubhubalias extends PubBotModule {
             cfg.put("RightNameWatch" + i, com.date + ":" + Name + ":" + com.comment);
             i++;
         }
+
         // Clear any other still stored RName watches
         while (loop) {
             if (cfg.getString("RightNameWatch" + i) != null) {
@@ -1913,7 +2033,7 @@ public class pubhubalias extends PubBotModule {
                 loop = false;
             }
         }
-        
+
         i = 1;
         loop = true;
 
@@ -1923,6 +2043,7 @@ public class pubhubalias extends PubBotModule {
             cfg.put("PartialNameWatch" + i, com.date + ":" + Name + ":" + com.comment);
             i++;
         }
+
         // Clear any other still stored PName watches
         while (loop) {
             if (cfg.getString("PartialNameWatch" + i) != null) {
@@ -1937,14 +2058,14 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * This method pads the string with whitespace.
-     * 
-     * @param string
-     *            is the string to pad.
-     * @param spaces
-     *            is the size of the resultant string.
-     * @return the string padded with spaces to fit into spaces characters. If the string is too long to fit, it is truncated.
-     */
+        This method pads the string with whitespace.
+
+        @param string
+                  is the string to pad.
+        @param spaces
+                  is the size of the resultant string.
+        @return the string padded with spaces to fit into spaces characters. If the string is too long to fit, it is truncated.
+    */
     private String padString(String string, int spaces) {
         int whitespaces = spaces - string.length();
 
@@ -1952,14 +2073,16 @@ public class pubhubalias extends PubBotModule {
             return string.substring(spaces);
 
         StringBuffer stringBuffer = new StringBuffer(string);
+
         for (int index = 0; index < whitespaces; index++)
             stringBuffer.append(' ');
+
         return stringBuffer.toString();
     }
 
     /**
-     * This method clears out RecordTimes that have been recorded later than RECORD_DELAY so the info for those players can be recorded again.
-     */
+        This method clears out RecordTimes that have been recorded later than RECORD_DELAY so the info for those players can be recorded again.
+    */
     private class ClearRecordTask extends TimerTask {
         public void run() {
             deleteNextTime.clear();
@@ -1983,34 +2106,34 @@ public class pubhubalias extends PubBotModule {
     }
 
     /**
-     * Sorter class for the various watch lists.
-     * <p>
-     * This class allows the tracking TreeMaps for the various watches to be sorted.
-     * The fields that can be sorted by are:
-     * <ul>
-     *  <li>Date issued;
-     *  <li>Trigger used;
-     *  <li>Issuer of the watch.
-     * </ul>
-     * The targeted map can also be sorted ascending or descending.
-     * This static class does not change the inputed map.
-     * <p>
-     * The base for this class was blatantly stolen from:  
-     * http://stackoverflow.com/questions/109383/how-to-sort-a-mapkey-value-on-the-values-in-java/2581754#2581754
-     * by Carter Page.
-     * 
-     * @author Trancid
-     *
-     */
+        Sorter class for the various watch lists.
+        <p>
+        This class allows the tracking TreeMaps for the various watches to be sorted.
+        The fields that can be sorted by are:
+        <ul>
+        <li>Date issued;
+        <li>Trigger used;
+        <li>Issuer of the watch.
+        </ul>
+        The targeted map can also be sorted ascending or descending.
+        This static class does not change the inputed map.
+        <p>
+        The base for this class was blatantly stolen from:
+        http://stackoverflow.com/questions/109383/how-to-sort-a-mapkey-value-on-the-values-in-java/2581754#2581754
+        by Carter Page.
+
+        @author Trancid
+
+    */
     public static class WatchListSorter {
 
         /**
-         * Sorts the given map according to the given parameters.
-         * @param map The map that needs to be sorted. Must be of the type Map<{@link String}, {@link WatchComment}>
-         * @param sortBy The field that is used to sort by.
-         * @param direction True for ascending, false for descending.
-         * @return
-         */
+            Sorts the given map according to the given parameters.
+            @param map The map that needs to be sorted. Must be of the type Map<{@link String}, {@link WatchComment}>
+            @param sortBy The field that is used to sort by.
+            @param direction True for ascending, false for descending.
+            @return
+        */
         public static Map<String, WatchComment> sortByValue(Map<String, WatchComment> map, final SortField sortBy, final boolean direction) {
             // Create a list of all the entries in the given map.
             List<Map.Entry<String, WatchComment>> list = new LinkedList<Map.Entry<String, WatchComment>>(map.entrySet());
@@ -2020,25 +2143,30 @@ public class pubhubalias extends PubBotModule {
                 public int compare( Map.Entry<String, WatchComment> wc1, Map.Entry<String, WatchComment> wc2 ) {
                     switch(sortBy) {
                     case DATE:
-                        return (wc1.getValue().date).compareTo( wc2.getValue().date ) * (direction?1:-1);
+                        return (wc1.getValue().date).compareTo( wc2.getValue().date ) * (direction ? 1 : -1);
+
                     case ISSUER:
-                        return (wc1.getValue().comment).compareTo( wc2.getValue().comment ) * (direction?1:-1);
+                        return (wc1.getValue().comment).compareTo( wc2.getValue().comment ) * (direction ? 1 : -1);
+
                     case TRIGGER:
-                        return (wc1.getKey().compareTo(wc2.getKey())* (direction?1:-1));
+                        return (wc1.getKey().compareTo(wc2.getKey()) * (direction ? 1 : -1));
+
                     case NONE:
                     default:
-                        return (direction?1:-1);
+                        return (direction ? 1 : -1);
                     }
                 }
             } );
 
             // Put the sorted list back into a map, and return the result.
             Map<String, WatchComment> result = new LinkedHashMap<String, WatchComment>();
+
             for (Map.Entry<String, WatchComment> entry : list) {
                 result.put( entry.getKey(), entry.getValue() );
             }
+
             return result;
         }
     }
-    
+
 }

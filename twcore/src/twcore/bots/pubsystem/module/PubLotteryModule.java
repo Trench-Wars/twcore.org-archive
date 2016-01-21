@@ -17,16 +17,16 @@ import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.bots.pubsystem.module.PubPlayerManagerModule;
 
 /*
- * By fLaReD and WingZero.
- * There is a bunch of code left over from an older lottery module written by Eria.
- * Basically anything labeled with a "g" or containing the word "guess" or below the
- * getSmodHelpMessage method is for the updated module.
- * 
- * This module is for a simple lottery game in pub. Players get to !guess a number between 0 and 100 
- * for a small fee. If a player guesses the exact number, they win the jackpot. If they guess within 1 
- * of the winning number, they get 1/2 of the jackpot and if they guess within 5 of the winning number
- * they win 1/5 of the jackpot. The ticket prices and jackpot value can be adjusted by mods+
- */
+    By fLaReD and WingZero.
+    There is a bunch of code left over from an older lottery module written by Eria.
+    Basically anything labeled with a "g" or containing the word "guess" or below the
+    getSmodHelpMessage method is for the updated module.
+
+    This module is for a simple lottery game in pub. Players get to !guess a number between 0 and 100
+    for a small fee. If a player guesses the exact number, they win the jackpot. If they guess within 1
+    of the winning number, they get 1/2 of the jackpot and if they guess within 5 of the winning number
+    they win 1/5 of the jackpot. The ticket prices and jackpot value can be adjusted by mods+
+*/
 
 public class PubLotteryModule extends AbstractModule {
     // guess variables
@@ -54,9 +54,9 @@ public class PubLotteryModule extends AbstractModule {
     private String matchingNumbers; // change 'store' to display? // stores and displays the player's numbers that match the winning numbers
     private boolean lotteryOn; // status for lottery; true = enabled, false = disabled
 
-    /* TODO - Price checks - When to start/stop lottery -- must find a place to do startLottery() then will create winning numbers - Disable commands
-     * such as !lprice and !lottery if lottery is not enabled. [methods to do this is commented] - If player does not have enough money, tell player
-     * how much it costs - lotteryOn if neccessary > enables/disables this lottery game */
+    /*  TODO - Price checks - When to start/stop lottery -- must find a place to do startLottery() then will create winning numbers - Disable commands
+        such as !lprice and !lottery if lottery is not enabled. [methods to do this is commented] - If player does not have enough money, tell player
+        how much it costs - lotteryOn if neccessary > enables/disables this lottery game */
 
     public PubLotteryModule(BotAction botAction, PubContext context) {
         super(botAction, context, "Lottery");
@@ -71,7 +71,7 @@ public class PubLotteryModule extends AbstractModule {
         r = new Random();
         guessOn = false;
         startingMessage = "LOTTERY is starting! To buy a number, PM me with !guess <#>, where # is an integer between 0 " +
-        				  "and 100. Ticket price: $" + gTicketPrice + ", Jackpot: $" + gJackpot + ". You have " + gTime + " minutes to guess. -" + m_botAction.getBotName();
+                          "and 100. Ticket price: $" + gTicketPrice + ", Jackpot: $" + gJackpot + ". You have " + gTime + " minutes to guess. -" + m_botAction.getBotName();
         manager = context.getPlayerManager();
 
         // lottery
@@ -86,29 +86,31 @@ public class PubLotteryModule extends AbstractModule {
     public void requestEvents(EventRequester eventRequester) {
 
     }
-    
+
     /**
-     * Returns the status of this module.
-     */
+        Returns the status of this module.
+    */
     public boolean isEnabled() {
         return lotteryOn;
     }
 
     /**
-     * Checks the player's submitted ticket.
-     * 
-     * @param sender
-     * @param command
-     */
+        Checks the player's submitted ticket.
+
+        @param sender
+        @param command
+    */
     public void handleTicket(String sender, String command) {
         int matches = 0;
         String matchingNum = null;
         String[] entry = command.substring(command.indexOf(" ") + 1).split(" ");
 
         matchingNumbers = "";
+
         try {
             if (this.isValid(sender, entry))
                 return;
+
             if (entry.length != ticketSize) {
                 m_botAction.sendSmartPrivateMessage(sender, "Please submit a ticket with two numbers.");
                 return;
@@ -135,11 +137,11 @@ public class PubLotteryModule extends AbstractModule {
     }
 
     /**
-     * Displays a message to the player about their submitted ticket.
-     * 
-     * @param sender
-     * @param matches
-     */
+        Displays a message to the player about their submitted ticket.
+
+        @param sender
+        @param matches
+    */
     public void checkLottery(String sender, int matches) {
         if (matches > 0) {
             String message = "[Ticket #" + entries + "] Found " + matches + " lucky numbers: [" + matchingNumbers + "]";
@@ -153,10 +155,10 @@ public class PubLotteryModule extends AbstractModule {
     }
 
     /**
-     * Creates random numbers for a winning lottery ticket. [unique numbers]
-     * 
-     * @return
-     */
+        Creates random numbers for a winning lottery ticket. [unique numbers]
+
+        @return
+    */
     public Set<Integer> createNumbers() {
         Set<Integer> numbers = new HashSet<Integer>(ticketSize);
 
@@ -168,8 +170,8 @@ public class PubLotteryModule extends AbstractModule {
     }
 
     /**
-     * Player's tickets will be compared to this winning ticket.
-     */
+        Player's tickets will be compared to this winning ticket.
+    */
     public void startLottery() {
         List<Object> list = new ArrayList<Object>(createNumbers());
         Object[] objects = list.toArray();
@@ -183,12 +185,12 @@ public class PubLotteryModule extends AbstractModule {
     }
 
     /**
-     * Checks if the player's ticket does not have any fault. Such as having duplicate numbers and if their numbers are out of range.
-     * 
-     * @param sender
-     * @param pieces
-     * @return
-     */
+        Checks if the player's ticket does not have any fault. Such as having duplicate numbers and if their numbers are out of range.
+
+        @param sender
+        @param pieces
+        @return
+    */
     private boolean isValid(String sender, String[] pieces) {
         for (int i = 0; i < ticketSize; i++)
             for (int j = 0; j < ticketSize; j++) {
@@ -207,25 +209,27 @@ public class PubLotteryModule extends AbstractModule {
     }
 
     /**
-     * Displays the jackpot money to the player.
-     * 
-     * @param sender
-     */
+        Displays the jackpot money to the player.
+
+        @param sender
+    */
     public void displayJackpot(String sender) {
         m_botAction.sendSmartPrivateMessage(sender, "Current jackpot: " + this.jackpot);
     }
 
     /**
-     * Sets the price per ticket to the moderator's specified amount.
-     * 
-     * @param sender
-     * @param command
-     */
+        Sets the price per ticket to the moderator's specified amount.
+
+        @param sender
+        @param command
+    */
     public void setTicketPrice(String sender, String command) {
         String value = command.substring(8);
+
         try {
             if (Integer.parseInt(value) < 0)
                 return;
+
             this.price = Integer.parseInt(value);
             m_botAction.sendSmartPrivateMessage(sender, "Price per ticket has been set to $" + this.price);
         } catch (Exception e) {
@@ -235,8 +239,8 @@ public class PubLotteryModule extends AbstractModule {
     }
 
     /**
-     * Stores the lucky numbers into String variable: matchingNumbers Used to display the matching numbers that player had in ticket.
-     */
+        Stores the lucky numbers into String variable: matchingNumbers Used to display the matching numbers that player had in ticket.
+    */
     public void saveLuckyNumbers(String matchingNum) {
         matchingNumbers += "(" + matchingNum + ")";
     }
@@ -255,8 +259,8 @@ public class PubLotteryModule extends AbstractModule {
 
     @Override
     public void handleCommand(String sender, String command) {
-        /*else if(command.startsWith("!lottery ") || command.startsWith("!l ")) { pubLottery.handleTicket(sender, command); } else
-         * if(command.equals("!jackpot") || command.equals("!jp")) { pubLottery.displayJackpot(sender); } */
+        /*  else if(command.startsWith("!lottery ") || command.startsWith("!l ")) { pubLottery.handleTicket(sender, command); } else
+            if(command.equals("!jackpot") || command.equals("!jp")) { pubLottery.displayJackpot(sender); } */
 
         try {
             if (command.startsWith("!guess ")) {
@@ -265,9 +269,9 @@ public class PubLotteryModule extends AbstractModule {
                 else
                     m_botAction.sendPrivateMessage(sender, "Guessing is not currently enabled.");
             } else if (command.equalsIgnoreCase("!lotteryhelp")) {
-            	lotteryHelp(sender);
+                lotteryHelp(sender);
             } else if (command.equalsIgnoreCase("!prices")) {
-            	lotteryPrices(sender);
+                lotteryPrices(sender);
             }
 
         } catch (RuntimeException e) {
@@ -285,33 +289,33 @@ public class PubLotteryModule extends AbstractModule {
             } else if (command.equalsIgnoreCase("!startguess")) {
                 startGuessingGame();
             } else if (command.startsWith("!setjp ")) {
-            	if (!guessOn) {
-            		setGuessJackpot(sender, command);
-            	} else {
-            		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
-            	}
+                if (!guessOn) {
+                    setGuessJackpot(sender, command);
+                } else {
+                    m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
+                }
             } else if (command.startsWith("!settp ")) {
-            	if (!guessOn) {
-            		setGuessTicketPrice(sender, command);
-            	} else {
-            		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
-            	}
+                if (!guessOn) {
+                    setGuessTicketPrice(sender, command);
+                } else {
+                    m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
+                }
             } else if (command.startsWith("!settime ")) {
-            	if (!guessOn) {
-            		setGuessTime(sender, command);
-            	} else {
-            		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
-            	}
+                if (!guessOn) {
+                    setGuessTime(sender, command);
+                } else {
+                    m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
+                }
             } else if (command.equalsIgnoreCase("!restoredefaults") || command.equalsIgnoreCase("!rd")) {
-            	if (!guessOn) {
-            		restoreGuessDefaults(sender);
-            	} else {
-            		m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
-            	}
+                if (!guessOn) {
+                    restoreGuessDefaults(sender);
+                } else {
+                    m_botAction.sendPrivateMessage(sender, "You cannot use this command while lottery is running.");
+                }
             } else if (command.equalsIgnoreCase("!seevalues")) {
-            	getGuessValues(sender, command);
+                getGuessValues(sender, command);
             } else if (command.equalsIgnoreCase("!endlottery")) {
-            	endLottery(sender, command);
+                endLottery(sender, command);
             }
         } catch (RuntimeException e) {
             m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
@@ -321,28 +325,28 @@ public class PubLotteryModule extends AbstractModule {
 
 
 
-	@Override
+    @Override
     public String[] getHelpMessage(String sender) {
         return new String[] {
-        		pubsystem.getHelpLine("!guess <#>        -- Buys a ticket for number <#>, where <#> is an integer between 0 and 100."),
-        		pubsystem.getHelpLine("!prices           -- Shows ticket price and jackpot value for lottery."),
-        		pubsystem.getHelpLine("!lotteryHelp      -- Info about the TW Lottery."),        		
-        };
+                   pubsystem.getHelpLine("!guess <#>        -- Buys a ticket for number <#>, where <#> is an integer between 0 and 100."),
+                   pubsystem.getHelpLine("!prices           -- Shows ticket price and jackpot value for lottery."),
+                   pubsystem.getHelpLine("!lotteryHelp      -- Info about the TW Lottery."),
+               };
     }
 
     @Override
     public String[] getModHelpMessage(String sender) {
-        return new String[] {        		
-    			pubsystem.getHelpLine("!setjp <$>            -- Set lottery jackpot to <$>, must be between 1 and 50,000."),
-    			pubsystem.getHelpLine("!settp <$>            -- Set ticket price to <$>, must be between 1 and 1,000 and less than the jackpot."),
-    			pubsystem.getHelpLine("!settime <#>          -- Set length of lottery rounds to <#> in minutes, must be between 1 and 60."),
-    			pubsystem.getHelpLine("!seevalues            -- View the current ticket/jackpot/round length values for lottery."),
-    			pubsystem.getHelpLine("!restoredefaults/!rd  -- Restore the default lottery values."),
-    			pubsystem.getHelpLine("!endlottery           -- Cancels the current lottery round, reimburses money to players."),
-    			pubsystem.getHelpLine(" NOTE: Do not alter the lottery values without permission from an SMod+"),
-		
-        };
-        
+        return new String[] {
+                   pubsystem.getHelpLine("!setjp <$>            -- Set lottery jackpot to <$>, must be between 1 and 50,000."),
+                   pubsystem.getHelpLine("!settp <$>            -- Set ticket price to <$>, must be between 1 and 1,000 and less than the jackpot."),
+                   pubsystem.getHelpLine("!settime <#>          -- Set length of lottery rounds to <#> in minutes, must be between 1 and 60."),
+                   pubsystem.getHelpLine("!seevalues            -- View the current ticket/jackpot/round length values for lottery."),
+                   pubsystem.getHelpLine("!restoredefaults/!rd  -- Restore the default lottery values."),
+                   pubsystem.getHelpLine("!endlottery           -- Cancels the current lottery round, reimburses money to players."),
+                   pubsystem.getHelpLine(" NOTE: Do not alter the lottery values without permission from an SMod+"),
+
+               };
+
     }
 
     @Override
@@ -375,13 +379,13 @@ public class PubLotteryModule extends AbstractModule {
         return new String[] {};
     }
 
-    /* public boolean isEnabled() { return lotteryOn; }
-     * 
-     * public void setStatus(boolean mode) { lotteryOn = mode; } */
+    /*  public boolean isEnabled() { return lotteryOn; }
+
+        public void setStatus(boolean mode) { lotteryOn = mode; } */
 
     /**
-     * This method starts the lottery guessing game.
-     */
+        This method starts the lottery guessing game.
+    */
     public void startGuessingGame() {
         guessOn = true;
         clearGuessValues();
@@ -393,50 +397,53 @@ public class PubLotteryModule extends AbstractModule {
                 endGuessingGame();
             }
         };
-        
+
         t2 = new TimerTask() {
-        	public void run() {
-        		m_botAction.sendArenaMessage("One minute remains in LOTTERY! PM me with !guess <#> if you would like to play. -" + m_botAction.getBotName(), 2);
-        	}
+            public void run() {
+                m_botAction.sendArenaMessage("One minute remains in LOTTERY! PM me with !guess <#> if you would like to play. -" + m_botAction.getBotName(), 2);
+            }
         };
         m_botAction.scheduleTask(t, gTime * Tools.TimeInMillis.MINUTE);
         m_botAction.scheduleTask(t2, ((gTime - 1) * Tools.TimeInMillis.MINUTE));
     }
 
     /**
-     * Ends lottery guessing game, determines winners and hands out the reward money as necessary.
-     */
+        Ends lottery guessing game, determines winners and hands out the reward money as necessary.
+    */
     public void endGuessingGame() {
         gWinners = "";
-        
+
         for (String player : playerGuesses.keySet()) {
-            if (playerGuesses.get(player) == gWinningNumber) { 
+            if (playerGuesses.get(player) == gWinningNumber) {
                 PubPlayer p = manager.getPlayer(player);
+
                 if (p != null) {
-                	p.addMoney(gJackpot);
-                    gWinningPlayers.add(player); 
+                    p.addMoney(gJackpot);
+                    gWinningPlayers.add(player);
                     m_botAction.sendPrivateMessage(player, "$" + gJackpot + " has been added to your account for correctly guessing"
-                            + " the lottery number, congratulations!");
+                                                   + " the lottery number, congratulations!");
                 }
-                
+
             } else if (Math.abs((gWinningNumber - playerGuesses.get(player.toLowerCase()))) == 1) {
                 PubPlayer p = manager.getPlayer(player);
+
                 if (p != null) {
-                	p.addMoney(gJackpot/2);
-                	gWinningPlayers.add(player);
-                	m_botAction.sendPrivateMessage(player, "$" + (gJackpot/2) + " has been added to your account for guessing"
-                            + " within 1 of the winning lottery number, congratulations!");
+                    p.addMoney(gJackpot / 2);
+                    gWinningPlayers.add(player);
+                    m_botAction.sendPrivateMessage(player, "$" + (gJackpot / 2) + " has been added to your account for guessing"
+                                                   + " within 1 of the winning lottery number, congratulations!");
                 }
-                 
-            } else if (Math.abs((gWinningNumber - playerGuesses.get(player.toLowerCase()))) <= 5) { 
+
+            } else if (Math.abs((gWinningNumber - playerGuesses.get(player.toLowerCase()))) <= 5) {
                 PubPlayer p = manager.getPlayer(player);
+
                 if (p != null) {
-                	p.addMoney(gJackpot/5);
-                	gWinningPlayers.add(player);
-                	m_botAction.sendPrivateMessage(player, "$" + (gJackpot/5) + " has been added to your account for guessing"
-                            + " within 5 of the winning lottery number, congratulations!");
+                    p.addMoney(gJackpot / 5);
+                    gWinningPlayers.add(player);
+                    m_botAction.sendPrivateMessage(player, "$" + (gJackpot / 5) + " has been added to your account for guessing"
+                                                   + " within 5 of the winning lottery number, congratulations!");
                 }
-                
+
             }
         }
 
@@ -448,202 +455,211 @@ public class PubLotteryModule extends AbstractModule {
 
             gWinners = gWinners.substring(0, gWinners.length() - 2);
             m_botAction.sendArenaMessage("Lottery has ended. Winner(s): " + gWinners + ". Congratulations! Winning number was " + gWinningNumber
-                    + ".", 2);
+                                         + ".", 2);
 
         } else
             m_botAction.sendArenaMessage("Lottery has ended. There are no winners. Winning number was " + gWinningNumber + ".", 2);
 
         guessOn = false;
     }
-            
+
 
     /**
-     * Handles player guesses
-     * @param name Name of player who bought a number
-     * @param message Number that they bought
-     */
+        Handles player guesses
+        @param name Name of player who bought a number
+        @param message Number that they bought
+    */
     public void handleGuess(String name, String message) {
         String s = message.substring(message.indexOf(" ") + 1);
         int guess;
         PubPlayer p = manager.getPlayer(name);
-        if (p != null) {
-        	try {
-        		guess = Integer.valueOf(s);
-        	} catch (NumberFormatException e) {
-        		m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
-        		return;
-        	}
 
-        	if (guess > 0 && guess < 100) {
-        	    if (!playerGuesses.containsKey(name.toLowerCase())) {
+        if (p != null) {
+            try {
+                guess = Integer.valueOf(s);
+            } catch (NumberFormatException e) {
+                m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
+                return;
+            }
+
+            if (guess > 0 && guess < 100) {
+                if (!playerGuesses.containsKey(name.toLowerCase())) {
                     if (p.getMoney() >= gTicketPrice) {
                         p.removeMoney(gTicketPrice);
                         playerGuesses.put(name.toLowerCase(), guess);
                         m_botAction.sendPrivateMessage(name, "You have guessed " + guess + " for $" + gTicketPrice + ".");
                     } else
                         m_botAction.sendPrivateMessage(name, "You do not have enough funds to guess a number at this time. Please try again later.");
-        	    } else {
+                } else {
                     playerGuesses.put(name.toLowerCase(), guess);
                     m_botAction.sendPrivateMessage(name, "Your guess has been changed to " + guess);
-        		}
-        	} else
-        		m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
+                }
+            } else
+                m_botAction.sendPrivateMessage(name, "You must guess a number between 0 and 100 in integer format. Example: !guess 50");
         }
     }
-    
+
     /**
-     * Explanation of the lottery game
-     * @param name Player who sent the command
-     */
+        Explanation of the lottery game
+        @param name Player who sent the command
+    */
     public void lotteryHelp(String name) {
-    	String[] help = {
-    			"+---------------------------------- LOTTERY ------------------------------------.",
-    			"|  Trench Wars lottery is a simple game of guessing a number and hoping to get  |",
-    			"|  lucky. To play, simply wait for a round to start and then PM TW-Pub1 with    |",
-    			"|  !guess <#>, where # is an integer value between 0 and 100. For example, if   |",
-    			"|  you wanted to guess the number 50, you would simply type :TW-Pub1:!guess 50  |",
-    			"|  and your guess will be recorded. When the lottery ends, if you guessed the   |",
-    			"|  correct number, you will be handsomly rewarded! As an added bonus, there is  |",
-    			"|  also a prize for guessing close to the winning number. Note: tickets are not |",
-    			"|  free, so be sure you have the cash and are feelin' lucky! If you wish to     |",
-    			"|  change your guess at any time, just use the !guess command and your number   |",
-    			"|  will be changed, free of charge. Use !prices to see the cost of a ticket and |",
-    			"|  the value of the jackpot. Good luck!                                         |",
-    			"`-------------------------------------------------------------------------------'",    			
-    	};
-    	m_botAction.privateMessageSpam(name, help);
+        String[] help = {
+            "+---------------------------------- LOTTERY ------------------------------------.",
+            "|  Trench Wars lottery is a simple game of guessing a number and hoping to get  |",
+            "|  lucky. To play, simply wait for a round to start and then PM TW-Pub1 with    |",
+            "|  !guess <#>, where # is an integer value between 0 and 100. For example, if   |",
+            "|  you wanted to guess the number 50, you would simply type :TW-Pub1:!guess 50  |",
+            "|  and your guess will be recorded. When the lottery ends, if you guessed the   |",
+            "|  correct number, you will be handsomly rewarded! As an added bonus, there is  |",
+            "|  also a prize for guessing close to the winning number. Note: tickets are not |",
+            "|  free, so be sure you have the cash and are feelin' lucky! If you wish to     |",
+            "|  change your guess at any time, just use the !guess command and your number   |",
+            "|  will be changed, free of charge. Use !prices to see the cost of a ticket and |",
+            "|  the value of the jackpot. Good luck!                                         |",
+            "`-------------------------------------------------------------------------------'",
+        };
+        m_botAction.privateMessageSpam(name, help);
     }
-    
+
     /**
-     * Shows the current value of lottery variables
-     * @param name Player who sent the command
-     */
+        Shows the current value of lottery variables
+        @param name Player who sent the command
+    */
     public void lotteryPrices(String name) {
-    	String[] prices = {
-        		"Ticket price     - $" + gTicketPrice,
-        		"Jackpot          - $" + gJackpot,
-    	};
-    	m_botAction.privateMessageSpam(name, prices);
+        String[] prices = {
+            "Ticket price     - $" + gTicketPrice,
+            "Jackpot          - $" + gJackpot,
+        };
+        m_botAction.privateMessageSpam(name, prices);
     }
-    
+
     /**
-     * Sets the value of the jackpot, for mods+
-     * @param name Name of mod attempting to change jackpot variable
-     * @param cmd Value that they are setting the jackpot to
-     */
+        Sets the value of the jackpot, for mods+
+        @param name Name of mod attempting to change jackpot variable
+        @param cmd Value that they are setting the jackpot to
+    */
     public void setGuessJackpot(String name, String cmd) {
-    	String jp = cmd.substring(cmd.indexOf(" ") + 1);
-    	try {
-    		int tempJP = Integer.valueOf(jp);
-    		if (tempJP >= gTicketPrice && tempJP >= 1 && tempJP <= 50000) {
-    			gJackpot = tempJP;
-    			m_botAction.sendPrivateMessage(name, "Jackpot has been set to " + gJackpot);
-    		} else
-    			m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 50,0000 that is greater than the ticket price.");
-    	} catch (NumberFormatException e) {
-    		m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
-    	}
+        String jp = cmd.substring(cmd.indexOf(" ") + 1);
+
+        try {
+            int tempJP = Integer.valueOf(jp);
+
+            if (tempJP >= gTicketPrice && tempJP >= 1 && tempJP <= 50000) {
+                gJackpot = tempJP;
+                m_botAction.sendPrivateMessage(name, "Jackpot has been set to " + gJackpot);
+            } else
+                m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 50,0000 that is greater than the ticket price.");
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
+        }
     }
-    
+
     /**
-     * Sets the cost to buy a ticket, for mods+
-     * @param name Name of mod attempting to change ticket price
-     * @param cmd Value that they are setting the price to
-     */
+        Sets the cost to buy a ticket, for mods+
+        @param name Name of mod attempting to change ticket price
+        @param cmd Value that they are setting the price to
+    */
     public void setGuessTicketPrice(String name, String cmd) {
-    	String tp = cmd.substring(cmd.indexOf(" ") + 1);
-    	try {
-    		int tempTP = Integer.valueOf(tp);
-    		if (tempTP >= 1 && tempTP <= 1000) {
-    			gTicketPrice = tempTP;
-    			m_botAction.sendPrivateMessage(name, "Ticket price has been set to " + gTicketPrice);
-    		} else 
-    			m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 1000.");
-    	} catch (NumberFormatException e){
-    		m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
-    	}
+        String tp = cmd.substring(cmd.indexOf(" ") + 1);
+
+        try {
+            int tempTP = Integer.valueOf(tp);
+
+            if (tempTP >= 1 && tempTP <= 1000) {
+                gTicketPrice = tempTP;
+                m_botAction.sendPrivateMessage(name, "Ticket price has been set to " + gTicketPrice);
+            } else
+                m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 1000.");
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
+        }
     }
-    
+
     /**
-     * Sets the length of lottery round, for mods+
-     * @param name Name of mod attempting to change round length
-     * @param cmd Time in minutes to set round length to
-     */
+        Sets the length of lottery round, for mods+
+        @param name Name of mod attempting to change round length
+        @param cmd Time in minutes to set round length to
+    */
     public void setGuessTime(String name, String cmd) {
-    	String time = cmd.substring(cmd.indexOf(" ") + 1);
-    	try {
-    		int tempTime = Integer.valueOf(time);
-    		if (tempTime >= 1 && tempTime <= 60) {
-    			gTime = tempTime;
-    			m_botAction.sendPrivateMessage(name, "Time has been set to " + gTime);
-    		} else
-    			m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 60 in minutes.");
-    	} catch (NumberFormatException e) {
-    		m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
-    	}
+        String time = cmd.substring(cmd.indexOf(" ") + 1);
+
+        try {
+            int tempTime = Integer.valueOf(time);
+
+            if (tempTime >= 1 && tempTime <= 60) {
+                gTime = tempTime;
+                m_botAction.sendPrivateMessage(name, "Time has been set to " + gTime);
+            } else
+                m_botAction.sendPrivateMessage(name, "You must choose a value between 1 and 60 in minutes.");
+        } catch (NumberFormatException e) {
+            m_botAction.sendPrivateMessage(name, "The action could not be completed at this time.");
+        }
     }
-    
+
     /**
-     * Gets the values of lottery values
-     * @param name Name of mod requesting values
-     * @param cmd
-     */
+        Gets the values of lottery values
+        @param name Name of mod requesting values
+        @param cmd
+    */
     public void getGuessValues(String name, String cmd) {
-    	String[] gValues = {
-        		"Ticket price     - $" + gTicketPrice,
-        		"Jackpot          - $" + gJackpot,
-        		"Time             - " + gTime + " mins",
-    	};
-    	m_botAction.privateMessageSpam(name, gValues);
+        String[] gValues = {
+            "Ticket price     - $" + gTicketPrice,
+            "Jackpot          - $" + gJackpot,
+            "Time             - " + gTime + " mins",
+        };
+        m_botAction.privateMessageSpam(name, gValues);
     }
-    
+
     /**
-     * Resets default lottery values
-     * @param name Name of mod resetting default values
-     */
+        Resets default lottery values
+        @param name Name of mod resetting default values
+    */
     public void restoreGuessDefaults(String name) {
         gTicketPrice = 100;
         gJackpot = 2500;
         gWinningNumber = -1;
         gTime = 5;
         String[] defaults = {
-        		"Default values have been restored:",
-        		" Ticket price     - $" + gTicketPrice,
-        		" Jackpot          - $" + gJackpot,
-        		" Time             - " + gTime + " mins",        		
+            "Default values have been restored:",
+            " Ticket price     - $" + gTicketPrice,
+            " Jackpot          - $" + gJackpot,
+            " Time             - " + gTime + " mins",
         };
         m_botAction.privateMessageSpam(name, defaults);
     }
-    
+
     /**
-     * Clears the hash map, linked list, and string of winner players
-     */
+        Clears the hash map, linked list, and string of winner players
+    */
     public void clearGuessValues() {
-    	gWinners = "";
-    	playerGuesses.clear();
-    	gWinningPlayers.clear();
+        gWinners = "";
+        playerGuesses.clear();
+        gWinningPlayers.clear();
     }
-    
+
     /**
-     * Ends the lottery game manually, reimburses all players who bought a ticket
-     * @param name Name of mod ending lottery
-     * @param cmd
-     */
+        Ends the lottery game manually, reimburses all players who bought a ticket
+        @param name Name of mod ending lottery
+        @param cmd
+    */
     public void endLottery(String name, String cmd) {
-    	if (guessOn) {
-    		m_botAction.cancelTask(t);
-    		m_botAction.cancelTask(t2);
-    		m_botAction.sendArenaMessage("LOTTERY has been cancelled. All players have been reimbursed for their tickets. -" + m_botAction.getBotName(), 2);
-    		guessOn = false;
-    		for (String player : playerGuesses.keySet()) {
-    			PubPlayer p = manager.getPlayer(player);
-    			if (p != null) {
-    				p.addMoney(gTicketPrice);
-    			}
-            
-    		}
-    	} else
-    		m_botAction.sendPrivateMessage(name, "Lottery is not currently running.");
+        if (guessOn) {
+            m_botAction.cancelTask(t);
+            m_botAction.cancelTask(t2);
+            m_botAction.sendArenaMessage("LOTTERY has been cancelled. All players have been reimbursed for their tickets. -" + m_botAction.getBotName(), 2);
+            guessOn = false;
+
+            for (String player : playerGuesses.keySet()) {
+                PubPlayer p = manager.getPlayer(player);
+
+                if (p != null) {
+                    p.addMoney(gTicketPrice);
+                }
+
+            }
+        } else
+            m_botAction.sendPrivateMessage(name, "Lottery is not currently running.");
     }
 
 }

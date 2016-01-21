@@ -17,7 +17,7 @@ public class PubContext {
     private BotAction m_botAction;
 
     private boolean started = false;
-    
+
     private Log moneyLog;
 
     // True during the first 5 seconds
@@ -52,7 +52,7 @@ public class PubContext {
         // Instanciate (order matter)
 
         long start = System.currentTimeMillis();
-        
+
         moneyLog = new Log(m_botAction, "Transaction.log");
 
         // Order matter (!help)
@@ -72,7 +72,7 @@ public class PubContext {
         getGauge();
         getBounty();
         getBlockSpecModule();
-        
+
 
         int seconds = (int) (System.currentTimeMillis() - start) / 1000;
         Tools.printLog("Modules(" + modules.size() + ") for pubsystem loaded in " + seconds + " seconds.");
@@ -80,9 +80,11 @@ public class PubContext {
 
     public void start() {
         this.started = true;
+
         for (AbstractModule module : modules.values()) {
             module.start();
         }
+
         TimerTask timer = new TimerTask() {
             public void run() {
                 hasJustStarted = false;
@@ -93,6 +95,7 @@ public class PubContext {
 
     public void stop() {
         this.started = false;
+
         for (AbstractModule module : modules.values()) {
             module.stop();
         }
@@ -100,6 +103,7 @@ public class PubContext {
 
     public void reloadConfig() {
         m_botAction.getBotSettings().reloadFile();
+
         for (AbstractModule module : modules.values()) {
             try {
                 module.reloadConfig();
@@ -131,6 +135,7 @@ public class PubContext {
             gameFlagTime = new GameFlagTimeModule(m_botAction, this);
             modules.put("flagtime", gameFlagTime);
         }
+
         return gameFlagTime;
     }
 
@@ -139,6 +144,7 @@ public class PubContext {
             pubMap = new PubMapModule(m_botAction, this);
             modules.put("pubmap", pubMap);
         }
+
         return pubMap;
     }
 
@@ -147,6 +153,7 @@ public class PubContext {
             playerManager = new PubPlayerManagerModule(m_botAction, this);
             modules.put("playermanager", playerManager);
         }
+
         return playerManager;
     }
 
@@ -155,22 +162,25 @@ public class PubContext {
             gaugeModule = new GaugeModule(m_botAction, this);
             modules.put("gaugemodule", gaugeModule);
         }
+
         return gaugeModule;
     }
-    
+
     public BountyModule getBounty() {
         if (bountyModule == null) {
             bountyModule = new BountyModule(m_botAction, this);
             modules.put("bounty", bountyModule);
         }
+
         return bountyModule;
     }
-    
+
     public PubMoneySystemModule getMoneySystem() {
         if (moneySystem == null) {
             moneySystem = new PubMoneySystemModule(m_botAction, this);
             modules.put("moneysystem", moneySystem);
         }
+
         return moneySystem;
     }
 
@@ -179,6 +189,7 @@ public class PubContext {
             pubHunt = new PubHuntModule(m_botAction, this);
             modules.put("hunt", pubHunt);
         }
+
         return pubHunt;
     }
 
@@ -187,6 +198,7 @@ public class PubContext {
             pubKillSession = new PubKillSessionModule(m_botAction, this);
             modules.put("killothon", pubKillSession);
         }
+
         return pubKillSession;
     }
 
@@ -195,6 +207,7 @@ public class PubContext {
             pubStreak = new PubStreakModule(m_botAction, this);
             modules.put("streak", pubStreak);
         }
+
         return pubStreak;
     }
 
@@ -203,6 +216,7 @@ public class PubContext {
             pubUtil = new PubUtilModule(m_botAction, this);
             modules.put("utility", pubUtil);
         }
+
         return pubUtil;
     }
 
@@ -211,6 +225,7 @@ public class PubContext {
             pubChallenge = new PubChallengeModule(m_botAction, this);
             modules.put("challenge", pubChallenge);
         }
+
         return pubChallenge;
     }
 
@@ -219,6 +234,7 @@ public class PubContext {
             pubSession = new PubSessionModule(m_botAction, this);
             modules.put("session", pubSession);
         }
+
         return pubSession;
     }
 
@@ -227,28 +243,29 @@ public class PubContext {
             pubLottery = new PubLotteryModule(m_botAction, this);
             modules.put("lottery", pubLottery);
         }
+
         return pubLottery;
     }
-    
+
     public BlockSpecModule getBlockSpecModule() {
-    	if(blockSpecModule == null) {
-    		blockSpecModule = new BlockSpecModule(m_botAction, this);
-    		modules.put("BlockSpec", blockSpecModule);
-    	}
-    	
-    	return blockSpecModule;
+        if(blockSpecModule == null) {
+            blockSpecModule = new BlockSpecModule(m_botAction, this);
+            modules.put("BlockSpec", blockSpecModule);
+        }
+
+        return blockSpecModule;
     }
 
     /** 11/25/13 - Adding explicit calls to modules for handling of general events,
-     * so we're not iterating over this Map unnecessarily 500 times a second.
-     */
+        so we're not iterating over this Map unnecessarily 500 times a second.
+    */
     public void handleEvent(SubspaceEvent event) {
 
         /*
-        Iterator<AbstractModule> iterator = modules.values().iterator();
-        AbstractModule module;
+            Iterator<AbstractModule> iterator = modules.values().iterator();
+            AbstractModule module;
 
-        while (iterator.hasNext()) {
+            while (iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
             if (!module.isEnabled())
                 continue;
@@ -257,12 +274,12 @@ public class PubContext {
             } catch (Exception e) {
                 displayException(e);
             }
-        }
+            }
         */
-        
+
         // Rather than checking whether each module is enabled before sending event,
         // have each event handler method check in module itself. This saves many cycles,
-        // as most modules handle only a small subset of possible events they can handle.       
+        // as most modules handle only a small subset of possible events they can handle.
         try {
             playerManager.handleEvent(event);
             moneySystem.handleEvent(event);
@@ -272,21 +289,21 @@ public class PubContext {
             pubStreak.handleEvent(event);
             pubKillSession.handleEvent(event);
             pubSession.handleEvent(event);
-            pubMap.handleEvent(event);            
+            pubMap.handleEvent(event);
             bountyModule.handleEvent(event);
             blockSpecModule.handleEvent(event);
 
             // Gauge does not use events (at present)
             //gaugeModule.handleEvent(event);
-            
+
             // The following modules are not used at present. Uncomment and be sure
             // that each one checks if module's enabled before handling event when re-enabling.
             //pubHunt.handleEvent(event);
             //pubLottery.handleEvent(event);
         } catch (Exception e) {
-            displayException(e);            
+            displayException(e);
         }
-        
+
     }
 
     public void handleCommand(String sender, String command) {
@@ -296,8 +313,10 @@ public class PubContext {
 
         while (iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+
             if (!module.isEnabled())
                 continue;
+
             try {
                 module.handleCommand(sender, command);
             } catch (Exception e) {
@@ -315,6 +334,7 @@ public class PubContext {
         if (command.startsWith("!enable_") || command.startsWith("!disable_")) {
             boolean enable = command.startsWith("!enable") ? true : false;
             String moduleName = command.substring(command.indexOf("_") + 1).toLowerCase();
+
             if (modules.containsKey(moduleName)) {
                 if (enable) {
                     modules.get(moduleName).enable();
@@ -323,28 +343,35 @@ public class PubContext {
                     modules.get(moduleName).disable();
                     m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' disabled.");
                 }
+
                 if (moduleName.equalsIgnoreCase("pubmap")) {
                     BotSettings sets = m_botAction.getBotSettings();
+
                     if (enable)
                         sets.put("pubmap_enabled", "1");
                     else
                         sets.put("pubmap_enabled", "0");
+
                     sets.save();
                 }
             } else {
                 m_botAction.sendSmartPrivateMessage(sender, "Module '" + moduleName + "' not found.");
                 String moduleNames = "";
+
                 for (String name : modules.keySet()) {
                     moduleNames += ", " + name;
                 }
+
                 m_botAction.sendSmartPrivateMessage(sender, "Available : " + moduleNames.substring(1));
             }
         }
 
         while (iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+
             if (!module.isEnabled())
                 continue;
+
             try {
                 module.handleModCommand(sender, command);
             } catch (Exception e) {
@@ -361,8 +388,10 @@ public class PubContext {
 
         while (iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+
             if (!module.isEnabled())
                 continue;
+
             try {
                 module.handleSmodCommand(sender, command);
             } catch (Exception e) {
@@ -379,8 +408,10 @@ public class PubContext {
 
         while (iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+
             if (!module.isEnabled())
                 continue;
+
             try {
                 module.handleEvent(event);
             } catch (Exception e) {
@@ -397,13 +428,14 @@ public class PubContext {
 
         while (iterator.hasNext()) {
             module = (AbstractModule) iterator.next();
+
             try {
                 module.handleDisconnect();
             } catch (Exception e) {
                 displayException(e);
             }
         }
-        
+
         moneyLog.close();
 
     }
@@ -415,6 +447,7 @@ public class PubContext {
             int line = e.getStackTrace()[0].getLineNumber();
             m_botAction.sendChatMessage(1, e.getClass().getSimpleName() + " caught on " + className + ", " + method + " at line " + line);
         }
+
         Tools.printStackTrace(e);
     }
 
