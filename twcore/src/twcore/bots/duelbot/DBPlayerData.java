@@ -24,8 +24,8 @@ public class DBPlayerData {
 
 
     /** Creates a new instance of DBPlayerData
-     * @param conn BotAction
-     * @param connName String
+        @param conn BotAction
+        @param connName String
      * */
 
     public DBPlayerData(BotAction conn, String connName) {
