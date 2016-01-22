@@ -3087,7 +3087,7 @@ public class PubMoneySystemModule extends AbstractModule {
     }
 
     /**
-        Format a number to currency with the dollar sign 100000 -> $100,000
+        Format a number to currency with the dollar sign 100000 to $100,000
     */
     public static String formatMoney(int money) {
         NumberFormat nf = NumberFormat.getCurrencyInstance();

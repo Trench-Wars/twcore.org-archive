@@ -122,12 +122,9 @@ public class staffbot_loginwatch extends Module {
     /**
         Check if a name is being watched for, and notify on chat if so.
 
-        @param name
-                  Name to check
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID of player
+        @param name Name to check
+        @param IP IP of player
+        @param MacID MacID of player
     */
     public void checkName(String name, String IP, String MacID) {
         if (watchedNames.containsKey(name.toLowerCase())) {
@@ -139,12 +136,9 @@ public class staffbot_loginwatch extends Module {
     /**
         Check if an IP is being watched for, and notify on chat if so.
 
-        @param name
-                  Name of player
-        @param IP
-                  IP to check
-        @param MacId
-                  MacID of player
+        @param name Name of player
+        @param IP IP to check
+        @param MacID MacID of player
     */
     public void checkIP(String name, String IP, String MacID) {
         for (String IPfragment : watchedIPs.keySet()) {
@@ -158,12 +152,9 @@ public class staffbot_loginwatch extends Module {
     /**
         Check if an MID is being watched for, and notify on chat if so.
 
-        @param name
-                  Name of player
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID to check
+        @param name Name of player
+        @param IP IP of player
+        @param MacID MacID to check
     */
     public void checkMID(String name, String IP, String MacID) {
         if (watchedMIDs.containsKey(MacID)) {
@@ -175,8 +166,8 @@ public class staffbot_loginwatch extends Module {
     /**
         Starts watching for a name to log on.
 
-        @param name
-                 Name to watch for
+        @param sender String
+        @param message String
     */
     public void doNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -206,8 +197,8 @@ public class staffbot_loginwatch extends Module {
     /**
         Starts watching for a given MacID.
 
-        @param MID
-                  MID to watch for
+        @param sender String
+        @param message String
     */
     public void doMIDWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -238,8 +229,8 @@ public class staffbot_loginwatch extends Module {
     /**
         Starts watching for an IP starting with a given string.
 
-        @param IP
-                  IP to watch for
+        @param sender String
+        @param message String
     */
     public void doIPWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -295,7 +286,7 @@ public class staffbot_loginwatch extends Module {
     }
 
     /**
-        New version for {@link #doShowWatchesCmd()}, handles the !showwatches and !showmywatches commands.
+        Handles the !showwatches and !showmywatches commands.
         <p>
         This version combines the standard result provided by !showwatches with optional parameters, being:
         <ul>
@@ -311,7 +302,7 @@ public class staffbot_loginwatch extends Module {
         <p>
         Please do note that any sorting is done per "group" and that the result is still displayed in the appropriate chat.
         @param name Issuer of the command.
-        @param args Optional arguments: [<code><</code>{d(ate), t(rigger), i(ssuer)}>:<code><</code>{a(scending), d(escending)}>]
+        @param args Optional arguments: [{d(ate), t(rigger), i(ssuer)}:{a(scending), d(escending)}]
         @param showAll True if all watches are to be shown, false if only the issuer's watches are to be shown.
     */
     public void doShowWatchesCmd(String name, String args, boolean showAll) {

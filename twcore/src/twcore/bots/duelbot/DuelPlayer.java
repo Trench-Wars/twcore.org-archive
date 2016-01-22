@@ -15,6 +15,11 @@ public class DuelPlayer {
     /**
         Constructor should not take a ResultSet it can not close.  Reimplemented
         as straight variables.
+        @param winby2 boolean
+        @param nocount boolean
+        @param deathwarp boolean
+        @param lag int
+        @param killstowin int
     */
     public DuelPlayer( boolean winby2, boolean nocount, boolean deathwarp, int lag, int killstowin ) {
         m_winBy2 = winby2;

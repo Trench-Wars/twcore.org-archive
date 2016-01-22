@@ -1038,7 +1038,7 @@ public class MatchRound {
     /**
         Method command_radius.
         @param name The person who got commanded
-        @param parameters The value for the new safe spawn radius in tiles
+        @param param String[]
     */
     public void command_radius(String name, String[] param) {
         if (param[0] != null && param[0].length() > 0) {
@@ -1237,8 +1237,8 @@ public class MatchRound {
 
     /**
         Method command_setTime.
-        @param name
-        @param string
+        @param name String
+        @param parameters String[]
     */
     public void command_setTime(String name, String[] parameters) {
         if (parameters.length > 0) {
@@ -2288,7 +2288,7 @@ public class MatchRound {
 
     /**
         Sets the m_raceTarget.
-        @param m_raceTarget The m_raceTarget to set
+        @param raceTarget The m_raceTarget to set
     */
     public void setRaceTarget(int raceTarget) {
         m_raceTarget = raceTarget;

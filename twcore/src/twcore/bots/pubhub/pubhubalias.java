@@ -36,7 +36,7 @@ import twcore.core.util.ipc.IPCMessage;
 /**
     THIS CODE SERIOUSLY NEEDS TO BE REFACTORED!! - Cpt
 
-    We're working on it, Guano... we're working on it. :>   - qan
+    We're working on it, Guano... we're working on it. :) - qan
 */
 
 public class pubhubalias extends PubBotModule {
@@ -781,8 +781,8 @@ public class pubhubalias extends PubBotModule {
     /**
         Starts watching for an IP starting with a given string.
 
-        @param IP
-                  IP to watch for
+        @param sender String
+        @param message String
     */
     public void doIPWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -885,8 +885,8 @@ public class pubhubalias extends PubBotModule {
     /**
         Starts watching for a name to log on.
 
-        @param name
-                  Name to watch for
+        @param sender String
+        @param message String
     */
     public void doNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -916,8 +916,8 @@ public class pubhubalias extends PubBotModule {
     /**
         Starts watching for a left partial name to log on.
 
-        @param name
-                  Name to watch for
+        @param sender String
+        @param message String
     */
     public void doLNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -948,8 +948,8 @@ public class pubhubalias extends PubBotModule {
     /**
         Starts watching for a name to log on.
 
-        @param name
-                  Name to watch for
+        @param sender String
+        @param message String
     */
     public void doRNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -980,8 +980,8 @@ public class pubhubalias extends PubBotModule {
     /**
         Starts watching for a name to log on.
 
-        @param name
-                  Name to watch for
+        @param sender String
+        @param message String
     */
     public void doPNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -1012,8 +1012,8 @@ public class pubhubalias extends PubBotModule {
     /**
         Starts watching for a given MacID.
 
-        @param MID
-                  MID to watch for
+        @param sender String
+        @param message String
     */
     public void doMIDWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -1171,7 +1171,7 @@ public class pubhubalias extends PubBotModule {
         <p>
         Please do note that any sorting is done per "group" and that the result is still displayed in the appropriate chat.
         @param name Issuer of the command.
-        @param args Optional arguments: [<code><</code>{d(ate), t(rigger), i(ssuer)}>:<code><</code>{a(scending), d(escending)}>]
+        @param args Optional arguments: [{d(ate), t(rigger), i(ssuer)}:{a(scending), d(escending)}]
         @param showAll True if all watches are to be shown, false if only the issuer's watches are to be shown.
     */
     public void doShowWatchesCmd(String name, String args, boolean showAll) {
@@ -1551,12 +1551,9 @@ public class pubhubalias extends PubBotModule {
     /**
         Check if a name is being watched for, and notify on chat if so.
 
-        @param name
-                  Name to check
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID of player
+        @param name Name to check
+        @param IP IP of player
+        @param MacID MacID of player
     */
     public void checkName(String name, String IP, String MacID) {
         if (watchedNames.containsKey(name.toLowerCase())) {
@@ -1569,12 +1566,9 @@ public class pubhubalias extends PubBotModule {
         Check if a name is being watched for, and notify on chat if so.
         Used for left partial matches. (Starts with)
 
-        @param name
-                  Name to check
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID of player
+        @param name Name to check
+        @param IP IP of player
+        @param MacID MacID of player
     */
     public void checkLName(String name, String IP, String MacID) {
         for (String startName : watchedLNames.keySet()) {
@@ -1589,12 +1583,9 @@ public class pubhubalias extends PubBotModule {
         Check if a name is being watched for, and notify on chat if so.
         Used for right partial matches. (Ends with)
 
-        @param name
-                  Name to check
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID of player
+        @param name Name to check
+        @param IP IP of player
+        @param MacID MacID of player
     */
     public void checkRName(String name, String IP, String MacID) {
         for (String startName : watchedRNames.keySet()) {
@@ -1609,12 +1600,9 @@ public class pubhubalias extends PubBotModule {
         Check if a name is being watched for, and notify on chat if so.
         Used for partial matches. (Contains)
 
-        @param name
-                  Name to check
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID of player
+        @param name Name to check
+        @param IP IP of player
+        @param MacID MacID of player
     */
     public void checkPName(String name, String IP, String MacID) {
         for (String startName : watchedPNames.keySet()) {
@@ -1628,12 +1616,9 @@ public class pubhubalias extends PubBotModule {
     /**
         Check if an IP is being watched for, and notify on chat if so.
 
-        @param name
-                  Name of player
-        @param IP
-                  IP to check
-        @param MacId
-                  MacID of player
+        @param name Name of player
+        @param IP IP to check
+        @param MacID MacID of player
     */
     public void checkIP(String name, String IP, String MacID) {
         for (String IPfragment : watchedIPs.keySet()) {
@@ -1647,12 +1632,9 @@ public class pubhubalias extends PubBotModule {
     /**
         Check if an MID is being watched for, and notify on chat if so.
 
-        @param name
-                  Name of player
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID to check
+        @param name Name of player
+        @param IP IP of player
+        @param MacID MacID to check
     */
     public void checkMID(String name, String IP, String MacID) {
         if (watchedMIDs.containsKey(MacID)) {
@@ -2129,10 +2111,10 @@ public class pubhubalias extends PubBotModule {
 
         /**
             Sorts the given map according to the given parameters.
-            @param map The map that needs to be sorted. Must be of the type Map<{@link String}, {@link WatchComment}>
+            @param map The map that needs to be sorted. Must be of the type Map&lt;String, WatchComment&gt;
             @param sortBy The field that is used to sort by.
             @param direction True for ascending, false for descending.
-            @return
+            @return Map&lt;String, WatchComment&gt;
         */
         public static Map<String, WatchComment> sortByValue(Map<String, WatchComment> map, final SortField sortBy, final boolean direction) {
             // Create a list of all the entries in the given map.

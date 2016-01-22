@@ -20,7 +20,7 @@ import twcore.core.util.Tools;
 import twcore.core.util.ipc.IPCMessage;
 
 /**
-    A simple bot designed for one thing: search & destroy
+    A simple bot designed for one thing: search and destroy
     Solves the problem posed by players entering from a different zone and
     changing arenas before the pubbot can go through banc silence routines.
     It seeks out the player and follows through with the banc silence procedures.

@@ -20,6 +20,10 @@ public class DuelChallenge {
     private int     m_issueTime;
 
     /** This constructor is for normal league challenges
+     * @param _challenger String
+     * @param _challenged String
+     * @param _player DuelPlayer
+     * @param _type int (Gametype 1-warbird, 2-javelin, 3-spider)
     */
     public DuelChallenge( String _challenger, String _challenged, DuelPlayer _player, int _type ) {
 

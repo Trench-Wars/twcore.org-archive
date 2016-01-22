@@ -45,10 +45,8 @@ public class Duel {
         Basic constructor for duel which holds information over a duel between
         two players.
 
-        @param _duelBox
-                  A DuelBox object for the box the duel is being held in
-        @param _challenge
-                  A DuelChallenge object for the players
+        @param duelBox A DuelBox object for the box the duel is being held in
+        @param challenge A DuelChallenge object for the players
     */
     public Duel(DuelBox duelBox, DuelChallenge challenge) {
 

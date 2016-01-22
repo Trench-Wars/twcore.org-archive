@@ -2879,9 +2879,6 @@ public class teamduel extends SubspaceBot {
 
     /**
         Bot Command Executions
-
-        @param name
-        @param message
     */
 
     public void do_initialScan() {

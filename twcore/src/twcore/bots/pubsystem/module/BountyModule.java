@@ -21,7 +21,7 @@ import twcore.core.game.Player;
 
     Allows players to place bounties on each other in pub.
 
-    @see http://www.twcore.org/ticket/874
+    @see <a href="http://www.twcore.org/ticket/874">#874</a>
     @author SpookedOne
 */
 public class BountyModule extends AbstractModule {

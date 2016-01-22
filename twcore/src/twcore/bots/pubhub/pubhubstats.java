@@ -132,7 +132,7 @@ public class pubhubstats extends PubBotModule {
 
     /**
         Unused method but needs to be overridden
-        @see Module.requestEvents()
+        @see twcore.bots.PubBotModule#requestEvents
     */
     public void requestEvents(EventRequester eventRequester) {}
 

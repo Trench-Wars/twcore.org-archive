@@ -161,7 +161,7 @@ public class pubhubchat extends PubBotModule {
     This class creates a ServerSocket server which deals with requests from PHP for the chat
 
     Protocol:
-    PHP -> Server
+    PHP -&gt; Server
     - getArenaList
        Returns the available arenas from the bot module pubhubchat
     - getChatMessages &lt;arena&gt; [id]

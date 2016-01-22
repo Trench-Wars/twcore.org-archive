@@ -70,7 +70,7 @@ import twcore.core.util.Tools;
      1  - Unlimited number of ships of this type are allowed
      #  - If the number of current ships of the type on this frequency is
           greater than the total number of people on the frequency divided
-          by this number (ships of this type > total ships / weight), then the
+          by this number (ships of this type &gt; total ships / weight), then the
           ship is not allowed.  The exception to this rule is if the player is
           the only one on the freq currently in the ship.
 
@@ -84,8 +84,9 @@ import twcore.core.util.Tools;
     TKs, informs people of messages received, and can perform any other task necessary
     in a pub -- particularly ones that require a way to verify when a person logs on.)
 
+    @see twcore.bots.pubbot.pubbot
+    @see twcore.bots.pubhub.pubhub
     @author qan / original idea and bot by Cpt. Guano!
-    @see pubbot; pubhub
 */
 public class pubsystem extends SubspaceBot
 {
@@ -115,7 +116,7 @@ public class pubsystem extends SubspaceBot
     /**
         Creates a new instance of pubsystem bot and initializes necessary data.
 
-        @param Reference to bot utility class
+        @param botAction BotAction
     */
     public pubsystem(BotAction botAction)
     {
@@ -308,7 +309,7 @@ public class pubsystem extends SubspaceBot
 
     /**
         When a player enters, displays necessary information, and checks
-        their ship & freq.
+        their ship and freq.
 
         @param event is the event to process.
     */

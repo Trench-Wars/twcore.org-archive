@@ -87,11 +87,8 @@ public class staffbot_warnings extends Module {
     /**
         Deletes a player's last warning by overwriting its text with relevant data.
 
-        @param name
-                  Staffer requesting
-        @param message
-                  Name of player whose l
-        @param showExpired
+        @param name String
+        @param message String
     */
     public void deleteLastWarning(String name, String message) {
         String query = "SELECT * FROM tblWarnings WHERE name = '" + Tools.addSlashes(message.toLowerCase()) + "' ORDER BY timeofwarning DESC";

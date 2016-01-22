@@ -160,10 +160,10 @@ public class pubautobot extends SubspaceBot {
         Handles the IPC event.
         <p>
         Step to request this bot: <pre>
-        1. RandomBot> Send a "looking"
-        2. Autobot> If not locked, send a "locked"
+        1. RandomBot Send a "looking"
+        2. Autobot If not locked, send a "locked"
           If not confirmation after 5 seconds, the bot is free'd
-        3. RandomBot> Confirm with "confirm_lock"
+        3. RandomBot Confirm with "confirm_lock"
         4. Setup the new owner of this bot</pre>
     */
     public void handleEvent(InterProcessEvent event) {

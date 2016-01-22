@@ -693,7 +693,7 @@ public class PubPlayerManagerModule extends AbstractModule {
          1  - Unlimited number of ships of this type are allowed
          #  - If the number of current ships of the type on this frequency is
               greater than the total number of people on the frequency divided
-              by this number (ships of this type > total ships / weight), then the
+              by this number (ships of this type &gt; total ships / weight), then the
               ship is not allowed.  The exception to this rule is if the player is
               the only one on the freq currently in the ship.
 
@@ -792,12 +792,11 @@ public class PubPlayerManagerModule extends AbstractModule {
         1  - Unlimited number of ships of this type are allowed
         #  - If the number of current ships of the type on this frequency is
             greater than the total number of people on the frequency divided
-            by this number (ships of this type > total ships / weight), then the
+            by this number (ships of this type &gt; total ships / weight), then the
             ship is not allowed.  Exception to this rule is if the player is the
             only one on the freq currently in the ship.
 
-        @param playerName is the player to be checked.
-        @param specMessage enables the spec message.
+        @param playerID is the player to be checked.
     */
     public void checkPlayer(int playerID)
     {
@@ -1374,8 +1373,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     /**
         This method sets the value to be deducted from a players account for TKing
-        @param tax
-        @param sender
+        @param sender String
+        @param command String
     */
     public void doSetTeamKillTax(String sender, String command) {
         int newTkTax = 0;

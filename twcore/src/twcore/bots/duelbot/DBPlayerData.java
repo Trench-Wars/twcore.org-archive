@@ -23,7 +23,10 @@ public class DBPlayerData {
     long m_lastQuery = 0;
 
 
-    /** Creates a new instance of DBPlayerData */
+    /** Creates a new instance of DBPlayerData
+     * @param conn BotAction
+     * @param connName String
+     * */
 
     public DBPlayerData(BotAction conn, String connName) {
         m_connection = conn;

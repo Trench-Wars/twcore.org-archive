@@ -26,13 +26,13 @@ import twcore.core.util.ipc.IPCMessage;
 /**
     Pubbot BanC module.
 
-    Behaviour: - when a player enters, sends a IPC message to pubhub's banc module with the player's name "entered <playername>"
+    Behaviour: - when a player enters, sends a IPC message to pubhub's banc module with the player's name "entered [playername]"
 
-    - when the pubbot's alias module requests *info of the player, catch it and IPC it to staffbot's banc module "info <playername>:<ip>:<mid>" - on
-    receiving IPC text 'silence <playername>', *shutup player - reply with IPC message that playername is silenced - on receiving IPC text 'unsilence
-    <playername>', un-*shutup player - reply with IPC message that playername is unsilenced - on receiving IPC text 'speclock <playername>', *spec
-    player - reply with IPC message that playername is spec-locked - on receiving IPC text 'unspeclock <playername>', un-*spec player - reply with IPC
-    message that playername is unspec-locked - on receiving IPC text 'kick <playername>', *kill player - reply with IPC message that playername is
+    - when the pubbot's alias module requests *info of the player, catch it and IPC it to staffbot's banc module "info [playername]:[ip]:[mid]" - on
+    receiving IPC text 'silence [playername]', *shutup player - reply with IPC message that playername is silenced - on receiving IPC text 'unsilence
+    [playername]', un-*shutup player - reply with IPC message that playername is unsilenced - on receiving IPC text 'speclock [playername]', *spec
+    player - reply with IPC message that playername is spec-locked - on receiving IPC text 'unspeclock [playername]', un-*spec player - reply with IPC
+    message that playername is unspec-locked - on receiving IPC text 'kick [playername]', *kill player - reply with IPC message that playername is
     kicked
 
     Dependencies: - staffbot's banc module - pubbot's alias module

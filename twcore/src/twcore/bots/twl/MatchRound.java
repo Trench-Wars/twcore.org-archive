@@ -956,8 +956,8 @@ public class MatchRound {
 
     /**
         Method command_setTime.
-        @param name
-        @param string
+        @param name String
+        @param parameters String[]
     */
     public void command_setTime(String name, String[] parameters) {
         if (parameters.length > 0) {
@@ -1853,7 +1853,7 @@ public class MatchRound {
 
     /**
         Sets the m_raceTarget.
-        @param m_raceTarget The m_raceTarget to set
+        @param raceTarget The raceTarget to set
     */
     public void setRaceTarget(int raceTarget) {
         m_raceTarget = raceTarget;

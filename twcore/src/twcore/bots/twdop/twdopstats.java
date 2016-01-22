@@ -103,7 +103,7 @@ public class twdopstats extends Module {
         Handles any messages send to the bot.
         The bot triggers on the ?help alerts and "on it" in chat
 
-        @see twcore.core.SubspaceBot.handleEvent( Message event )
+        @see twcore.core.SubspaceBot#handleEvent( Message event )
     */
     public void handleEvent( Message event ) {
 
@@ -143,7 +143,7 @@ public class twdopstats extends Module {
 
     /**
         Initiates TWD Operator list update on the !update command.
-        @param playerName the player who did !help
+        @param name the player who did !help
         @param message the message of the player (will always start with !update)
     */
     public void handleUpdateCommand( String name, String message) {

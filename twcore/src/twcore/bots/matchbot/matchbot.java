@@ -1579,9 +1579,11 @@ public class matchbot extends SubspaceBot {
 
     /**
         Function to detect which rule set to use when changing access. One of the following scenarios may happen:
+        <ul>
         <li>If a game number is provided, those rules will attempt to be loaded;
         <li>If no or an invalid game number is provided, the currently loaded rule set will be used;
         <li>If no or an invalid game number is provided, and currently no rule set is loaded, an error will be returned.
+        </ul>
         @param name User to who messages should be sent
         @param parameters Command parameters of !listaccess, !addaccess or !removeaccess.
         @return The requested/applicable rule set, or null if no valid set was found.

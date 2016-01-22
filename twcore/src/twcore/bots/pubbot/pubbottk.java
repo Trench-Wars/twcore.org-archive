@@ -438,9 +438,9 @@ public class pubbottk extends PubBotModule {
 
     /**
         Print out a log of all TKs occurring in the last X minutes.
-        @param staffname
-        @param tker
-        @param numToPrint
+        @param staffname String
+        @param tker TKInfo
+        @param minutes int
     */
     public void printTKLogByTime( String staffname, TKInfo tker, int minutes ) {
         TreeMap <Long, String>tklog = tker.getTKLog();
@@ -469,9 +469,9 @@ public class pubbottk extends PubBotModule {
 
     /**
         Print out a log of all TKs on player X.
-        @param staffname
-        @param tker
-        @param numToPrint
+        @param staffname String
+        @param tker TKInfo
+        @param tkedPlayer String
     */
     public void printTKLogByName( String staffname, TKInfo tker, String tkedPlayer ) {
         String tkedPlayerFullName = m_botAction.getFuzzyPlayerName(tkedPlayer);

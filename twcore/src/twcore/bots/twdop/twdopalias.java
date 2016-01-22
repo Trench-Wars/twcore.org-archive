@@ -611,8 +611,8 @@ public class twdopalias extends Module {
     /**
         Starts watching for an IP starting with a given string.
 
-        @param IP
-                  IP to watch for
+        @param sender String
+        @param message String
     */
     public void doIPWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -714,8 +714,8 @@ public class twdopalias extends Module {
     /**
         Starts watching for a name to log on.
 
-        @param name
-                  Name to watch for
+        @param sender String
+        @param message String
     */
     public void doNameWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -744,8 +744,8 @@ public class twdopalias extends Module {
     /**
         Starts watching for a given MacID.
 
-        @param MID
-                  MID to watch for
+        @param sender String
+        @param message String
     */
     public void doMIDWatchCmd(String sender, String message) {
         String[] params = message.split(":");
@@ -962,12 +962,9 @@ public class twdopalias extends Module {
     /**
         Check if a name is being watched for, and notify on chat if so.
 
-        @param name
-                  Name to check
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID of player
+        @param name Name to check
+        @param IP IP of player
+        @param MacID MacID of player
     */
     public void checkName(String name, String IP, String MacID) {
         if (watchedNames.containsKey(name.toLowerCase())) {
@@ -979,12 +976,9 @@ public class twdopalias extends Module {
     /**
         Check if an IP is being watched for, and notify on chat if so.
 
-        @param name
-                  Name of player
-        @param IP
-                  IP to check
-        @param MacId
-                  MacID of player
+        @param name Name of player
+        @param IP IP to check
+        @param MacID MacID of player
     */
     public void checkIP(String name, String IP, String MacID) {
         for (String IPfragment : watchedIPs.keySet()) {
@@ -998,12 +992,9 @@ public class twdopalias extends Module {
     /**
         Check if an MID is being watched for, and notify on chat if so.
 
-        @param name
-                  Name of player
-        @param IP
-                  IP of player
-        @param MacId
-                  MacID to check
+        @param name Name of player
+        @param IP IP of player
+        @param MacID MacID to check
     */
     public void checkMID(String name, String IP, String MacID) {
         if (watchedMIDs.containsKey(MacID)) {

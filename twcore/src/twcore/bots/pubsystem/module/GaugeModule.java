@@ -16,7 +16,7 @@ import twcore.core.util.Tools;
     Module should support benchmarking of current pub population and store to
     database.
 
-    @see http://twcore.org/ticket/780
+    @see <a href="http://twcore.org/ticket/780">#780</a>
     @author SpookedOne
 */
 public class GaugeModule extends AbstractModule {

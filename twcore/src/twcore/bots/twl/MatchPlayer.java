@@ -885,7 +885,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     /**
         Gets total statistics added over all ships
 
-        @param statType @see twcore.misc.statistics.StatisticRequester.java for stattypes
+        @param statType @see twcore.core.stats.Statistics
     */
     public int getTotalStatistic(int statType) {
         return m_statTracker.getTotalStatistic(statType);
@@ -894,7 +894,7 @@ public class MatchPlayer implements Comparable<MatchPlayer> {
     /**
         Gets total statistics for current ships
 
-        @param statType @see twcore.misc.statistics.StatisticRequester.java for stattypes
+        @param statType @see twcore.core.stats.Statistics
     */
     public int getStatistic(int statType) {
         return m_statTracker.getStatistic(statType);

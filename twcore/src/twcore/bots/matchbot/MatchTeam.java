@@ -456,7 +456,11 @@ public class MatchTeam {
     }
 
     /**
-        Check current MID & IP against records.
+        Check current MID/IP against records.
+        @param name String
+        @param macID String
+        @param IP String
+        @param tellPlayer boolean
     */
     public void checkPlayerIPMID(String name, String macID, String IP, boolean tellPlayer) {
         if (!m_checkIPMID) {
