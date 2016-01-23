@@ -190,27 +190,12 @@ public class twdhub extends SubspaceBot {
     public void handleEvent(Message event) {
         int type = event.getMessageType();
         String msg = event.getMessage();
-        //String name = ba.getPlayerName(event.getPlayerID());
+        String name = ba.getPlayerName(event.getPlayerID());
 
-        //String message = event.getMessage();
-        //Integer type = event.getMessageType();
-        String name = null;
-
-        if(type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE)
+        if (name == null)
             name = event.getMessager();
-        else
-            name = ba.getPlayerName( event.getPlayerID() );
 
-        //exit if name isn't returned
         if (name == null) return;
-        
-        
-        
-        
-        //if (name == null)
-        //    name = event.getMessager();
-
-        //if (name == null) return;
 
         if (type == Message.CHAT_MESSAGE) {
             if (msg.contains("matchbot")) {
@@ -255,8 +240,10 @@ public class twdhub extends SubspaceBot {
 
             if (cmd.startsWith("!signup "))
                 cmd_signup(name, msg.substring(msg.indexOf(" ") + 1));
-            else if (cmd.equals("!enable"))
-                cmd_enable(name);
+            else if (cmd.equals("!enable")){
+            	ba.sendPublicMessage("works");
+            	ba.sendPublicMessage(name);
+            	cmd_enable(name);}
             else if (cmd.equalsIgnoreCase("!disable"))
                 cmd_disable(name);
             else if (cmd.startsWith("!push "))
@@ -462,7 +449,6 @@ public class twdhub extends SubspaceBot {
     public void cmd_help(String name) {
         ArrayList<String> msg = new ArrayList<String>();
         msg.add("- PushBullet Commands -");
-        msg.add(" !list           - List of current bot values");
         msg.add(" !signup <email> - signs up <email> for notifications");
         msg.add(" !enable         - enable alerts to your pushbullet account");
         msg.add(" !disable        - disable alerts to your pushbullet account");
