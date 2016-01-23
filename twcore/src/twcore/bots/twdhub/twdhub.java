@@ -628,6 +628,7 @@ public class twdhub extends SubspaceBot {
     }
 
     public void cmd_enable(String name) {
+    	m_botAction.sendPublicMessage(name);
         handleNewPush(name, "enable");
     }
 
