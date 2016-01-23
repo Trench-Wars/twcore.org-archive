@@ -1496,7 +1496,7 @@ public class pubhubalias extends PubBotModule {
         if (messageType == Message.CHAT_MESSAGE) {
             handleChatMessage(sender, message);
         } else {
-            if ((messageType == Message.PRIVATE_MESSAGE) || (messageType == Message.REMOTE_PRIVATE_MESSAGE) && isBangOp(sender))
+            if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE) && isBangOp(sender))
                 handleChatMessage(sender, message);
         }
     }
