@@ -918,6 +918,8 @@ public class twdhub extends SubspaceBot {
     private void handleNewPush(String playerName, String userMsg) {
         String squadAlert = "";
         Boolean settingChange = false;
+        m_botAction.sendPublicMessage(playerName);
+        m_botAction.sendPublicMessage(userMsg);
         ResultSet rs_InterpretCommand = getInterpretCommand(playerName, userMsg);
 
         try {
