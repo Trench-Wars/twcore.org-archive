@@ -51,7 +51,6 @@ public class twdhub extends SubspaceBot {
 
     private String connectionID = "pushbulletbot";
     private PushbulletClient pbClient; // Push to mobile data, private MobilePusher mobilePusher;
-    static final String DB_BOTS = "bots";
 
     enum ArenaStatus { WAITING, READY, DYING };
 
@@ -105,7 +104,6 @@ public class twdhub extends SubspaceBot {
     }
 
     private void StartPushbulletListener() {
-        //ba.sendPublicMessage("1");
         pbClient.addPushbulletListener(new PushbulletListener() {
             @Override
             public void pushReceived(PushbulletEvent pushEvent) {
@@ -134,16 +132,16 @@ public class twdhub extends SubspaceBot {
 
             @Override
             public void devicesChanged(PushbulletEvent pushEvent) {
-                ba.sendPublicMessage("devicesChanged PushEvent received: " + pushEvent);
+                Tools.printLog("devicesChanged PushEvent received: " + pushEvent);
             }
 
             @Override
             public void websocketEstablished(PushbulletEvent pushEvent) {
-                ba.sendPublicMessage("websocketEstablished PushEvent received: " + pushEvent);
+                Tools.printLog("websocketEstablished PushEvent received: " + pushEvent);
             }
         });
 
-        ba.sendPublicMessage("Getting previous pushes to find most recent...");
+        Tools.printLog("Getting previous pushes to find most recent...");
 
         try {
             pbClient.getPushes(1);
@@ -152,10 +150,10 @@ public class twdhub extends SubspaceBot {
             e.printStackTrace();
         }
 
-        ba.sendPublicMessage("Starting websocket...try sending a push now.");
+        Tools.printLog("Starting websocket...try sending a push now.");
 
         pbClient.startWebsocket();
-        ba.sendPublicMessage("Listening Started!");
+        Tools.printLog("Listening Started!");
     }
 
     public void handleEvent(ArenaJoined event) {
@@ -241,9 +239,7 @@ public class twdhub extends SubspaceBot {
             if (cmd.startsWith("!signup "))
                 cmd_signup(name, msg.substring(msg.indexOf(" ") + 1));
             else if (cmd.equals("!enable")){
-            	ba.sendPublicMessage("works");
-            	ba.sendPublicMessage(name);
-            	cmd_enable(name);}
+                cmd_enable(name);}
             else if (cmd.equalsIgnoreCase("!disable"))
                 cmd_disable(name);
             else if (cmd.startsWith("!push "))
@@ -585,7 +581,7 @@ public class twdhub extends SubspaceBot {
     }
 
     public void cmd_signup(String name, String email) {
-        
+
         try {
             //check if valid email address, if not then exit
             if (!email.contains("@") || !email.contains(".")) {
@@ -595,7 +591,7 @@ public class twdhub extends SubspaceBot {
             }
 
             //get signup Query
-            PreparedStatement ps_signup = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("signup"));
+            PreparedStatement ps_signup = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("signup"));
 
             //put values in prepared statement
             try {
@@ -605,7 +601,7 @@ public class twdhub extends SubspaceBot {
                 // ba.sendPublicMessage(ps_signup.toString());
                 ps_signup.execute();
                 ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
-                ba.sendPublicMessage("Debug: Signed Up " + name + " Successfully!");
+                Tools.printLog("Debug: Signed Up " + name + " Successfully!");
             } catch (SQLException e1) {
                 try {
                     for (Throwable x : ps_signup.getWarnings()) {
@@ -613,18 +609,18 @@ public class twdhub extends SubspaceBot {
                             // ba.sendPublicMessage(email + " is already registered by " + getUserNameByEmail(email));
                             ba.sendSmartPrivateMessage(name, email + " is already registered by " + getUserNameByEmail(email));
                         } else {
-                            ba.sendPublicMessage("Error: " + x.getMessage());
+                            Tools.printLog("Error: " + x.getMessage());
                             e1.printStackTrace();
                         }
                     }
                 } catch (SQLException e) {
                     // TODO Auto-generated catch block
-                    ba.sendPublicMessage("Error: " + e.getMessage());
+                    Tools.printLog("Error: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();            
+            e.printStackTrace();
         }
     }
 
@@ -652,13 +648,13 @@ public class twdhub extends SubspaceBot {
     public void cmd_challenge(String name) {
         String msg = "(MatchBot3)>Axwell is challenging you for a game of 3vs3 TWJD versus Rage. Captains/assistants, ?go twjd and pm me with '!accept Rage'";
         messagePlayerSquadMembers(name, msg);
-        ba.sendPublicMessage("Debug: " + msg);
+        Tools.printLog("Debug: " + msg);
     }
 
     public void cmd_accept(String name) {
         String msg = "(MatchBot3)>A game of 3vs3 TWJD versus Rage will start in ?go twjd in 30 seconds";
         messagePlayerSquadMembers(name, msg);
-        ba.sendPublicMessage("Debug: " + msg);
+        Tools.printLog("Debug: " + msg);
     }
 
 
@@ -762,7 +758,7 @@ public class twdhub extends SubspaceBot {
 
     private String getUserNameByEmail(String email) {
         String userName = "";
-        PreparedStatement ps_getusernamebyemail = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("getusernamebyemail"));
+        PreparedStatement ps_getusernamebyemail = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getusernamebyemail"));
 
         try {
             ps_getusernamebyemail.clearParameters();
@@ -784,7 +780,7 @@ public class twdhub extends SubspaceBot {
 
     private String getEmailByUserName(String userName) {
         String email = "";
-        PreparedStatement ps_getemailbyusername = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("getemailbyusername"));
+        PreparedStatement ps_getemailbyusername = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getemailbyusername"));
 
         try {
             ps_getemailbyusername.clearParameters();
@@ -807,7 +803,9 @@ public class twdhub extends SubspaceBot {
     private ResultSet getInterpretCommand(String userName, String userMsg) {
         //String commandResponseOriginal = commandResponse;
         ResultSet rs = null;
-        PreparedStatement ps_getinterpretbeep = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("interpretcommand"));
+        Tools.printLog(ba.getCoreData().toString());
+        Tools.printLog(ba.getCoreData().getSQLManager().toString());
+        PreparedStatement ps_getinterpretbeep = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("interpretcommand"));
 
         try {
             ps_getinterpretbeep.clearParameters();
@@ -863,7 +861,7 @@ public class twdhub extends SubspaceBot {
     */
 
     private void switchAlertsPB (String userName, Integer Disable) {
-        PreparedStatement ps_enablepb = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("enabledisablepb"));
+        PreparedStatement ps_enablepb = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("enabledisablepb"));
 
         try {
             ps_enablepb.clearParameters();
@@ -874,7 +872,7 @@ public class twdhub extends SubspaceBot {
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            ba.sendPublicMessage(e.getMessage());
+            Tools.printLog(e.getMessage());
         }
     }
 
@@ -885,7 +883,7 @@ public class twdhub extends SubspaceBot {
             return;
         }
 
-        PreparedStatement ps_messagePlayerSquadMembers = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("getplayersquadmembers"));
+        PreparedStatement ps_messagePlayerSquadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getplayersquadmembers"));
 
         try {
             ps_messagePlayerSquadMembers.clearParameters();
@@ -896,19 +894,19 @@ public class twdhub extends SubspaceBot {
                 while (rs.next()) {
                     if (rs.getInt("fbDisabled") != 1) {
                         pbClient.sendNote( null, rs.getString("fcPushBulletEmail"), "", msg);
-                        ba.sendPublicMessage("Debug: Pushed to " + rs.getString("fcUserName")); //+ " | " + rs.getString("fcPushBulletEmail") );
+                        Tools.printLog("Debug: Pushed to " + rs.getString("fcUserName")); //+ " | " + rs.getString("fcPushBulletEmail") );
                         squadName = rs.getString("T.fcTeamName");
                     }
                 }
             } catch (PushbulletException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-                ba.sendPublicMessage(e.getMessage());
+                Tools.printLog(e.getMessage());
             }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            ba.sendPublicMessage(e.getMessage());
+            Tools.printLog(e.getMessage());
         } finally {
             if (squadName != "") {
                 ba.sendSquadMessage(squadName, msg);
@@ -919,8 +917,6 @@ public class twdhub extends SubspaceBot {
     private void handleNewPush(String playerName, String userMsg) {
         String squadAlert = "";
         Boolean settingChange = false;
-        ba.sendPublicMessage(playerName);
-        ba.sendPublicMessage(userMsg);
         ResultSet rs_InterpretCommand = getInterpretCommand(playerName, userMsg);
 
         try {
@@ -969,9 +965,9 @@ public class twdhub extends SubspaceBot {
         if (squadAlert != "") {
             squadAlert = playerName + " beeped for: " + squadAlert;
             messagePlayerSquadMembers(playerName, squadAlert);
-            ba.sendPublicMessage("Debug: " + playerName + " : " + squadAlert);
+            Tools.printLog("Debug: " + playerName + " : " + squadAlert);
         } else {
-            ba.sendPublicMessage("Filtered Message From " + playerName + " : " + userMsg);
+            Tools.printLog("Filtered Message From " + playerName + " : " + userMsg);
         }
     }
 
