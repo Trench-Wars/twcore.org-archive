@@ -596,7 +596,7 @@ public class pubhubalias extends PubBotModule {
         @param argString
         @throws SQLException
     */
-    public void doCompareCmd(String argString) throws SQLException {
+    public void doCompareCmd(String sender, String argString) throws SQLException {
         StringTokenizer argTokens = new StringTokenizer(argString, ":");
 
         if (argTokens.countTokens() != 2)
@@ -618,7 +618,10 @@ public class pubhubalias extends PubBotModule {
             p1Set.afterLast();
             p2Set.afterLast();
 
-            m_botAction.sendChatMessage("Comparison of " + player1Name + " to " + player2Name + ":");
+            if (privateAliases)
+                m_botAction.sendSmartPrivateMessage(sender, "Comparison of " + player1Name + " to " + player2Name + ":");
+            else
+                m_botAction.sendChatMessage("Comparison of " + player1Name + " to " + player2Name + ":");
 
             LinkedList<String> IPs = new LinkedList<String>();
             LinkedList<Integer> MIDs = new LinkedList<Integer>();
@@ -651,7 +654,11 @@ public class pubhubalias extends PubBotModule {
 
                 if (display != "") {
                     if (results < m_maxRecords) {
-                        m_botAction.sendChatMessage(display);
+                        if (privateAliases)
+                            m_botAction.sendSmartPrivateMessage(sender, display);
+                        else
+                            m_botAction.sendChatMessage(display);
+
                         results++;
                     }
                 }
@@ -1423,7 +1430,7 @@ public class pubhubalias extends PubBotModule {
             } else if ((opList.isSysopExact(sender) || bangops.contains(sender)) && command.startsWith("!priv"))
                 doPrivateAliases();
             else if (command.equals("!compare")) {
-                doCompareCmd(args);
+                doCompareCmd(sender, args);
                 record(sender, message);
             }
             else if (command.equals("!maxrecords")      || command.equals("!mr"))
