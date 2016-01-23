@@ -105,7 +105,7 @@ public class twdhub extends SubspaceBot {
     }
 
     private void StartPushbulletListener() {
-        //m_botAction.sendPublicMessage("1");
+        //ba.sendPublicMessage("1");
         pbClient.addPushbulletListener(new PushbulletListener() {
             @Override
             public void pushReceived(PushbulletEvent pushEvent) {
@@ -143,7 +143,7 @@ public class twdhub extends SubspaceBot {
             }
         });
 
-        m_botAction.sendPublicMessage("Getting previous pushes to find most recent...");
+        ba.sendPublicMessage("Getting previous pushes to find most recent...");
 
         try {
             pbClient.getPushes(1);
@@ -190,12 +190,27 @@ public class twdhub extends SubspaceBot {
     public void handleEvent(Message event) {
         int type = event.getMessageType();
         String msg = event.getMessage();
-        String name = ba.getPlayerName(event.getPlayerID());
+        //String name = ba.getPlayerName(event.getPlayerID());
 
-        if (name == null)
+        //String message = event.getMessage();
+        //Integer type = event.getMessageType();
+        String name = null;
+
+        if(type == Message.REMOTE_PRIVATE_MESSAGE || type == Message.CHAT_MESSAGE)
             name = event.getMessager();
+        else
+            name = ba.getPlayerName( event.getPlayerID() );
 
+        //exit if name isn't returned
         if (name == null) return;
+        
+        
+        
+        
+        //if (name == null)
+        //    name = event.getMessager();
+
+        //if (name == null) return;
 
         if (type == Message.CHAT_MESSAGE) {
             if (msg.contains("matchbot")) {
@@ -293,24 +308,24 @@ public class twdhub extends SubspaceBot {
                         e.printStackTrace();
                     }
 
-                    //m_botAction.sendSmartPrivateMessage(name, "Number of pushes: " + pushes.size() );
-                    //m_botAction.sendSmartPrivateMessage(name, pushes.get(0).toString());
+                    //ba.sendSmartPrivateMessage(name, "Number of pushes: " + pushes.size() );
+                    //ba.sendSmartPrivateMessage(name, pushes.get(0).toString());
                     Push lastPush = pushes.get(0);
 
                     ba.sendSmartPrivateMessage(name, "getBody: " + lastPush.getBody().toString());
                     //try {Thread.sleep(100);} catch (InterruptedException e) {// TODO Auto-generated catch block e.printStackTrace();}
                     ba.sendSmartPrivateMessage(name, "getIden: " + lastPush.getIden().toString());
-                    //m_botAction.sendSmartPrivateMessage(name, "getOwner_iden: " + lastPush.getOwner_iden().toString());
-                    ////m_botAction.sendSmartPrivateMessage(name, "getReceiver_email: " + lastPush.getReceiver_email().toString());
-                    ////m_botAction.sendSmartPrivateMessage(name, "getReceiver_email_normalized : " + lastPush.getReceiver_email_normalized().toString());
-                    ////m_botAction.sendSmartPrivateMessage(name, "getReceiver_iden: " + lastPush.getReceiver_iden().toString());
-                    ////m_botAction.sendSmartPrivateMessage(name, "getSender_email: " + lastPush.getSender_email().toString());
-                    ////m_botAction.sendSmartPrivateMessage(name, "getSender_email_normalized : " + lastPush.getSender_email_normalized().toString());
-                    ////m_botAction.sendSmartPrivateMessage(name, "getSender_iden: " + lastPush.getSender_iden().toString());
-                    //m_botAction.sendSmartPrivateMessage(name, "getTitle: " + lastPush.getTitle().toString());
+                    //ba.sendSmartPrivateMessage(name, "getOwner_iden: " + lastPush.getOwner_iden().toString());
+                    ////ba.sendSmartPrivateMessage(name, "getReceiver_email: " + lastPush.getReceiver_email().toString());
+                    ////ba.sendSmartPrivateMessage(name, "getReceiver_email_normalized : " + lastPush.getReceiver_email_normalized().toString());
+                    ////ba.sendSmartPrivateMessage(name, "getReceiver_iden: " + lastPush.getReceiver_iden().toString());
+                    ////ba.sendSmartPrivateMessage(name, "getSender_email: " + lastPush.getSender_email().toString());
+                    ////ba.sendSmartPrivateMessage(name, "getSender_email_normalized : " + lastPush.getSender_email_normalized().toString());
+                    ////ba.sendSmartPrivateMessage(name, "getSender_iden: " + lastPush.getSender_iden().toString());
+                    //ba.sendSmartPrivateMessage(name, "getTitle: " + lastPush.getTitle().toString());
                     ba.sendSmartPrivateMessage(name, "getType: " + lastPush.getType().toString());
-                    //m_botAction.sendSmartPrivateMessage(name, "getUrl: " + lastPush.getUrl().toString());
-                    //m_botAction.sendSmartPrivateMessage(name, "getClass: " + lastPush.getClass().toString());
+                    //ba.sendSmartPrivateMessage(name, "getUrl: " + lastPush.getUrl().toString());
+                    //ba.sendSmartPrivateMessage(name, "getClass: " + lastPush.getClass().toString());
                 }
             }
         }
@@ -588,7 +603,7 @@ public class twdhub extends SubspaceBot {
         try {
             //check if valid email address, if not then exit
             if (!email.contains("@") || !email.contains(".")) {
-                // m_botAction.sendPublicMessage("Invalid Email Adress entered!");
+                // ba.sendPublicMessage("Invalid Email Adress entered!");
                 ba.sendSmartPrivateMessage(name, "Invalid Email Adress entered!");
                 return;
             }
@@ -601,7 +616,7 @@ public class twdhub extends SubspaceBot {
                 ps_signup.clearParameters();
                 ps_signup.setString(1, Tools.addSlashesToString(name));
                 ps_signup.setString(2, Tools.addSlashesToString(email));
-                // m_botAction.sendPublicMessage(ps_signup.toString());
+                // ba.sendPublicMessage(ps_signup.toString());
                 ps_signup.execute();
                 ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
                 ba.sendPublicMessage("Debug: Signed Up " + name + " Successfully!");
@@ -609,7 +624,7 @@ public class twdhub extends SubspaceBot {
                 try {
                     for (Throwable x : ps_signup.getWarnings()) {
                         if (x.getMessage().toLowerCase().contains("unique")) {
-                            // m_botAction.sendPublicMessage(email + " is already registered by " + getUserNameByEmail(email));
+                            // ba.sendPublicMessage(email + " is already registered by " + getUserNameByEmail(email));
                             ba.sendSmartPrivateMessage(name, email + " is already registered by " + getUserNameByEmail(email));
                         } else {
                             ba.sendPublicMessage("Error: " + x.getMessage());
@@ -628,7 +643,6 @@ public class twdhub extends SubspaceBot {
     }
 
     public void cmd_enable(String name) {
-    	m_botAction.sendPublicMessage(name);
         handleNewPush(name, "enable");
     }
 
@@ -639,7 +653,7 @@ public class twdhub extends SubspaceBot {
     public void cmd_push(String name, String msg) {
         try {
             pbClient.sendNote( null, getEmailByUserName(name), "", msg);
-            // m_botAction.sendPublicMessage("Private Message: '" + msg + "' Pushed Successfully to " + name + ": " + getEmailByUserName(name));
+            // ba.sendPublicMessage("Private Message: '" + msg + "' Pushed Successfully to " + name + ": " + getEmailByUserName(name));
         } catch( PushbulletException e ) {
             // Huh, didn't work
         }
@@ -870,7 +884,7 @@ public class twdhub extends SubspaceBot {
             ps_enablepb.setString(1, Tools.addSlashesToString(userName));
             ps_enablepb.setInt(2, Disable);
             ps_enablepb.execute();
-            //m_botAction.sendPublicMessage(ps_enablepb.toString());
+            //ba.sendPublicMessage(ps_enablepb.toString());
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -919,8 +933,8 @@ public class twdhub extends SubspaceBot {
     private void handleNewPush(String playerName, String userMsg) {
         String squadAlert = "";
         Boolean settingChange = false;
-        m_botAction.sendPublicMessage(playerName);
-        m_botAction.sendPublicMessage(userMsg);
+        ba.sendPublicMessage(playerName);
+        ba.sendPublicMessage(userMsg);
         ResultSet rs_InterpretCommand = getInterpretCommand(playerName, userMsg);
 
         try {
@@ -943,7 +957,7 @@ public class twdhub extends SubspaceBot {
                         //if setting change above matches, send personal note to player's pushbullet account letting them know of successful change
                         if (settingChange) {
                             pbClient.sendNote( null, getEmailByUserName(playerName), "", rs_InterpretCommand.getString("fcCommandShortDescription"));
-                            m_botAction.sendSmartPrivateMessage(playerName, rs_InterpretCommand.getString("fcCommandShortDescription"));
+                            ba.sendSmartPrivateMessage(playerName, rs_InterpretCommand.getString("fcCommandShortDescription"));
                         }
                     } catch (PushbulletException e1) {
                         // TODO Auto-generated catch block
@@ -1234,7 +1248,7 @@ public class twdhub extends SubspaceBot {
 
     private void updateTWDOps() {
         try {
-            ResultSet r = m_botAction.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
+            ResultSet r = ba.SQLQuery(DATABASE, "SELECT tblUser.fcUsername FROM `tblUserRank`, `tblUser` WHERE `fnRankID` = '14' AND tblUser.fnUserID = tblUserRank.fnUserID");
 
             if (r == null)
                 return;
@@ -1246,7 +1260,7 @@ public class twdhub extends SubspaceBot {
                 twdOps.put(name.toLowerCase(), name);
             }
 
-            m_botAction.SQLClose(r);
+            ba.SQLClose(r);
         } catch (SQLException e) {
             throw new RuntimeException("ERROR: Unable to update TWDOp list.");
         }
@@ -1325,7 +1339,7 @@ public class twdhub extends SubspaceBot {
 
         String[] send = dump.toArray(new String[dump.size()]);
 
-        m_botAction.remotePrivateMessageSpam(name, send);
+        ba.remotePrivateMessageSpam(name, send);
     }
 
     class Arena {
@@ -1469,7 +1483,7 @@ public class twdhub extends SubspaceBot {
             else
                 stateS = "playing";
 
-            m_botAction.sendSmartPrivateMessage(name, "Your squad is " + stateS + " a " + getType() + " match against " + nme + " in ?go " + arena.name);
+            ba.sendSmartPrivateMessage(name, "Your squad is " + stateS + " a " + getType() + " match against " + nme + " in ?go " + arena.name);
             alerted.add(name.toLowerCase());
         }
 
