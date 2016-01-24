@@ -661,43 +661,48 @@ public class twdhub extends SubspaceBot {
     }
 
     public void cmd_signup(String name, String email) {
-        //check if valid email address, if not then exit
-        if (!email.contains("@") || !email.contains(".")) {
-            // ba.sendPublicMessage("Invalid Email Adress entered!");
-            ba.sendSmartPrivateMessage(name, "Invalid Email Adress entered!");
-            return;
-        }
 
-        //get signup Query
-        PreparedStatement ps_signup = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("signup"));
-
-        //put values in prepared statement
         try {
-            ps_signup.clearParameters();
-            ps_signup.setString(1, Tools.addSlashesToString(name));
-            ps_signup.setString(2, Tools.addSlashesToString(email));
-            // ba.sendPublicMessage(ps_signup.toString());
-            ps_signup.execute();
-            pbClient.sendNote( null, getEmailByUserName(name), "", "Reply with 'verify' to complete signup!");
-            ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
-            debug("Signed Up " + name + " : " + email + " Successfully!");
-            //ba.sendPublicMessage("Debug: Signed Up " + name + " Successfully!");
-        } catch (SQLException | PushbulletException e1) {
-            try {
-                for (Throwable x : ps_signup.getWarnings()) {
-                    if (x.getMessage().toLowerCase().contains("unique")) {
-                        // ba.sendPublicMessage(email + " is already registered by " + getUserNameByEmail(email));
-                        ba.sendSmartPrivateMessage(name, email + " is already registered by " + getUserNameByEmail(email));
-                    } else {
-                        ba.sendPublicMessage("Error: " + x.getMessage());
-                        e1.printStackTrace();
-                    }
-                }
-            } catch (SQLException e) {
-                // TODO Auto-generated catch block
-                ba.sendPublicMessage("Error: " + e.getMessage());
-                e.printStackTrace();
+            //check if valid email address, if not then exit
+            if (!email.contains("@") || !email.contains(".")) {
+                // ba.sendPublicMessage("Invalid Email Adress entered!");
+                ba.sendSmartPrivateMessage(name, "Invalid Email Adress entered!");
+                return;
             }
+
+            //get signup Query
+            PreparedStatement ps_signup = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("signup"));
+
+            //put values in prepared statement
+            try {
+                ps_signup.clearParameters();
+                ps_signup.setString(1, Tools.addSlashesToString(name));
+                ps_signup.setString(2, Tools.addSlashesToString(email));
+                // ba.sendPublicMessage(ps_signup.toString());
+                
+                ps_signup.execute();
+                pbClient.sendNote( null, getEmailByUserName(name), "", "Reply with 'verify' to complete signup!");
+                ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
+                debug("Signed Up " + name + " : " + email + " Successfully!");
+            } catch (SQLException e1) {
+                try {
+                    for (Throwable x : ps_signup.getWarnings()) {
+                        if (x.getMessage().toLowerCase().contains("unique")) {
+                            // ba.sendPublicMessage(email + " is already registered by " + getUserNameByEmail(email));
+                            ba.sendSmartPrivateMessage(name, email + " is already registered by " + getUserNameByEmail(email));
+                        } else {
+                            Tools.printLog("Error: " + x.getMessage());
+                            e1.printStackTrace();
+                        }
+                    }
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    Tools.printLog("Error: " + e.getMessage());
+                    Tools.printStackTrace(e);
+                }
+            }
+        } catch (Exception e) {
+            Tools.printStackTrace(e);
         }
     }
 
@@ -794,8 +799,7 @@ public class twdhub extends SubspaceBot {
         switch (statementName.toLowerCase()) {
         case "signup":
             preparedStatement =
-                   "SET @PlayerName = ?, @PushBulletEmail = ?;"
-                +   "DELETE PBA FROM trench_TrenchWars.tblPBAccount AS PBA WHERE fbVerified = 0 AND TIMESTAMPDIFF(MINUTE, fdCreated ,NOW()) > 30;"
+                "SET @PlayerName = ?, @PushBulletEmail = ?;"
                 +   "DELETE PBA FROM trench_TrenchWars.tblPBAccount AS PBA "
                 +   "JOIN trench_TrenchWars.tblUser AS U ON U.fnUserID = PBA.fnPlayerID AND U.fcUserName = @PlayerName;"
                 +   "INSERT INTO trench_TrenchWars.tblPBAccount (fnPlayerID, fcPushBulletEmail, fdCreated)"
@@ -840,7 +844,7 @@ public class twdhub extends SubspaceBot {
         case "interpretcommand": //can't use @Params if expecting recordset results
             preparedStatement =
                 " SELECT fcCommand, fcCommandShortDescription, fnSettingUpdate  FROM trench_TrenchWars.tblPBCommands"
-                +   " WHERE (INSTR(?, fcCommand) > 0 AND fnSettingUpdate = 0) OR (? = fcCommand);";
+                +   " WHERE INSTR(?, fcCommand) > 0;";
             break;
 
         /*
@@ -869,13 +873,6 @@ public class twdhub extends SubspaceBot {
                 " SET @PlayerName = ?;"
                 +   " UPDATE trench_TrenchWars.tblPBAccount"
                 +   " SET fbDisabled = ?"
-                +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
-            break;
-        case "verifyaccount": //can't use @Params if expecting recordset results
-            preparedStatement =
-                " SET @PlayerName = ?;"
-                +   " UPDATE trench_TrenchWars.tblPBAccount"
-                +   " SET fbVerified = 1"
                 +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
             break;
         case "getenabledsquadmembers": //can't use @Params if expecting recordset results
@@ -944,7 +941,6 @@ public class twdhub extends SubspaceBot {
         try {
             ps_getinterpretbeep.clearParameters();
             ps_getinterpretbeep.setString(1, Tools.addSlashesToString(userMsg));
-            ps_getinterpretbeep.setString(2, Tools.addSlashesToString(userMsg));
             ps_getinterpretbeep.execute();
             rs = ps_getinterpretbeep.getResultSet();
         }
@@ -1011,21 +1007,6 @@ public class twdhub extends SubspaceBot {
         }
     }
 
-    public void verifyAccount (String userName) {
-        PreparedStatement ps_verifyaccount = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("verifyaccount"));
-
-        try {
-            ps_verifyaccount.clearParameters();
-            ps_verifyaccount.setString(1, Tools.addSlashesToString(userName));
-            ps_verifyaccount.execute();
-            //m_botAction.sendPublicMessage(ps_verifyaccount.toString());
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            m_botAction.sendPublicMessage(e.getMessage());
-        }
-    }
-
     private void messagePlayerSquadMembers(String userName, String msg) {
         String squadName = "";
 
@@ -1082,11 +1063,6 @@ public class twdhub extends SubspaceBot {
 
                         case "disable":
                             switchAlertsPB(playerName, 1);
-                            settingChange = true;
-                            break;
-
-                        case "verify":
-                            verifyAccount(playerName);
                             settingChange = true;
                             break;
                         }
