@@ -412,7 +412,7 @@ public class twdhub extends SubspaceBot {
                     debug(message);
                     message = "" + ipc.getName() + " is challenging you to a " + ipc.getPlayers() + "vs" + ipc.getPlayers() + " " 
                                 + gameType + " vs " + ipc.getSquad1() + " in " + ipc.getArena() + ".";
-                    PreparedStatement ps_squadMembers = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
+                    PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
                     try {
                         ps_squadMembers.clearParameters();
                         ps_squadMembers.setString(1, Tools.addSlashesToString(ipc.getSquad2()));
@@ -709,7 +709,7 @@ public class twdhub extends SubspaceBot {
         String[] params = cmd.split(":");
         String squad = params[0];
         String type = params[1].toUpperCase();
-        PreparedStatement ps_squadMembers = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
+        PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
         try {
             ps_squadMembers.clearParameters();
             ps_squadMembers.setString(1, Tools.addSlashesToString(squad));
@@ -723,7 +723,7 @@ public class twdhub extends SubspaceBot {
             BotSettings m_rules = new BotSettings(rulesFileName);
             int matchTypeID = m_rules.getInt("matchtype");
 
-            ResultSet squads = m_botAction.SQLQuery(db, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
+            ResultSet squads = m_botAction.SQLQuery(DATABASE, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                     + "FROM tblTWDTeam, tblTeam "
                     + "WHERE tblTWDTeam.fnMatchTypeID="
                     + matchTypeID
