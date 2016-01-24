@@ -413,15 +413,15 @@ public class twdhub extends SubspaceBot {
                         ps_squadMembers.clearParameters();
                         ps_squadMembers.setString(1, Tools.addSlashesToString(ipc.getSquad2()));
                         ps_squadMembers.execute();
-                        ResultSet rs = ps_squadMembers.getResultSet();
-//                        try (ResultSet rs = ps_squadMembers.getResultSet()) {
+//                        ResultSet rs = ps_squadMembers.getResultSet();
+                        try (ResultSet rs = ps_squadMembers.getResultSet()) {
                             while (rs.next()) {
-                                //pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
+                                pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
                                 debug("Pushed to " + rs.getString("fcUserName")); //+ " | " + rs.getString("fcPushBulletEmail") );
                             }
-//                        } catch (PushbulletException e) {
-//                            e.printStackTrace();
-//                        }
+                        } catch (PushbulletException e) {
+                            e.printStackTrace();
+                        }
                     } catch (SQLException e) {
                         e.printStackTrace();
                     } finally {
