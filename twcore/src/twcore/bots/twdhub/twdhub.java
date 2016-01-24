@@ -438,7 +438,7 @@ public class twdhub extends SubspaceBot {
                     message = "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena();
                     debug(message);
 
-                    String rulesFileName = ba.getGeneralSettings().getString("Core Location") + "/data/Rules/" + type + ".txt";
+                    String rulesFileName = ba.getGeneralSettings().getString("Core Location") + "/data/Rules/" + gameType + ".txt";
                     BotSettings rules = new BotSettings(rulesFileName);
                     int matchTypeID = rules.getInt("matchtype");
 
