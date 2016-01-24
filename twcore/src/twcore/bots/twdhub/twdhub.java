@@ -709,6 +709,7 @@ public class twdhub extends SubspaceBot {
         String[] params = cmd.split(":");
         String squad = params[0];
         String type = params[1].toUpperCase();
+        int matchTypeID = 1;
         PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
         try {
             ps_squadMembers.clearParameters();
@@ -719,9 +720,9 @@ public class twdhub extends SubspaceBot {
                 debug("Found: " + rs.getString("fcUserName"));
             }
 
-            String rulesFileName = m_botAction.getGeneralSettings().getString("Core Location") + "/data/Rules/" + type + ".txt";
-            BotSettings m_rules = new BotSettings(rulesFileName);
-            int matchTypeID = m_rules.getInt("matchtype");
+            String rulesFileName = ba.getGeneralSettings().getString("Core Location") + "/data/Rules/" + type + ".txt";
+            BotSettings rules = new BotSettings(rulesFileName);
+            matchTypeID = rules.getInt("matchtype");
 
             ResultSet squads = m_botAction.SQLQuery(DATABASE, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                     + "FROM tblTWDTeam, tblTeam "
