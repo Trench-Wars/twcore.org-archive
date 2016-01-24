@@ -791,7 +791,6 @@ public class twdhub extends SubspaceBot {
                 +   " SET fbDisabled = ?"
                 +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
             break;
-        }
         case "getenabledsquadmembers": //can't use @Params if expecting recordset results
             preparedStatement =
               " SELECT U.fnUserID, U.fcUserName, PBA.fcPushBulletEmail, PBA.fbDisabled, T.fcTeamName FROM trench_TrenchWars.tblUser AS U"
@@ -799,6 +798,7 @@ public class twdhub extends SubspaceBot {
              + " JOIN trench_TrenchWars.tblTeam AS T ON T.fnTeamID = TU.fnTeamID AND TU.fnCurrentTeam = 1 AND T.fcTeamName = ?"
              + " JOIN trench_TrenchWars.tblPBAccount AS PBA ON U.fnUserID = PBA.fnPlayerID AND PBA.fbDisabled = 0;";
            break;
+        }
 
         return preparedStatement;
     }
