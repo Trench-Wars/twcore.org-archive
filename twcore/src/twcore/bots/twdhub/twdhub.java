@@ -241,8 +241,9 @@ public class twdhub extends SubspaceBot {
                 cmd_signup(name, msg.substring(msg.indexOf(" ") + 1));
             else if (cmd.equals("!enable")){
                 cmd_enable(name);}
-            else if (cmd.equalsIgnoreCase("!disable"))
-                cmd_disable(name);
+            else if (cmd.equalsIgnoreCase("!disable")){
+            	debug("!disable " + name);
+                cmd_disable(name);}
             else if (cmd.startsWith("!push "))
                 cmd_push(name, msg.substring(msg.indexOf(" ") + 1));
             else if (cmd.startsWith("!beep "))
@@ -712,7 +713,6 @@ public class twdhub extends SubspaceBot {
     }
 
     public void cmd_disable(String name) {
-    	debug("!disable " + name);
         handleNewPush(name, "disable");
     }
 
