@@ -799,7 +799,8 @@ public class twdhub extends SubspaceBot {
         switch (statementName.toLowerCase()) {
         case "signup":
             preparedStatement =
-                "SET @PlayerName = ?, @PushBulletEmail = ?;"
+                   "SET @PlayerName = ?, @PushBulletEmail = ?;"
+                +   "DELETE PBA FROM trench_TrenchWars.tblPBAccount AS PBA WHERE fbVerified = 0 AND TIMESTAMPDIFF(MINUTE, fdCreated ,NOW()) > 30;"
                 +   "DELETE PBA FROM trench_TrenchWars.tblPBAccount AS PBA "
                 +   "JOIN trench_TrenchWars.tblUser AS U ON U.fnUserID = PBA.fnPlayerID AND U.fcUserName = @PlayerName;"
                 +   "INSERT INTO trench_TrenchWars.tblPBAccount (fnPlayerID, fcPushBulletEmail, fdCreated)"
@@ -844,7 +845,7 @@ public class twdhub extends SubspaceBot {
         case "interpretcommand": //can't use @Params if expecting recordset results
             preparedStatement =
                 " SELECT fcCommand, fcCommandShortDescription, fnSettingUpdate  FROM trench_TrenchWars.tblPBCommands"
-                +   " WHERE INSTR(?, fcCommand) > 0;";
+                +   " WHERE (INSTR(?, fcCommand) > 0 AND fnSettingUpdate = 0) OR (? = fcCommand);";
             break;
 
         /*
@@ -873,6 +874,13 @@ public class twdhub extends SubspaceBot {
                 " SET @PlayerName = ?;"
                 +   " UPDATE trench_TrenchWars.tblPBAccount"
                 +   " SET fbDisabled = ?"
+                +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
+            break;
+        case "verifyaccount": //can't use @Params if expecting recordset results
+            preparedStatement =
+                " SET @PlayerName = ?;"
+                +   " UPDATE trench_TrenchWars.tblPBAccount"
+                +   " SET fbVerified = 1"
                 +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
             break;
         case "getenabledsquadmembers": //can't use @Params if expecting recordset results
@@ -1006,6 +1014,21 @@ public class twdhub extends SubspaceBot {
             Tools.printLog(e.getMessage());
         }
     }
+    
+    public void verifyAccount (String userName) {
+        PreparedStatement ps_verifyaccount = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("verifyaccount"));
+
+        try {
+            ps_verifyaccount.clearParameters();
+            ps_verifyaccount.setString(1, Tools.addSlashesToString(userName));
+            ps_verifyaccount.execute();
+            //m_botAction.sendPublicMessage(ps_verifyaccount.toString());
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            m_botAction.sendPublicMessage(e.getMessage());
+        }
+    }
 
     private void messagePlayerSquadMembers(String userName, String msg) {
         String squadName = "";
@@ -1055,7 +1078,7 @@ public class twdhub extends SubspaceBot {
                 if (rs_InterpretCommand.getInt("fnSettingUpdate") == 1) {
                     //This is a setting command
                     try {
-                        switch (rs_InterpretCommand.getString("fcCommand").toLowerCase()) {
+                    	switch (rs_InterpretCommand.getString("fcCommand").toLowerCase()) {
                         case "enable":
                             switchAlertsPB(playerName, 0);
                             settingChange = true;
@@ -1063,6 +1086,11 @@ public class twdhub extends SubspaceBot {
 
                         case "disable":
                             switchAlertsPB(playerName, 1);
+                            settingChange = true;
+                            break;
+
+                        case "verify":
+                            verifyAccount(playerName);
                             settingChange = true;
                             break;
                         }
