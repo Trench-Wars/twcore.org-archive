@@ -310,6 +310,10 @@ public class twdhub extends SubspaceBot {
                     //ba.sendSmartPrivateMessage(name, "getUrl: " + lastPush.getUrl().toString());
                     //ba.sendSmartPrivateMessage(name, "getClass: " + lastPush.getClass().toString());
                 }
+                
+                if (cmd.startsWith("!testsquad")) {
+                    cmd_test(name, msg.substring(msg.indexOf(" ") + 1));
+                }
             }
         }
     }
@@ -413,17 +417,13 @@ public class twdhub extends SubspaceBot {
                         ps_squadMembers.clearParameters();
                         ps_squadMembers.setString(1, Tools.addSlashesToString(ipc.getSquad2()));
                         ps_squadMembers.execute();
-//                        ResultSet rs = ps_squadMembers.getResultSet();
-                        try (ResultSet rs = ps_squadMembers.getResultSet()) {
-                            while (rs.next()) {
-                                pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
-                                debug("Pushed to " + rs.getString("fcUserName")); //+ " | " + rs.getString("fcPushBulletEmail") );
-                            }
-                        } catch (PushbulletException e) {
-                            e.printStackTrace();
+                        ResultSet rs = ps_squadMembers.getResultSet();
+                        while (rs.next()) {
+                            debug("Pushing to " + rs.getString("fcUserName"));
+                            pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
                         }
-                    } catch (SQLException e) {
-                        e.printStackTrace();
+                    } catch (SQLException e | PushbulletException e) {
+                        Tools.printStackTrace(e);
                     } finally {
                     }
                     
@@ -431,10 +431,23 @@ public class twdhub extends SubspaceBot {
                     // multi squad challenge
                     message = "" + ipc.getName() + " challenged all to " + ipc.getPlayers() + "s in " + ipc.getArena();
                     debug(message);    
+                    
                 } else if (ipc.getType() == EventType.TOPCHALLENGE) {
                     // multi squad challenge
                     message = "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena();
-                    debug(message);    
+                    debug(message);
+                    ResultSet squads = m_botAction.SQLQuery(db, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
+                            + "FROM tblTWDTeam, tblTeam "
+                            + "WHERE tblTWDTeam.fnMatchTypeID="
+                            + m_matchTypeID
+                            + " AND tblTeam.fnTeamID=tblTWDTeam.fnTeamID "
+                            + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
+                            + "AND tblTWDTeam.fnGames>0 "
+                            + "AND tblTeam.fcTeamName != '"
+                            + squad
+                            + "' "
+                            + "ORDER BY tblTWDTeam.fnRating DESC "
+                            + "LIMIT 10");
                 }            
                 return;
             }
@@ -657,11 +670,11 @@ public class twdhub extends SubspaceBot {
                 } catch (SQLException e) {
                     // TODO Auto-generated catch block
                     Tools.printLog("Error: " + e.getMessage());
-                    e.printStackTrace();
+                    Tools.printStackTrace(e);
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Tools.printStackTrace(e);
         }
     }
 
@@ -690,6 +703,48 @@ public class twdhub extends SubspaceBot {
         String msg = "(MatchBot3)>Axwell is challenging you for a game of 3vs3 TWJD versus Rage. Captains/assistants, ?go twjd and pm me with '!accept Rage'";
         messagePlayerSquadMembers(name, msg);
         Tools.printLog("Debug: " + msg);
+    }
+
+    public void cmd_test(String name, String cmd) {
+        String[] params = cmd.split(":");
+        String squad = params[0];
+        String type = params[1].toUpperCase();
+        PreparedStatement ps_squadMembers = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
+        try {
+            ps_squadMembers.clearParameters();
+            ps_squadMembers.setString(1, Tools.addSlashesToString(squad));
+            ps_squadMembers.execute();
+            ResultSet rs = ps_squadMembers.getResultSet();
+            while (rs.next()) {
+                debug("Found: " + rs.getString("fcUserName"));
+            }
+
+            String rulesFileName = m_botAction.getGeneralSettings().getString("Core Location") + "/data/Rules/" + type + ".txt";
+            BotSettings m_rules = new BotSettings(rulesFileName);
+            int matchTypeID = m_rules.getInt("matchtype");
+
+            ResultSet squads = m_botAction.SQLQuery(db, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
+                    + "FROM tblTWDTeam, tblTeam "
+                    + "WHERE tblTWDTeam.fnMatchTypeID="
+                    + matchTypeID
+                    + " AND tblTeam.fnTeamID=tblTWDTeam.fnTeamID "
+                    + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
+                    + "AND tblTWDTeam.fnGames>0 "
+                    + "AND tblTeam.fcTeamName != '"
+                    + squad
+                    + "' "
+                    + "ORDER BY tblTWDTeam.fnRating DESC "
+                    + "LIMIT 10");
+
+            while (squads.next()) {
+                String toSquad = squads.getString("fcTeamName");
+                debug("Found top team: " + toSquad);
+            }
+            m_botAction.SQLClose(squads);
+        } catch (SQLException e) {
+            Tools.printStackTrace(e);
+        } finally {
+        }
     }
 
     public void cmd_accept(String name) {
@@ -819,7 +874,7 @@ public class twdhub extends SubspaceBot {
             }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            Tools.printStackTrace(e);
         }
 
         return userName;
@@ -841,7 +896,7 @@ public class twdhub extends SubspaceBot {
             }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            Tools.printStackTrace(e);
         }
 
         return email;
@@ -850,8 +905,8 @@ public class twdhub extends SubspaceBot {
     private ResultSet getInterpretCommand(String userName, String userMsg) {
         //String commandResponseOriginal = commandResponse;
         ResultSet rs = null;
-        Tools.printLog(ba.getCoreData().toString());
-        Tools.printLog(ba.getCoreData().getSQLManager().toString());
+//        Tools.printLog(ba.getCoreData().toString());
+//        Tools.printLog(ba.getCoreData().getSQLManager().toString());
         PreparedStatement ps_getinterpretbeep = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("interpretcommand"));
 
         try {
@@ -862,7 +917,7 @@ public class twdhub extends SubspaceBot {
         }
         catch (SQLException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            Tools.printStackTrace(e);
         }
 
         //if (commandResponse == commandResponseOriginal) {commandResponse = "";}
