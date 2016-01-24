@@ -3,7 +3,6 @@ package twcore.bots.twdhub;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -48,6 +47,7 @@ public class twdhub extends SubspaceBot {
     private static final String TWSD = "25";
 
     public static final String DATABASE = "website";
+    public static final String DB_BOTS = "bots";
 
     private String connectionID = "pushbulletbot";
     private PushbulletClient pbClient; // Push to mobile data, private MobilePusher mobilePusher;
