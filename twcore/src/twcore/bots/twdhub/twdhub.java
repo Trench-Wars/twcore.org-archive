@@ -416,7 +416,7 @@ public class twdhub extends SubspaceBot {
 
                         try (ResultSet rs = ps_squadMembers.getResultSet()) {
                             while (rs.next()) {
-                                pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
+                                //pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
                                 debug("Pushed to " + rs.getString("fcUserName")); //+ " | " + rs.getString("fcPushBulletEmail") );
                             }
                         } catch (PushbulletException e) {
