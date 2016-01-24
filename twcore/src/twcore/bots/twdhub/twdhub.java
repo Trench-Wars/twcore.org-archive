@@ -680,7 +680,8 @@ public class twdhub extends SubspaceBot {
             ps_signup.execute();
             pbClient.sendNote( null, getEmailByUserName(name), "", "Reply with 'verify' to complete signup!");
             ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
-            ba.sendPublicMessage("Debug: Signed Up " + name + " Successfully!");
+            debug("Signed Up " + name + " : " + email + " Successfully!");
+            //ba.sendPublicMessage("Debug: Signed Up " + name + " Successfully!");
         } catch (SQLException | PushbulletException e1) {
             try {
                 for (Throwable x : ps_signup.getWarnings()) {
@@ -839,7 +840,7 @@ public class twdhub extends SubspaceBot {
         case "interpretcommand": //can't use @Params if expecting recordset results
             preparedStatement =
                 " SELECT fcCommand, fcCommandShortDescription, fnSettingUpdate  FROM trench_TrenchWars.tblPBCommands"
-                +   " WHERE INSTR(?, fcCommand) > 0;";
+                +   " WHERE (INSTR(?, fcCommand) > 0 AND fnSettingUpdate = 0) OR (? = fcCommand);";
             break;
 
         /*
@@ -868,6 +869,13 @@ public class twdhub extends SubspaceBot {
                 " SET @PlayerName = ?;"
                 +   " UPDATE trench_TrenchWars.tblPBAccount"
                 +   " SET fbDisabled = ?"
+                +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
+            break;
+        case "verifyaccount": //can't use @Params if expecting recordset results
+            preparedStatement =
+                " SET @PlayerName = ?;"
+                +   " UPDATE trench_TrenchWars.tblPBAccount"
+                +   " SET fbVerified = 1"
                 +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
             break;
         case "getenabledsquadmembers": //can't use @Params if expecting recordset results
@@ -936,6 +944,7 @@ public class twdhub extends SubspaceBot {
         try {
             ps_getinterpretbeep.clearParameters();
             ps_getinterpretbeep.setString(1, Tools.addSlashesToString(userMsg));
+            ps_getinterpretbeep.setString(2, Tools.addSlashesToString(userMsg));
             ps_getinterpretbeep.execute();
             rs = ps_getinterpretbeep.getResultSet();
         }
@@ -1002,6 +1011,21 @@ public class twdhub extends SubspaceBot {
         }
     }
 
+    public void verifyAccount (String userName) {
+        PreparedStatement ps_verifyaccount = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("verifyaccount"));
+
+        try {
+            ps_verifyaccount.clearParameters();
+            ps_verifyaccount.setString(1, Tools.addSlashesToString(userName));
+            ps_verifyaccount.execute();
+            //m_botAction.sendPublicMessage(ps_verifyaccount.toString());
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            m_botAction.sendPublicMessage(e.getMessage());
+        }
+    }
+
     private void messagePlayerSquadMembers(String userName, String msg) {
         String squadName = "";
 
@@ -1058,6 +1082,11 @@ public class twdhub extends SubspaceBot {
 
                         case "disable":
                             switchAlertsPB(playerName, 1);
+                            settingChange = true;
+                            break;
+
+                        case "verify":
+                            verifyAccount(playerName);
                             settingChange = true;
                             break;
                         }
