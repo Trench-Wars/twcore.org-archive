@@ -397,7 +397,48 @@ public class twdhub extends SubspaceBot {
             }
         } else if (!shutdown && event.getObject() instanceof IPCChallenge) {
             IPCChallenge ipc = (IPCChallenge) event.getObject();
+            if (ipc.getRecipient().equals("TWDBot")) {
+                // hijack this so that we don't have to send a duplicate (from originating matchbot) to TWDHub as well
+                // this will also avoid any confusion with spawning new bots as this IPC is used for more than just notification
+                String message = "";
+                if (ipc.getType() == EventType.CHALLENGE) {
+                    // single squad challenge
+                    String gameType = ipc.getArena().substring(0, 4).toUpperCase();
+                    message = "" + ipc.getName() + " challenged " + ipc.getSquad2() + " to " + ipc.getPlayers() + "s in " + ipc.getArena();
+                    debug(message);
+                    message = "" + ipc.getName() + " is challenging you to a " + ipc.getPlayers() + "vs" + ipc.getPlayers() + " " 
+                                + gameType + " vs " + ipc.getSquad1() + " in " + ipc.getArena() + ".";
+                    PreparedStatement ps_squadMembers = ba.createPreparedStatement(DB_BOTS, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
+                    try {
+                        ps_squadMembers.clearParameters();
+                        ps_squadMembers.setString(1, Tools.addSlashesToString(ipc.getSquad2()));
+                        ps_squadMembers.execute();
 
+                        try (ResultSet rs = ps_squadMembers.getResultSet()) {
+                            while (rs.next()) {
+                                pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
+                                debug("Pushed to " + rs.getString("fcUserName")); //+ " | " + rs.getString("fcPushBulletEmail") );
+                            }
+                        } catch (PushbulletException e) {
+                            e.printStackTrace();
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    } finally {
+                    }
+                    
+                } else if (ipc.getType() == EventType.ALLCHALLENGE) {
+                    // multi squad challenge
+                    message = "" + ipc.getName() + " challenged all to " + ipc.getPlayers() + "s in " + ipc.getArena();
+                    debug(message);    
+                } else if (ipc.getType() == EventType.TOPCHALLENGE) {
+                    // multi squad challenge
+                    message = "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena();
+                    debug(message);    
+                }            
+                return;
+            }
+            
             if (!isTWD(ipc.getArena()) || !ipc.getRecipient().equals(ba.getBotName())) return;
 
             String arenaName = ipc.getArena();
@@ -674,8 +715,7 @@ public class twdhub extends SubspaceBot {
         switch (statementName.toLowerCase()) {
         case "signup":
             preparedStatement =
-                "USE trench_TrenchWars;"
-                +   "SET @PlayerName = ?, @PushBulletEmail = ?;"
+                "SET @PlayerName = ?, @PushBulletEmail = ?;"
                 +   "DELETE PBA FROM trench_TrenchWars.tblPBAccount AS PBA "
                 +   "JOIN trench_TrenchWars.tblUser AS U ON U.fnUserID = PBA.fnPlayerID AND U.fcUserName = @PlayerName;"
                 +   "INSERT INTO trench_TrenchWars.tblPBAccount (fnPlayerID, fcPushBulletEmail, fdCreated)"
@@ -752,6 +792,13 @@ public class twdhub extends SubspaceBot {
                 +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
             break;
         }
+        case "getenabledsquadmembers": //can't use @Params if expecting recordset results
+            preparedStatement =
+              " SELECT U.fnUserID, U.fcUserName, PBA.fcPushBulletEmail, PBA.fbDisabled, T.fcTeamName FROM trench_TrenchWars.tblUser AS U"
+             + " JOIN trench_TrenchWars.tblTeamUser AS TU ON TU.fnUserID = U.fnUserID"
+             + " JOIN trench_TrenchWars.tblTeam AS T ON T.fnTeamID = TU.fnTeamID AND TU.fnCurrentTeam = 1 AND T.fcTeamName = ?"
+             + " JOIN trench_TrenchWars.tblPBAccount AS PBA ON U.fnUserID = PBA.fnPlayerID AND PBA.fbDisabled = 0;";
+           break;
 
         return preparedStatement;
     }
