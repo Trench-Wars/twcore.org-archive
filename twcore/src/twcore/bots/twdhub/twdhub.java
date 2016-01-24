@@ -127,6 +127,7 @@ public class twdhub extends SubspaceBot {
                 }
 
                 //handle push
+                debug("New Push: " + playerName + " : " + userMsg);
                 handleNewPush(playerName, userMsg);
             }
 
@@ -711,6 +712,7 @@ public class twdhub extends SubspaceBot {
     }
 
     public void cmd_disable(String name) {
+    	debug("!disable " + name);
         handleNewPush(name, "disable");
     }
 
@@ -1127,9 +1129,11 @@ public class twdhub extends SubspaceBot {
         if (squadAlert != "") {
             squadAlert = playerName + " beeped for: " + squadAlert;
             messagePlayerSquadMembers(playerName, squadAlert);
-            Tools.printLog("Debug: " + playerName + " : " + squadAlert);
+            debug("Debug: " + playerName + " : " + squadAlert);
+            //Tools.printLog("Debug: " + playerName + " : " + squadAlert);
         } else {
-            Tools.printLog("Filtered Message From " + playerName + " : " + userMsg);
+            //Tools.printLog("Filtered Message From " + playerName + " : " + userMsg);
+        	debug("Filtered Message From " + playerName + " : " + userMsg);
         }
     }
 
