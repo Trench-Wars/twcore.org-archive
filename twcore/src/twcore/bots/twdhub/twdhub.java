@@ -187,15 +187,19 @@ public class twdhub extends SubspaceBot {
     }
 
     public void handleEvent(Message event) {
-        int type = event.getMessageType();
+        debug("1");
+    	int type = event.getMessageType();
         String msg = event.getMessage();
+        debug("2");
         String name = ba.getPlayerName(event.getPlayerID());
-
-        if (name == null)
+        debug("3");
+        if (name == null) {
             name = event.getMessager();
-
+        	debug("4"); }
         if (name == null) return;
-
+        debug(name);
+        
+        
         if (type == Message.CHAT_MESSAGE) {
             if (msg.contains("matchbot")) {
                 if (msg.contains("disconnected")) {
