@@ -436,7 +436,7 @@ public class twdhub extends SubspaceBot {
                     // multi squad challenge
                     message = "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena();
                     debug(message);
-                    ResultSet squads = m_botAction.SQLQuery(db, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
+                    ResultSet squads = m_botAction.SQLQuery(DATABASE, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
                             + "WHERE tblTWDTeam.fnMatchTypeID="
                             + matchTypeID
