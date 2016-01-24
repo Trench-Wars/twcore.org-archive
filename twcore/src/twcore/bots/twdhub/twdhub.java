@@ -876,6 +876,7 @@ public class twdhub extends SubspaceBot {
                 +   " SET fbDisabled = ?"
                 +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
             break;
+            
         case "verifyaccount": //can't use @Params if expecting recordset results
             preparedStatement =
                 " SET @PlayerName = ?;"
@@ -883,6 +884,7 @@ public class twdhub extends SubspaceBot {
                 +   " SET fbVerified = 1"
                 +   " WHERE fnPlayerID = (SELECT U.fnUserID FROM trench_TrenchWars.tblUser AS U WHERE U.fcUserName = @PlayerName LIMIT 1);";
             break;
+            
         case "getenabledsquadmembers": //can't use @Params if expecting recordset results
             preparedStatement =
               " SELECT U.fnUserID, U.fcUserName, PBA.fcPushBulletEmail, PBA.fbDisabled, T.fcTeamName FROM trench_TrenchWars.tblUser AS U"
@@ -999,15 +1001,15 @@ public class twdhub extends SubspaceBot {
         }
     */
 
-    private void switchAlertsPB (String userName, Integer Disable) {
-        PreparedStatement ps_enablepb = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("enabledisablepb"));
+    public void switchAlertsPB (String userName, Integer Disable) {
+        PreparedStatement ps_switchalerts = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("enabledisablepb"));
 
         try {
-            ps_enablepb.clearParameters();
-            ps_enablepb.setString(1, Tools.addSlashesToString(userName));
-            ps_enablepb.setInt(2, Disable);
-            ps_enablepb.execute();
-            //ba.sendPublicMessage(ps_enablepb.toString());
+            ps_switchalerts.clearParameters();
+            ps_switchalerts.setString(1, Tools.addSlashesToString(userName));
+            ps_switchalerts.setInt(2, Disable);
+            ps_switchalerts.execute();
+            //m_botAction.sendPublicMessage(ps_switchalerts.toString());
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -1079,7 +1081,8 @@ public class twdhub extends SubspaceBot {
                     //This is a setting command
                     try {
                     	switch (rs_InterpretCommand.getString("fcCommand").toLowerCase()) {
-                        case "enable":
+                        
+                    	case "enable":
                             switchAlertsPB(playerName, 0);
                             settingChange = true;
                             break;
