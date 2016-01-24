@@ -422,7 +422,7 @@ public class twdhub extends SubspaceBot {
                             debug("Pushing to " + rs.getString("fcUserName"));
                             pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
                         }
-                    } catch (SQLException e | PushbulletException e) {
+                    } catch (SQLException | PushbulletException e) {
                         Tools.printStackTrace(e);
                     } finally {
                     }
