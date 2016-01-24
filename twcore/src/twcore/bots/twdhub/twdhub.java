@@ -187,19 +187,14 @@ public class twdhub extends SubspaceBot {
     }
 
     public void handleEvent(Message event) {
-        debug("1");
     	int type = event.getMessageType();
         String msg = event.getMessage();
-        debug("2");
         String name = ba.getPlayerName(event.getPlayerID());
-        debug("3");
-        if (name == null) {
+
+        if (name == null)
             name = event.getMessager();
-        	debug("4"); }
         if (name == null) return;
-        debug(name);
-        
-        
+                
         if (type == Message.CHAT_MESSAGE) {
             if (msg.contains("matchbot")) {
                 if (msg.contains("disconnected")) {
@@ -246,7 +241,7 @@ public class twdhub extends SubspaceBot {
             else if (cmd.equals("!enable")){
                 cmd_enable(name);}
             else if (cmd.equalsIgnoreCase("!disable"))
-            {}//cmd_disable(name);
+            	cmd_disable(name);
             else if (cmd.startsWith("!push "))
                 cmd_push(name, msg.substring(msg.indexOf(" ") + 1));
             else if (cmd.startsWith("!beep "))
@@ -956,6 +951,7 @@ public class twdhub extends SubspaceBot {
         try {
             ps_getinterpretbeep.clearParameters();
             ps_getinterpretbeep.setString(1, Tools.addSlashesToString(userMsg));
+            ps_getinterpretbeep.setString(2, Tools.addSlashesToString(userMsg));
             ps_getinterpretbeep.execute();
             rs = ps_getinterpretbeep.getResultSet();
         }
