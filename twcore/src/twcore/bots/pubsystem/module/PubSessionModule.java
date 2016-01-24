@@ -77,11 +77,14 @@ public class PubSessionModule extends AbstractModule {
 
         if( killer == null || killed == null )
             return;
-        else {
+        else {           
             SessionPlayer sKiller = ps.get(killer.getPlayerName());
 
-            if (sKiller != null)
-                sKiller.addKill(killer.getShipType(), killed.getShipType());
+            if (sKiller != null) {
+                if (killer.getFrequency() != killed.getFrequency()) {
+                    sKiller.addKill(killer.getShipType(), killed.getShipType());
+                }
+            }
 
             SessionPlayer sKilled = ps.get(killed.getPlayerName());
 
