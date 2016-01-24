@@ -127,12 +127,12 @@ public class PubStreakModule extends AbstractModule {
             return;
         }
 
-        // Same team? do nothing
+        // Same team? Reset streak!
         if (killer.getFrequency() == killed.getFrequency()) {
-            return;
+            winStreaks.put(killer.getPlayerName(), 0);
         }
 
-        // Already on the system?
+        // Not in the system yet?
         if (winStreaks.get(killer.getPlayerName()) == null) {
             winStreaks.put(killer.getPlayerName(), 0);
             loseStreaks.put(killer.getPlayerName(), 0);
@@ -193,7 +193,7 @@ public class PubStreakModule extends AbstractModule {
         // Time to tell the player speccing is not allowed
         // Else, the player will lose his streak
         if (streak == winsStreakArenaAt) {
-            m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "You have kill " + winsStreakArenaAt + " times in a row, you are now not allowed to go in spectator mode.");
+            m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "You have made " + winsStreakArenaAt + " kills in a row. Congrats! Please do not go into spectator mode.");
             m_botAction.sendSmartPrivateMessage(killer.getPlayerName(), "If you do, you will lose your streak. May the force be with you.");
         }
 
