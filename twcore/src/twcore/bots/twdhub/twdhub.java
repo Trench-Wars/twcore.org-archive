@@ -434,12 +434,13 @@ public class twdhub extends SubspaceBot {
                     
                 } else if (ipc.getType() == EventType.TOPCHALLENGE) {
                     // multi squad challenge
+                    String gameType = ipc.getArena().substring(0, 4).toUpperCase();
                     message = "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena();
                     debug(message);
 
                     String rulesFileName = ba.getGeneralSettings().getString("Core Location") + "/data/Rules/" + type + ".txt";
                     BotSettings rules = new BotSettings(rulesFileName);
-                    matchTypeID = rules.getInt("matchtype");
+                    int matchTypeID = rules.getInt("matchtype");
 
                     ResultSet squads = m_botAction.SQLQuery(DATABASE, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                             + "FROM tblTWDTeam, tblTeam "
@@ -449,11 +450,10 @@ public class twdhub extends SubspaceBot {
                             + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
                             + "AND tblTWDTeam.fnGames>0 "
                             + "AND tblTeam.fcTeamName != '"
-                            + squad
+                            + ipc.getSquad1()
                             + "' "
                             + "ORDER BY tblTWDTeam.fnRating DESC "
                             + "LIMIT 10");
-
                     while (squads.next()) {
                         String toSquad = squads.getString("fcTeamName");
                         message = "" + ipc.getName() + " is challenging you to a " + ipc.getPlayers() + "vs" + ipc.getPlayers() + " " 
