@@ -192,9 +192,9 @@ public class GameFlagTimeModule extends AbstractModule {
                         if (!lt.isEmpty()) {
                             Player p = m_botAction.getPlayer(lt.terrierName);
 
-                            if (p != null) {}
-
-                            // msg += p.getPlayerName() + " @ " + p.getTextCoords() + "     ";
+                            if (p != null) {
+                                msg += p.getPlayerName() + " @ " + p.getTextCoords() + "     ";
+                            }
                         }
                     }
 
@@ -205,7 +205,8 @@ public class GameFlagTimeModule extends AbstractModule {
                     }
                 }
             };
-            m_botAction.scheduleTaskAtFixedRate(levCoordReporter, 5000, 30000);
+            //m_botAction.scheduleTaskAtFixedRate(levCoordReporter, 5000, 30000);
+            
         }
 
     }
