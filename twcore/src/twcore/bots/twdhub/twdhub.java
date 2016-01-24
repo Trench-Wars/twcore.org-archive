@@ -727,12 +727,12 @@ public class twdhub extends SubspaceBot {
             ResultSet squads = m_botAction.SQLQuery(DATABASE, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
                     + "FROM tblTWDTeam, tblTeam "
                     + "WHERE tblTWDTeam.fnMatchTypeID="
-                    + matchTypeID
+                    + 23
                     + " AND tblTeam.fnTeamID=tblTWDTeam.fnTeamID "
                     + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
                     + "AND tblTWDTeam.fnGames>0 "
                     + "AND tblTeam.fcTeamName != '"
-                    + squad
+                    + "dice"
                     + "' "
                     + "ORDER BY tblTWDTeam.fnRating DESC "
                     + "LIMIT 10");
