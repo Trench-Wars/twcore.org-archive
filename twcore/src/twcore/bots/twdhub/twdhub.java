@@ -436,18 +436,44 @@ public class twdhub extends SubspaceBot {
                     // multi squad challenge
                     message = "" + ipc.getName() + " challenged top teams to " + ipc.getPlayers() + "s in " + ipc.getArena();
                     debug(message);
-//                    ResultSet squads = m_botAction.SQLQuery(DATABASE, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
-//                            + "FROM tblTWDTeam, tblTeam "
-//                            + "WHERE tblTWDTeam.fnMatchTypeID="
-//                            + matchTypeID
-//                            + " AND tblTeam.fnTeamID=tblTWDTeam.fnTeamID "
-//                            + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
-//                            + "AND tblTWDTeam.fnGames>0 "
-//                            + "AND tblTeam.fcTeamName != '"
-//                            + squad
-//                            + "' "
-//                            + "ORDER BY tblTWDTeam.fnRating DESC "
-//                            + "LIMIT 10");
+
+                    String rulesFileName = ba.getGeneralSettings().getString("Core Location") + "/data/Rules/" + type + ".txt";
+                    BotSettings rules = new BotSettings(rulesFileName);
+                    matchTypeID = rules.getInt("matchtype");
+
+                    ResultSet squads = m_botAction.SQLQuery(DATABASE, "SELECT tblTWDTeam.fnTeamID, tblTeam.fnTeamID, tblTeam.fcTeamName, tblTWDTeam.fnRating "
+                            + "FROM tblTWDTeam, tblTeam "
+                            + "WHERE tblTWDTeam.fnMatchTypeID="
+                            + matchTypeID
+                            + " AND tblTeam.fnTeamID=tblTWDTeam.fnTeamID "
+                            + "AND (tblTeam.fdDeleted=0 OR tblTeam.fdDeleted IS NULL) "
+                            + "AND tblTWDTeam.fnGames>0 "
+                            + "AND tblTeam.fcTeamName != '"
+                            + squad
+                            + "' "
+                            + "ORDER BY tblTWDTeam.fnRating DESC "
+                            + "LIMIT 10");
+
+                    while (squads.next()) {
+                        String toSquad = squads.getString("fcTeamName");
+                        message = "" + ipc.getName() + " is challenging you to a " + ipc.getPlayers() + "vs" + ipc.getPlayers() + " " 
+                                    + gameType + " vs " + ipc.getSquad1() + " in " + ipc.getArena() + ".";
+                        PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
+                        try {
+                            ps_squadMembers.clearParameters();
+                            ps_squadMembers.setString(1, Tools.addSlashesToString(toSquad));
+                            ps_squadMembers.execute();
+                            ResultSet rs = ps_squadMembers.getResultSet();
+                            while (rs.next()) {
+                                debug("Pushing to " + rs.getString("fcUserName"));
+                                pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
+                            }
+                        } catch (SQLException | PushbulletException e) {
+                            Tools.printStackTrace(e);
+                        } finally {
+                        }
+                    }
+                    ba.SQLClose(squads);
                 }            
                 return;
             }
