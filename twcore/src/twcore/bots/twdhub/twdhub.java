@@ -661,46 +661,42 @@ public class twdhub extends SubspaceBot {
     }
 
     public void cmd_signup(String name, String email) {
+        //check if valid email address, if not then exit
+        if (!email.contains("@") || !email.contains(".")) {
+            // ba.sendPublicMessage("Invalid Email Adress entered!");
+            ba.sendSmartPrivateMessage(name, "Invalid Email Adress entered!");
+            return;
+        }
 
+        //get signup Query
+        PreparedStatement ps_signup = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("signup"));
+
+        //put values in prepared statement
         try {
-            //check if valid email address, if not then exit
-            if (!email.contains("@") || !email.contains(".")) {
-                // ba.sendPublicMessage("Invalid Email Adress entered!");
-                ba.sendSmartPrivateMessage(name, "Invalid Email Adress entered!");
-                return;
-            }
-
-            //get signup Query
-            PreparedStatement ps_signup = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("signup"));
-
-            //put values in prepared statement
+            ps_signup.clearParameters();
+            ps_signup.setString(1, Tools.addSlashesToString(name));
+            ps_signup.setString(2, Tools.addSlashesToString(email));
+            // ba.sendPublicMessage(ps_signup.toString());
+            ps_signup.execute();
+            pbClient.sendNote( null, getEmailByUserName(name), "", "Reply with 'verify' to complete signup!");
+            ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
+            ba.sendPublicMessage("Debug: Signed Up " + name + " Successfully!");
+        } catch (SQLException | PushbulletException e1) {
             try {
-                ps_signup.clearParameters();
-                ps_signup.setString(1, Tools.addSlashesToString(name));
-                ps_signup.setString(2, Tools.addSlashesToString(email));
-                // ba.sendPublicMessage(ps_signup.toString());
-                ps_signup.execute();
-                ba.sendSmartPrivateMessage(name, "Signed Up " + name + " : " + email + " Successfully!");
-                Tools.printLog("Debug: Signed Up " + name + " Successfully!");
-            } catch (SQLException e1) {
-                try {
-                    for (Throwable x : ps_signup.getWarnings()) {
-                        if (x.getMessage().toLowerCase().contains("unique")) {
-                            // ba.sendPublicMessage(email + " is already registered by " + getUserNameByEmail(email));
-                            ba.sendSmartPrivateMessage(name, email + " is already registered by " + getUserNameByEmail(email));
-                        } else {
-                            Tools.printLog("Error: " + x.getMessage());
-                            e1.printStackTrace();
-                        }
+                for (Throwable x : ps_signup.getWarnings()) {
+                    if (x.getMessage().toLowerCase().contains("unique")) {
+                        // ba.sendPublicMessage(email + " is already registered by " + getUserNameByEmail(email));
+                        ba.sendSmartPrivateMessage(name, email + " is already registered by " + getUserNameByEmail(email));
+                    } else {
+                        ba.sendPublicMessage("Error: " + x.getMessage());
+                        e1.printStackTrace();
                     }
-                } catch (SQLException e) {
-                    // TODO Auto-generated catch block
-                    Tools.printLog("Error: " + e.getMessage());
-                    Tools.printStackTrace(e);
                 }
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                ba.sendPublicMessage("Error: " + e.getMessage());
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            Tools.printStackTrace(e);
         }
     }
 
