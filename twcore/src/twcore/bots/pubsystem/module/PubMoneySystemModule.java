@@ -364,7 +364,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     m_botAction.sendArenaMessage("[BUY] " + playerName + " just bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".", Tools.Sound.CROWD_OHH);
                 }
 
-                context.moneyLog("[BUY] " + playerName + " bought a " + item.getDisplayName() + " for $" + item.getPrice() + ".");
+                context.moneyLog("[BUY] " + playerName + ", " + item.getDisplayName());
 
                 // Querying once every !buy (!!!)
                 // TODO: Possibly make a system that stores the info every 15 min?
