@@ -47,18 +47,18 @@ public class PubUtilModule extends AbstractModule {
     // XXX: If you change this enum, you will also have to match the Location to Region manually in getLocation
     public static enum Region {
         MID,
-        FLAGROOM,
-        LARGE_FR,
-        MED_FR,
-        TUNNELS,
-        CRAM,
+        FLAGROOM,               // FR area during small base mode
+        LARGE_FR,               // Area between the FR tunnels and the FR that opens up on mid/large base
+        MED_FR,                 // FR tunnels
+        TUNNELS,                // Mid expansion area for large base + mid tunnels
+        CRAM,                   // Cram area + area below it where sharks usually mine, to the bottom of the FR turrets 
         LOWER,
-        ROOF,
-        SPAWN,
+        ROOF,                   // Area encompassing roof
+        SPAWN,                  // Much larger than actual spawn area
 
         SPACE,
         SAFE,
-        BUYZONE,
+        BUYZONE,                // Designated buyzones
 
         UNKNOWN,
     }
@@ -154,7 +154,7 @@ public class PubUtilModule extends AbstractModule {
                 if (region.equals(Region.CRAM) || region.equals(Region.LARGE_FR) || region.equals(Region.MED_FR))
                     location = Location.valueOf("FLAGROOM");
                 else if (region.equals(Region.TUNNELS) || region.equals(Region.BUYZONE))
-                    location = Location.valueOf("LOWER");
+                    location = Location.valueOf("MID");
                 else if (region.equals(Region.SAFE))
                     location = Location.valueOf("SAFE");
                 else
@@ -584,6 +584,20 @@ public class PubUtilModule extends AbstractModule {
         if (Region.SAFE.equals(location)) {
             return "in Safe";
         }
+
+        if (Region.MED_FR.equals(location) || Region.LARGE_FR.equals(location)) {
+            return "around Flagroom";
+        }
+
+        if (Region.CRAM.equals(location)) {
+            return "in Flagroom Cram";
+        }
+
+        /*  Not currently used on map. Uncomment if used.
+        if (Region.TUNNELS.equals(location)) {
+            return "in Tunnels";
+        }
+        */
 
         if (Region.BUYZONE.equals(location)) {
             return "in Buyzone";
