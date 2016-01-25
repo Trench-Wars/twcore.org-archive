@@ -69,7 +69,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     private SavePlayersTask saveTask = new SavePlayersTask();
     private int SAVETASK_INTERVAL = 1; // minutes
 
-    private Log logMoneyDBTransaction;
+    //private Log logMoneyDBTransaction;
 
     private boolean notify = false;
     private boolean switchAllowed = false;
@@ -85,7 +85,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         super(m_botAction, context, "PlayerManager");
         moneyObjs = new Objset();
 
-        logMoneyDBTransaction = new Log(m_botAction, "moneydb.log");
+        //logMoneyDBTransaction = new Log(m_botAction, "moneydb.log");
 
         this.players = new TreeMap<String, PubPlayer>();
         this.freq0 = new TreeSet<String>();
@@ -561,7 +561,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             if (event.getIdentifier().startsWith("moneydb")) {
                 String[] pieces = event.getIdentifier().split(":");
                 String force = pieces[3].equals("1") ? "(F) " : "";
-                logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + force + pieces[1] + "> " + pieces[2]);
+                //logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + force + pieces[1] + "> " + pieces[2]);
             } else if (event.getIdentifier().startsWith("newplayer")) {
                 ResultSet rs = event.getResultSet();
                 String playerName = event.getIdentifier().substring(10);
