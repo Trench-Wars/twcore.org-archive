@@ -40,6 +40,7 @@ public class staffbot_warnings extends Module {
         " !allwarnings <player>     - Shows all warnings on player, including expired",
         " !fuzzyname <player>       - Checks for names similar to <player> in database",
         " !addnote <player>:<note>  - Adds a note on the specified player",
+        " !recentnotes <#>          - Displays # most recent notes (default 10)",
         " !listnotes <player>       - Lists all notes for the specified player"
     };
 
@@ -53,7 +54,6 @@ public class staffbot_warnings extends Module {
         " !warningsfrom <player>    - Displays a list of recent warns given to a player.",
         " !manual player:warning    - Adds a manual database warning to player. Use with caution!",
         " !delnote <id>             - Removes note of id specified in listnotes",
-        " !recentnotes <#>          - Displays # most recent notes (default 10)",
         " !notesby <staff>          - Displays notes created by staffer"
     };
 
@@ -380,7 +380,10 @@ public class staffbot_warnings extends Module {
                 queryAddNote(name, message.substring(9));
             } else if (message.toLowerCase().startsWith("!listnotes ")) {
                 queryListNotes(name, message.substring(11));
+            } else if (message.toLowerCase().startsWith("!recentnotes ")) {
+                queryRecentNotes(name, message.substring(13));
             }
+
         }
 
         if (m_opList.isModerator(name)) {
@@ -397,9 +400,6 @@ public class staffbot_warnings extends Module {
 
             if (message.toLowerCase().startsWith("!delnote "))
                 queryDeleteNote(name, message.substring(9));
-
-            if (message.toLowerCase().startsWith("!recentnotes "))
-                queryRecentNotes(name, message.substring(13));
 
             if (message.toLowerCase().startsWith("!notesby "))
                 queryNotesBy(name, message.substring(9));
