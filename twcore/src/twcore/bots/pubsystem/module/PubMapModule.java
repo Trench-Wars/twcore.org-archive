@@ -36,11 +36,11 @@ public class PubMapModule extends AbstractModule {
     private static final int LEFT_SIDE_DOOR = 1004;
     private static final int RIGHT_SIDE_DOOR = 1005;
     private static final int HOLIDAY_OBJON = 3;
-    private static final int SMALL_BASE = 6;
-    private static final int MED_BASE = 9;
-    private static final int LARGE_BASE = 24;
+    static final int SMALL_BASE = 6;
+    static final int MED_BASE = 9;
+    static final int LARGE_BASE = 24;
 
-    private int currentBase;    // current door setting
+    int currentBase;    // current door setting
 
     private HashMap<Integer, Integer> popTriggers; // door setting mapped to popTrigger
     //private int popTrigger;     // cut off for number of players before door change
