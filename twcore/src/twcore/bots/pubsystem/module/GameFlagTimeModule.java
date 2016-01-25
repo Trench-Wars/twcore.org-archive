@@ -26,6 +26,7 @@ import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerLeft;
+import twcore.core.events.PlayerPosition;
 import twcore.core.events.TurretEvent;
 import twcore.core.game.Player;
 import twcore.core.lvz.Objset;
@@ -119,6 +120,8 @@ public class GameFlagTimeModule extends AbstractModule {
     // CONS: Levis can't join; can't earn round end bonus
     private boolean hunterFreqEnabled = false;
     private int hunterFreq = -1;
+    
+    private boolean stayOffRoof = false;   // True if Terrs and LTs will be warped to safe when entering the roof area
 
     private final int LVZ_10TOSTART = 17100;
     private final int LVZ_60TOWIN = 17101;
@@ -601,6 +604,38 @@ public class GameFlagTimeModule extends AbstractModule {
             Tools.printStackTrace(e);
         }
     }
+    
+    @Override
+    public void handleEvent(PlayerPosition event) {
+        if (!stayOffRoof)
+            return;
+        
+        Player p = m_botAction.getPlayer(event.getPlayerID());
+        
+        if (p == null)
+            return;
+        
+        if (p.getShipType() == Tools.Ship.LEVIATHAN || p.getShipType() == Tools.Ship.TERRIER) {
+            Region reg = context.getPubUtil().getRegion(p.getXTileLocation(), p.getYTileLocation());
+            
+            if(reg == null)
+                return;
+
+            if (context.getPubMap().currentBase == PubMapModule.SMALL_BASE) {
+                // During small base, large base areas and FR tunnels all count as roof. 
+                if (Region.ROOF.equals(reg) || Region.LARGE_FR.equals(reg) || Region.MED_FR.equals(reg) || Region.TUNNELS.equals(reg)) {
+                    m_botAction.sendPrivateMessage(p.getPlayerID(), "Please stay away from the roof when a new round is starting.");
+                    m_botAction.warpTo(p.getPlayerID(), 512, 693);  // Bottom safe. Forgive the magic #s
+                }
+            } else {
+                if (Region.ROOF.equals(reg)) {
+                    m_botAction.sendPrivateMessage(p.getPlayerID(), "Please stay away from the roof when a new round is starting.");
+                    m_botAction.warpTo(p.getPlayerID(), 512, 693);  // Bottom safe. Forgive the magic #s
+                }
+            }
+        }
+    }
+
 
     @Override
     public void handleCommand(String sender, String command) {
@@ -3428,6 +3463,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 if (preTimeCount == 0) {
                     m_botAction.sendArenaMessage("[FLAG] Next round begins in 10 seconds . . .");
                     m_botAction.showObject(LVZ_10TOSTART);
+                    stayOffRoof = true;
 
                     if (strictFlagTimeMode)
                         safeWarp();
@@ -3481,7 +3517,6 @@ public class GameFlagTimeModule extends AbstractModule {
                     context.getPlayerManager().checkFreqSizes(true);
             }
 
-
             if (isBeingClaimed) {
                 claimSecs++;
 
@@ -3495,6 +3530,10 @@ public class GameFlagTimeModule extends AbstractModule {
 
             if (giveTerrBonus && totalSecs % terrBonusFrequency == 0) {
                 checkTerrBonus();
+            }
+            
+            if (totalSecs == 5) {
+                stayOffRoof = false;
             }
 
             Integer freqSecs = freqsSecs.get(flagHoldingFreq);
