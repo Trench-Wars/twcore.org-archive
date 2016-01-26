@@ -3505,6 +3505,10 @@ public class GameFlagTimeModule extends AbstractModule {
 
             totalSecs++;
 
+            if (totalSecs == 5) {
+                stayOffRoof = false;
+            }            
+            
             // Display mode info at 5 min increments, unless we are near the end of a game;
             //   also check for severe freq imbalance every minute
             if ((flagMinutesRequired * 60) - secondsHeld > 30) {
@@ -3517,6 +3521,10 @@ public class GameFlagTimeModule extends AbstractModule {
                     context.getPlayerManager().checkFreqSizes(true);
             }
 
+            if (giveTerrBonus && totalSecs % terrBonusFrequency == 0) {
+                checkTerrBonus();
+            }
+                        
             if (isBeingClaimed) {
                 claimSecs++;
 
@@ -3527,15 +3535,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
                 return;
             }
-
-            if (giveTerrBonus && totalSecs % terrBonusFrequency == 0) {
-                checkTerrBonus();
-            }
             
-            if (totalSecs == 5) {
-                stayOffRoof = false;
-            }
-
             Integer freqSecs = freqsSecs.get(flagHoldingFreq);
 
             if (freqSecs == null)
