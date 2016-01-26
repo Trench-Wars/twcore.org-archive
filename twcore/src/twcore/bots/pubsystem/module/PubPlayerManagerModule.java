@@ -18,7 +18,7 @@ import twcore.bots.pubsystem.module.moneysystem.item.PubItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipItem;
 import twcore.bots.pubsystem.module.moneysystem.item.PubShipUpgradeItem;
 import twcore.bots.pubsystem.module.player.PubPlayer;
-import twcore.bots.pubsystem.util.Log;
+//import twcore.bots.pubsystem.util.Log;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.ArenaJoined;
@@ -56,7 +56,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     private TreeSet<String> freq0;                      // Players on freq 0
     private TreeSet<String> freq1;                      // Players on freq 1
 
-    private int tkTax = 0;                            // Amount to deduct for team kills
+    private int tkTax = 0;                              // Amount to deduct for team kills
 
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
 
@@ -66,8 +66,8 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     private String databaseName;
 
-    private SavePlayersTask saveTask = new SavePlayersTask();
-    private int SAVETASK_INTERVAL = 1; // minutes
+    private SavePlayersTask saveTask = new SavePlayersTask();       // Autosave Task. Money also saved when players leave arena
+    private int SAVETASK_INTERVAL = 5;                  // Frequency of saves for all unsaved players (money changed since last save), in minutes
 
     //private Log logMoneyDBTransaction;
 
@@ -348,6 +348,19 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         removeFromLists(playerName);
         checkLowPopSpawn();
+        
+        PubPlayer player = getPlayer(p.getPlayerName());
+        if (player == null)
+            return;
+
+        if (player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
+            if (player.hasStatsDB()) {
+                m_botAction.SQLBackgroundQuery(databaseName, "moneydb:" + player.getPlayerName() + ":" + player.getMoney() + ":1", "UPDATE tblPlayerStats SET fnMoney=" + player.getMoney() + " WHERE fcName='" + Tools.addSlashes(player.getPlayerName()) + "'");
+            } else {
+                m_botAction.SQLBackgroundQuery(databaseName, "moneydb:" + player.getPlayerName() + ":" + player.getMoney() + ":1", "INSERT INTO tblPlayerStats (fcName,fnMoney,fbWarp) VALUES ('" + Tools.addSlashes(player.getPlayerName()) + "'," + player.getMoney() + "," + (player.getWarp() ? 1 : 0) + ")");
+                player.setHasStatsDB(true);
+            }
+        }
         //checkFreqSizes();
     }
 
@@ -558,11 +571,15 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     public void handleEvent(SQLResultEvent event) {
         try {
+            /*
             if (event.getIdentifier().startsWith("moneydb")) {
                 String[] pieces = event.getIdentifier().split(":");
                 String force = pieces[3].equals("1") ? "(F) " : "";
                 //logMoneyDBTransaction.write(Tools.getTimeStamp() + " - " + force + pieces[1] + "> " + pieces[2]);
-            } else if (event.getIdentifier().startsWith("newplayer")) {
+            }
+            */
+            
+            if (event.getIdentifier().startsWith("newplayer")) {
                 ResultSet rs = event.getResultSet();
                 String playerName = event.getIdentifier().substring(10);
 
@@ -1310,14 +1327,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         public void run() {
 
-            Collection<String> arenaPlayers = new ArrayList<String>();
-            Iterator<Player> it = m_botAction.getPlayerIterator();
-
-            while(it.hasNext()) {
-                Player p = it.next();
-                arenaPlayers.add(p.getPlayerName());
-            }
-
+            Collection<String> deadPlayers = new ArrayList<String>();
             Iterator<PubPlayer> it2 = players.values().iterator();
 
             while(it2.hasNext()) {
@@ -1326,14 +1336,10 @@ public class PubPlayerManagerModule extends AbstractModule {
 
                 // Money is always saved
                 if (databaseName != null) {
-                    if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState())
-                    {
-                        if (player.hasStatsDB())
-                        {
-                            m_botAction.SQLBackgroundQuery(databaseName, "moneydb:" + player.getPlayerName() + ":" + player.getMoney() + ":" + (force ? "1" : "0"), "UPDATE tblPlayerStats Set fnMoney=" + player.getMoney() + ", fbWarp=" + (player.getWarp() ? 1 : 0 ) + " where fcName = '" + Tools.addSlashes(player.getPlayerName()) + "'");
-                        }
-                        else
-                        {
+                    if (force || player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
+                        if (player.hasStatsDB()) {
+                            m_botAction.SQLBackgroundQuery(databaseName, "moneydb:" + player.getPlayerName() + ":" + player.getMoney() + ":" + (force ? "1" : "0"), "UPDATE tblPlayerStats Set fnMoney=" + player.getMoney() + " WHERE fcName = '" + Tools.addSlashes(player.getPlayerName()) + "'");
+                        } else {
                             m_botAction.SQLBackgroundQuery(databaseName, "moneydb:" + player.getPlayerName() + ":" + player.getMoney() + ":" + (force ? "1" : "0"), "INSERT INTO tblPlayerStats (fcName,fnMoney,fbWarp) VALUES ('" + Tools.addSlashes(player.getPlayerName()) + "'," + player.getMoney() + "," + (player.getWarp() ? 1 : 0) + ")");
                             player.setHasStatsDB(true);
                         }
@@ -1363,8 +1369,12 @@ public class PubPlayerManagerModule extends AbstractModule {
 
                 // Not anymore on this arena? remove this player from the PubPlayerManager
                 if (m_botAction.getPlayer(player.getPlayerName()) == null) {
-                    it2.remove();
+                    deadPlayers.add(player.getPlayerName());
                 }
+            }
+            
+            for( String name : deadPlayers) {
+                players.remove(name);
             }
 
             force = false;
