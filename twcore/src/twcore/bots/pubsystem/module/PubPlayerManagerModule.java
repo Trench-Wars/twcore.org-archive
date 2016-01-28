@@ -1327,7 +1327,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         public void run() {
 
-            Collection<String> deadPlayers = new ArrayList<String>();
+            //Collection<String> deadPlayers = new ArrayList<String>();
             Iterator<PubPlayer> it2 = players.values().iterator();
 
             while(it2.hasNext()) {
@@ -1368,14 +1368,21 @@ public class PubPlayerManagerModule extends AbstractModule {
                 }
 
                 // Not anymore on this arena? remove this player from the PubPlayerManager
+                /**
+                 * This code used to remove players from the iterator (doing nothing). But if you remove players from this list, they're removed from the player cache.
+                 * Needs some refactoring.
+                 * 
                 if (m_botAction.getPlayer(player.getPlayerName()) == null) {
                     deadPlayers.add(player.getPlayerName());
                 }
+                */
             }
             
+            /**
             for( String name : deadPlayers) {
                 players.remove(name);
             }
+            **/
 
             force = false;
         }
