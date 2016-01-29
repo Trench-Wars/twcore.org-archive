@@ -66,6 +66,7 @@ import twcore.core.util.MapRegions;
 import twcore.core.util.Point;
 import twcore.core.util.Tools;
 import twcore.core.util.Tools.Ship;
+import twcore.core.util.StringBag;
 
 public class PubMoneySystemModule extends AbstractModule {
 
@@ -3634,7 +3635,7 @@ public class PubMoneySystemModule extends AbstractModule {
     /**
         Executes the special shop item ShoutOut.
         <p>
-        Gives a shoutout in pub to the specified player
+        Gives a shoutout in pub to the specified player.
         <p>
         Do not remove this function despite the unused warning. This method can be called upon through an invoke,
         which is not detected by Eclipse.
@@ -3645,12 +3646,12 @@ public class PubMoneySystemModule extends AbstractModule {
     private void itemCommandShoutout(String sender, String params) {
         Player p = m_botAction.getFuzzyPlayer(params);
 
-        if( p == null ) {
+        if (p == null) {
             m_botAction.sendPrivateMessage(sender, "Can't find a player in this arena that matches that name.");
             PubPlayer buyer = playerManager.getPlayer(sender);
             PubItem item = store.getItem("shoutout");
 
-            if( item != null ) {
+            if (item != null) {
                 buyer.addMoney(item.getPrice());
             } else {
                 buyer.addMoney(10000);  // Unfortunately must use a magic # if we fail to get price
@@ -3660,8 +3661,117 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
         m_botAction.sendPrivateMessage(sender, "Giving a shoutout to " + p.getPlayerName() + "!");
-        m_botAction.sendArenaMessage("\\o/   " + sender + " gives a shoutout to " + p.getPlayerName() + "!   \\o/", Tools.Sound.PLAY_MUSIC_ONCE);
-        //      \o/   Bob Dole gives a shoutout to Barbara Walters!   \o/
+        m_botAction.sendArenaMessage("[SHOUTOUT]     \\o/   " + sender + " gives a shoutout to " + p.getPlayerName() + "!   \\o/", Tools.Sound.PLAY_MUSIC_ONCE);
+        m_botAction.sendPrivateMessage(p.getPlayerName(), "ITZZZZZ");
+        m_botAction.sendPrivateMessage(p.getPlayerName(), "YA BOOOOYYYYYYYY");
+        m_botAction.sendPrivateMessage(p.getPlayerName(), ">>>>>>>>>>>>>>>>>>>>>>" + sender.toUpperCase());
+        // [SHOUTOUT]     \o/   Bob Dole gives a shoutout to Barbara Walters!   \o/
+        
+        // TODO: Add shoutout LVZ graphic.
+    }
+
+    /**
+    Executes the special shop item Tea.
+    <p>
+    Gives tea to the specified player.
+    <p>
+    Do not remove this function despite the unused warning. This method can be called upon through an invoke,
+    which is not detected by Eclipse.
+    @param sender Person buying the tea
+    @param params Player they wish to give tea to
+     */
+    @SuppressWarnings("unused")
+    private void itemCommandTea(String sender, String params) {
+        Player p;
+        
+        if (params.equals("?")) {
+            Iterator<Player> i = m_botAction.getPlayerIterator();
+            StringBag sb = new StringBag();
+            
+            while (i.hasNext()) {
+                p = i.next();
+                if (p != null && !p.getPlayerName().equals(sender) && !m_botAction.getOperatorList().isBot(p.getPlayerName())) {
+                    sb.add(p.getPlayerName());
+                }
+            }
+            
+            p = m_botAction.getFuzzyPlayer(sb.grab());            
+        } else {
+            p = m_botAction.getFuzzyPlayer(params);            
+        }
+
+        if (p == null) {
+            if (params.equals("?"))
+                m_botAction.sendPrivateMessage(sender, "Unable to locate a random player to give tea to. For shame.");
+            else
+                m_botAction.sendPrivateMessage(sender, "Can't find a player in this arena that matches that name.");
+
+            PubPlayer buyer = playerManager.getPlayer(sender);
+            PubItem item = store.getItem("tea");
+
+            if( item != null ) {
+                buyer.addMoney(item.getPrice());
+            } else {
+                buyer.addMoney(10000);  // Unfortunately must use a magic # if we fail to get price
+            }
+
+            return;
+        }
+        
+        int pi = (int)Math.floor(Math.random() * 10);
+        
+        String playerMessage = "";
+        switch(pi) {
+        case 0:
+            playerMessage = "Giving a nice hot cup of tea to " + p.getPlayerName() + ". How nice."; break;
+        case 1:
+            playerMessage = "Here's a nice hot cup of tea for " + p.getPlayerName() + ". Lovely!"; break;
+        case 2:
+            playerMessage = "Let's give " + p.getPlayerName() + " a nice cuppa, shall we?"; break;
+        case 3:
+            playerMessage = "I was just thinking how lonely " + p.getPlayerName() + " looked without a cup of tea."; break;
+        case 4:
+            playerMessage = "What a nice idea. A nice hot cup of tea for " + p.getPlayerName() + "."; break;
+        case 5:
+            playerMessage = p.getPlayerName() + " really could use a cup of tea right now. How thoughtful."; break;
+        case 6:
+            playerMessage = "Tea? For " + p.getPlayerName() + "? Delightful!"; break;
+        case 7:
+            playerMessage = "Let's just get " + p.getPlayerName() + " a nice cup of tea, then. Tremendous."; break;
+        case 8:
+            playerMessage = "I think it's about time for a nice hot cup of tea for " + p.getPlayerName() + ". Delightful!"; break;
+        default:
+            playerMessage = "Let's spill a nice cup of tea on " + p.getPlayerName() + ". Marvelous!"; break;
+        }
+        
+        m_botAction.sendPrivateMessage(sender, playerMessage);
+        
+        int ti = (int)Math.floor(Math.random() * 10);
+        String teaType = "";
+        switch(ti) {
+        case 0: teaType = "a nice hot cup of tea"; break;
+        case 1: teaType = "a hot cup of tea"; break;
+        case 2: teaType = "a nice lukewarm cup of tea"; break;
+        case 3: teaType = "a scalding hot cup of tea"; break;
+        case 4: teaType = "a nice tall mug of tea"; break;
+        case 5: teaType = "a steaming hot cup of tea"; break;
+        case 6: teaType = "a delightfully aromatic cup of tea"; break;
+        case 7: teaType = "a hot cuppa"; break;
+        case 8: teaType = "a piping-hot cup of tea"; break;
+        default: teaType = "a cup of tea";
+        }
+        
+        if (pi != 9) {
+            m_botAction.sendPrivateMessage(p.getPlayerID(), sender + " gives you " + teaType + ".");
+            m_botAction.sendArenaMessage("c\\_/   Teatime!  " + sender + " gives " + teaType + " to " + p.getPlayerName() + ".");
+            // c\_/   Teatime!  Bob Dole gives a cup of tea to Barbara Walters.
+        } else {
+            // SPILL
+            m_botAction.sendPrivateMessage(p.getPlayerID(), sender + " spills " + teaType + " on you.");
+            m_botAction.sendArenaMessage("c\\_/   Teatime!  " + sender + " spills " + teaType + " on " + p.getPlayerName() + ".");            
+        }
+        
+        // TODO: Add tea graphic and tea pouring sound.        
     }
 
     /**
@@ -4365,6 +4475,31 @@ public class PubMoneySystemModule extends AbstractModule {
             for (PubEventBuy event : expired) {
                 eventsBought.remove(event);
                 event = null;
+            }
+        }
+    }
+
+
+    /**
+    TimerTask that checks event hosts purchased previously, and refunds them if they have expired.
+     */
+    private class TeaTimerTask extends TimerTask {
+        String name;
+        
+        public TeaTimerTask(String name) {
+            this.name = name;
+        }
+        
+        public void run() {
+            int i = (int)Math.floor(Math.random() * 10);
+
+            switch(i) {
+            case 0:
+                m_botAction.sendTeamMessage("::watches as " + name + " sips tea::"); break;
+            case 1:
+                m_botAction.sendTeamMessage("::watches as " + name + " says, \"I love tea!\"::"); break;
+            default:
+                m_botAction.sendTeamMessage("::sips tea::"); break;
             }
         }
     }
