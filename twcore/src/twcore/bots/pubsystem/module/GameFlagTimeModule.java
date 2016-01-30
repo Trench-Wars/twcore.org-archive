@@ -3085,7 +3085,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
                 addFlagClaim(p.getPlayerName());
 
-                if (remain < 60)
+                if (remain < 60) {
                     if (remain < 4) {
                         m_botAction.sendArenaMessage("[FLAG] INCONCEIVABLE!!: " + p.getPlayerName() + " claims flag for "
                                                      + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " second"
@@ -3112,13 +3112,16 @@ public class GameFlagTimeModule extends AbstractModule {
                         turnovers[0]++;
                         
                     } else {
-                        if (remain < 140)   // 2:30
-                            turnovers[1]++;
-                        else
-                            turnovers[2]++;
                         m_botAction.sendArenaMessage("[FLAG] Save: " + p.getPlayerName() + " claims flag for "
                                                      + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left.");
+                        turnovers[1]++;
                     }
+                } else {
+                    if (remain < 140)   // 2:30
+                        turnovers[1]++;
+                    else
+                        turnovers[2]++;
+                }                
             }
 
             m_botAction.showObject(2400); // Shows flag claimed lvz
@@ -3472,7 +3475,7 @@ public class GameFlagTimeModule extends AbstractModule {
             @return Bonus seconds awarded for winning team based on number of flag turnovers 
          */
         public int getTurnoverSecondBonus() {
-            return turnovers[0] * 90 + turnovers[1] * 30 + turnovers[2] * 10;
+            return turnovers[0] * 60 + turnovers[1] * 20 + turnovers[2] * 5;
         }
         
         
