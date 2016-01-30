@@ -1075,25 +1075,26 @@ public class twdhub extends SubspaceBot {
         try {
             ps_messagePlayerSquadMembers.clearParameters();
             ps_messagePlayerSquadMembers.setString(1, Tools.addSlashesToString(userName));
+            debug(ps_messagePlayerSquadMembers.toString());
             ps_messagePlayerSquadMembers.execute();
 
             try (ResultSet rs = ps_messagePlayerSquadMembers.getResultSet()) {
                 while (rs.next()) {
                     if (rs.getInt("fbDisabled") != 1) {
                         pbClient.sendNote( null, rs.getString("fcPushBulletEmail"), "", msg);
-                        Tools.printLog("Debug: Pushed to " + rs.getString("fcUserName")); //+ " | " + rs.getString("fcPushBulletEmail") );
+                        debug("Pushed to " + rs.getString("fcUserName") + " | " + rs.getString("fcPushBulletEmail") );
                         squadName = rs.getString("T.fcTeamName");
                     }
                 }
             } catch (PushbulletException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-                Tools.printLog(e.getMessage());
+                debug(e.getMessage());
             }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            Tools.printLog(e.getMessage());
+            debug(e.getMessage());
         } finally {
             if (squadName != "") {
                 ba.sendSquadMessage(squadName, msg);
