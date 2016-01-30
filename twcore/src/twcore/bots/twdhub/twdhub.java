@@ -394,7 +394,6 @@ public class twdhub extends SubspaceBot {
                     } finally {
                     }
                     message = "Your squad is starting a " + game.getType() + " match against " + game.squad1.name + " in ?go " + game.arena.name;
-                    PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
                     try {
                         ps_squadMembers.clearParameters();
                         ps_squadMembers.setString(1, Tools.addSlashesToString(game.squad2.name));
