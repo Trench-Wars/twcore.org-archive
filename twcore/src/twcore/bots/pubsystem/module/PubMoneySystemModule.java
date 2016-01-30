@@ -631,7 +631,7 @@ public class PubMoneySystemModule extends AbstractModule {
         }
 
         if (command.length() < 8) {
-            m_botAction.sendSmartPrivateMessage(sender, "Try !donate <name>.");
+            m_botAction.sendSmartPrivateMessage(sender, "Try !donate <name> or !donate ? to donate to a random person.");
             return;
         }
 
@@ -641,7 +641,7 @@ public class PubMoneySystemModule extends AbstractModule {
             String[] split = command.split("\\s*:\\s*");
 
             if (split.length != 2) {
-                m_botAction.sendSmartPrivateMessage(sender, "You must specify both a player and an amount to donate. Example: !donate playerA:1000");
+                m_botAction.sendSmartPrivateMessage(sender, "You must specify both a player and an amount to donate. Example: !donate playerA:1000   To donate to a random person, type !donate ?:amount");
                 return;
             }
 
@@ -651,7 +651,7 @@ public class PubMoneySystemModule extends AbstractModule {
             try {
                 Integer.valueOf(money);
             } catch (NumberFormatException e) {
-                m_botAction.sendSmartPrivateMessage(sender, "You must specify a number. !donate playerA:1000");
+                m_botAction.sendSmartPrivateMessage(sender, "You must specify a number. !donate playerA:1000   or !donate ?:1000 to donate 1000 to a rando.");
                 return;
             }
 
@@ -659,18 +659,42 @@ public class PubMoneySystemModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(sender, "You cannot donate while dueling.");
                 return;
             }
-
-            if (Integer.valueOf(money) < 0) {
-                m_botAction.sendSmartPrivateMessage(sender, "What are you trying to do here?");
-                return;
+            
+            Player p;
+            
+            boolean isRandom = name.equals("?"); 
+            
+            if (isRandom) {
+                if (Integer.valueOf(money) < 1000) {
+                    m_botAction.sendSmartPrivateMessage(sender, "You cannot donate to a random person for less than $1000.");
+                    return;
+                }
+                
+                Iterator<Player> i = m_botAction.getPlayerIterator();
+                StringBag sbplaying = new StringBag();
+                StringBag sbnotplaying = new StringBag();
+                
+                while (i.hasNext()) {
+                    p = i.next();
+                    if (p != null && !p.getPlayerName().equals(sender) && !m_botAction.getOperatorList().isBot(p.getPlayerName())) {
+                        if (p.getShipType() > 0)
+                            sbplaying.add(p.getPlayerName());
+                        else
+                            sbnotplaying.add(p.getPlayerName());
+                    }
+                }
+                
+                p = m_botAction.getFuzzyPlayer(sbplaying.grab());
+                if (p == null)
+                    p = m_botAction.getFuzzyPlayer(sbnotplaying.grab());                
+            } else {
+                if (Integer.valueOf(money) < 10) {
+                    m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $10.");
+                    return;
+                }
+                
+                p = m_botAction.getFuzzyPlayer(name);            
             }
-
-            if (Integer.valueOf(money) < 10) {
-                m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $10.");
-                return;
-            }
-
-            Player p = m_botAction.getFuzzyPlayer(name);
 
             if (p == null) {
                 m_botAction.sendSmartPrivateMessage(sender, "Player not found.");
@@ -680,7 +704,7 @@ public class PubMoneySystemModule extends AbstractModule {
             name = p.getPlayerName();
 
             if (name.equals(sender)) {
-                m_botAction.sendSmartPrivateMessage(sender, "You cannot donate to yourself.");
+                m_botAction.sendSmartPrivateMessage(sender, "You cannot donate to yourself. You silly person.");
                 return;
             }
 
@@ -706,6 +730,10 @@ public class PubMoneySystemModule extends AbstractModule {
                 pubPlayerDonater.removeMoney(moneyToDonate);
                 m_botAction.sendSmartPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
                 m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate + currentMoney) + ".");
+                
+                if (isRandom && moneyToDonate > 5000) {
+                    m_botAction.sendArenaMessage("[DONOR]  " + sender + " has randomly donated $" + moneyToDonate + " to " + pubPlayer.getPlayerName() + "!");
+                }
 
                 context.moneyLog("[DONATE] " + sender + " donated $" + moneyToDonate + " to " + pubPlayer.getPlayerName() + ".");
 
@@ -2997,7 +3025,7 @@ public class PubMoneySystemModule extends AbstractModule {
                    pubsystem.getHelpLine("!buy <item>         -- Item to buy. (!b)"),
                    pubsystem.getHelpLine("!iteminfo <item>    -- Information about this item. (restriction, duration, etc.)"),
                    pubsystem.getHelpLine("!money <name>       -- Display your money or for a given player name. (!$)"),
-                   pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player."),
+                   pubsystem.getHelpLine("!donate <name>:<$>  -- Donate money to a player. (Use ? to donate to a random player.)"),
                    pubsystem.getHelpLine("!coupon <code>      -- Redeem your <code>."),
                    pubsystem.getHelpLine("!richest            -- Top 5 richest players currently playing."),
                    pubsystem.getHelpLine("!richestall         -- Top 10 richest players in all of TW."),
@@ -3654,20 +3682,20 @@ public class PubMoneySystemModule extends AbstractModule {
             if (item != null) {
                 buyer.addMoney(item.getPrice());
             } else {
-                buyer.addMoney(10000);  // Unfortunately must use a magic # if we fail to get price
+                buyer.addMoney(14000);  // Unfortunately must use a magic # if we fail to get price
             }
 
             return;
         }
 
         m_botAction.sendPrivateMessage(sender, "Giving a shoutout to " + p.getPlayerName() + "!");
-        m_botAction.sendArenaMessage("[SHOUTOUT]     \\o/   " + sender + " gives a shoutout to " + p.getPlayerName() + "!   \\o/", Tools.Sound.PLAY_MUSIC_ONCE);
+        m_botAction.sendArenaMessage("[SHOUTOUT]     \\o/   " + sender + " gives a shoutout to " + p.getPlayerName() + "!   \\o/", Tools.Sound.CROWD_AWW);
         m_botAction.sendPrivateMessage(p.getPlayerName(), "ITZZZZZ");
         m_botAction.sendPrivateMessage(p.getPlayerName(), "YA BOOOOYYYYYYYY");
         m_botAction.sendPrivateMessage(p.getPlayerName(), ">>>>>>>>>>>>>>>>>>>>>>" + sender.toUpperCase());
         // [SHOUTOUT]     \o/   Bob Dole gives a shoutout to Barbara Walters!   \o/
-        
-        // TODO: Add shoutout LVZ graphic.
+
+        m_botAction.showObjectForPlayer(p.getPlayerID(), 2746);        
     }
 
     /**
@@ -3686,16 +3714,22 @@ public class PubMoneySystemModule extends AbstractModule {
         
         if (params.equals("?")) {
             Iterator<Player> i = m_botAction.getPlayerIterator();
-            StringBag sb = new StringBag();
+            StringBag sbplaying = new StringBag();
+            StringBag sbnotplaying = new StringBag();
             
             while (i.hasNext()) {
                 p = i.next();
                 if (p != null && !p.getPlayerName().equals(sender) && !m_botAction.getOperatorList().isBot(p.getPlayerName())) {
-                    sb.add(p.getPlayerName());
+                    if (p.getShipType() > 0)
+                        sbplaying.add(p.getPlayerName());
+                    else
+                        sbnotplaying.add(p.getPlayerName());
                 }
             }
             
-            p = m_botAction.getFuzzyPlayer(sb.grab());            
+            p = m_botAction.getFuzzyPlayer(sbplaying.grab());
+            if (p == null)
+                p = m_botAction.getFuzzyPlayer(sbnotplaying.grab());                
         } else {
             p = m_botAction.getFuzzyPlayer(params);            
         }
@@ -3704,7 +3738,7 @@ public class PubMoneySystemModule extends AbstractModule {
             if (params.equals("?"))
                 m_botAction.sendPrivateMessage(sender, "Unable to locate a random player to give tea to. For shame.");
             else
-                m_botAction.sendPrivateMessage(sender, "Can't find a player in this arena that matches that name.");
+                m_botAction.sendPrivateMessage(sender, "Can't find a player in this arena that matches that name. To give tea to a random player, try !buy tea:?");
 
             PubPlayer buyer = playerManager.getPlayer(sender);
             PubItem item = store.getItem("tea");
@@ -3712,7 +3746,7 @@ public class PubMoneySystemModule extends AbstractModule {
             if( item != null ) {
                 buyer.addMoney(item.getPrice());
             } else {
-                buyer.addMoney(10000);  // Unfortunately must use a magic # if we fail to get price
+                buyer.addMoney(8000);  // Unfortunately must use a magic # if we fail to get price
             }
 
             return;
@@ -3762,7 +3796,7 @@ public class PubMoneySystemModule extends AbstractModule {
         }
         
         if (pi != 9) {
-            m_botAction.sendPrivateMessage(p.getPlayerID(), sender + " gives you " + teaType + ".");
+            m_botAction.sendPrivateMessage(p.getPlayerID(), sender + " gives you " + teaType + ".", 150);
             m_botAction.sendArenaMessage("c\\_/   Teatime!  " + sender + " gives " + teaType + " to " + p.getPlayerName() + ".");
             // c\_/   Teatime!  Bob Dole gives a cup of tea to Barbara Walters.
         } else {
@@ -3770,8 +3804,8 @@ public class PubMoneySystemModule extends AbstractModule {
             m_botAction.sendPrivateMessage(p.getPlayerID(), sender + " spills " + teaType + " on you.");
             m_botAction.sendArenaMessage("c\\_/   Teatime!  " + sender + " spills " + teaType + " on " + p.getPlayerName() + ".");            
         }
-        
-        // TODO: Add tea graphic and tea pouring sound.        
+        // Show teacup (TEA ENABLED)
+        m_botAction.showObjectForPlayer(p.getPlayerID(), 2745);
     }
 
     /**
