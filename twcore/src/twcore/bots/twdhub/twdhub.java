@@ -378,6 +378,36 @@ public class twdhub extends SubspaceBot {
                     game.setID(ipc.getID());
                     game.setRound(1);
                     game.setState(0);
+                    String message = "Your squad is starting a " + game.getType() + " match against " + game.squad2.name + " in ?go " + game.arena.name;
+                    PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
+                    try {
+                        ps_squadMembers.clearParameters();
+                        ps_squadMembers.setString(1, Tools.addSlashesToString(game.squad1.name));
+                        ps_squadMembers.execute();
+                        ResultSet rs = ps_squadMembers.getResultSet();
+                        while (rs.next()) {
+                            debug("Pushing to " + rs.getString("fcUserName"));
+                            pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
+                        }
+                    } catch (SQLException | PushbulletException e) {
+                        Tools.printStackTrace(e);
+                    } finally {
+                    }
+                    message = "Your squad is starting a " + game.getType() + " match against " + game.squad1.name + " in ?go " + game.arena.name;
+                    PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
+                    try {
+                        ps_squadMembers.clearParameters();
+                        ps_squadMembers.setString(1, Tools.addSlashesToString(game.squad2.name));
+                        ps_squadMembers.execute();
+                        ResultSet rs = ps_squadMembers.getResultSet();
+                        while (rs.next()) {
+                            debug("Pushing to " + rs.getString("fcUserName"));
+                            pbClient.sendNote(null, rs.getString("fcPushBulletEmail"), "", message);
+                        }
+                    } catch (SQLException | PushbulletException e) {
+                        Tools.printStackTrace(e);
+                    } finally {
+                    }
                 }
             } else if (ipc.getType() == EventType.STATE) {
                 if (arenas.containsKey(ipc.getArena()) && arenas.get(ipc.getArena()).game != null) {
