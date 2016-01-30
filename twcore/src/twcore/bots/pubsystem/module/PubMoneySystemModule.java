@@ -731,8 +731,8 @@ public class PubMoneySystemModule extends AbstractModule {
                 m_botAction.sendSmartPrivateMessage(sender, "$" + moneyToDonate + " sent to " + pubPlayer.getPlayerName() + ".");
                 m_botAction.sendSmartPrivateMessage(pubPlayer.getPlayerName(), sender + " sent you $" + moneyToDonate + ", you have now $" + (moneyToDonate + currentMoney) + ".");
                 
-                if (isRandom && moneyToDonate > 5000) {
-                    m_botAction.sendArenaMessage("[DONOR]  " + sender + " has randomly donated $" + moneyToDonate + " to " + pubPlayer.getPlayerName() + "!");
+                if (isRandom && moneyToDonate >= 10000) {
+                    m_botAction.sendArenaMessage("[DONOR]  " + sender + " has randomly donated $" + moneyToDonate + " to " + pubPlayer.getPlayerName() + "!", Tools.Sound.CROWD_OOO);
                 }
 
                 context.moneyLog("[DONATE] " + sender + " donated $" + moneyToDonate + " to " + pubPlayer.getPlayerName() + ".");
@@ -3803,9 +3803,14 @@ public class PubMoneySystemModule extends AbstractModule {
             // SPILL
             m_botAction.sendPrivateMessage(p.getPlayerID(), sender + " spills " + teaType + " on you.");
             m_botAction.sendArenaMessage("c\\_/   Teatime!  " + sender + " spills " + teaType + " on " + p.getPlayerName() + ".");            
+            m_botAction.sendTeamMessage("::watches as " + p.getPlayerName() + " screams in horror::");
         }
+        
         // Show teacup (TEA ENABLED)
         m_botAction.showObjectForPlayer(p.getPlayerID(), 2745);
+        
+        TeaTimerTask t = new TeaTimerTask(p.getPlayerName());
+        m_botAction.scheduleTask(t, 5000);
     }
 
     /**
@@ -4532,7 +4537,10 @@ public class PubMoneySystemModule extends AbstractModule {
                 m_botAction.sendTeamMessage("::watches as " + name + " sips tea::"); break;
             case 1:
                 m_botAction.sendTeamMessage("::watches as " + name + " says, \"I love tea!\"::"); break;
-            default:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
                 m_botAction.sendTeamMessage("::sips tea::"); break;
             }
         }
