@@ -981,6 +981,7 @@ public class twdhub extends SubspaceBot {
             ps_getinterpretbeep.clearParameters();
             ps_getinterpretbeep.setString(1, Tools.addSlashesToString(userMsg));
             ps_getinterpretbeep.setString(2, Tools.addSlashesToString(userMsg));
+            debug(ps_getinterpretbeep.toString());
             ps_getinterpretbeep.execute();
             rs = ps_getinterpretbeep.getResultSet();
         }
@@ -1104,14 +1105,14 @@ public class twdhub extends SubspaceBot {
         String squadAlert = "";
         Boolean settingChange = false;
         ResultSet rs_InterpretCommand = getInterpretCommand(playerName, userMsg);
-        debug(rs_InterpretCommand.toString());
         try {
             while (rs_InterpretCommand.next()) {
-                if (rs_InterpretCommand.getInt("fnSettingUpdate") == 1) {
+                
+            	if (rs_InterpretCommand.getInt("fnSettingUpdate") == 1) {
                     //This is a setting command
                     try {
-                    	switch (rs_InterpretCommand.getString("fcCommand").toLowerCase()) {
-                        
+                    	debug(playerName + " : " + rs_InterpretCommand.getString("fcCommand").toLowerCase());
+                    	switch (rs_InterpretCommand.getString("fcCommand").toLowerCase()) {                    	
                     	case "enable":
                             switchAlertsPB(playerName, 0);
                             settingChange = true;
@@ -1134,7 +1135,8 @@ public class twdhub extends SubspaceBot {
                         //if setting change above matches, send personal note to player's pushbullet account letting them know of successful change
                         if (settingChange) {
                             pbClient.sendNote( null, getEmailByUserName(playerName), "", rs_InterpretCommand.getString("fcCommandShortDescription"));
-                            ba.sendSmartPrivateMessage(playerName, rs_InterpretCommand.getString("fcCommandShortDescription"));
+                            //ba.sendSmartPrivateMessage(playerName, rs_InterpretCommand.getString("fcCommandShortDescription"));
+                            debug(rs_InterpretCommand.getString("fcCommandShortDescription"));
                         }
                     } catch (PushbulletException e1) {
                         // TODO Auto-generated catch block
