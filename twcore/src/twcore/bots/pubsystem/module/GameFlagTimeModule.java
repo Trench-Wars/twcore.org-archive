@@ -1448,10 +1448,11 @@ public class GameFlagTimeModule extends AbstractModule {
         int secs = flagTimer.getTotalSecs();
         int mins = (secs / 60);
 
-        int moneyBonus = ((flagTimer.freqsSecs.get(winnerFreq)) * 3);
+        int moneyBonus = ((flagTimer.freqsSecs.get(winnerFreq) + flagTimer.getTurnoverSecondBonus()) * 3);
+        int turnovers = flagTimer.getTurnovers();
 
-        if (moneyBonus > 2000)
-            moneyBonus = 2000;
+        if (moneyBonus > 5000)
+            moneyBonus = 5000;
 
         if (!hunterFreqWon)
             m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this round. End-round bonus: $" + moneyBonus);
@@ -1473,19 +1474,19 @@ public class GameFlagTimeModule extends AbstractModule {
             int roundNumber = freq0Score + freq1Score;
             m_botAction.sendArenaMessage("[FLAG] END OF ROUND " + roundNumber
                                          + ": Freq " + winnerFreq + " wins after " + getTimeString(flagTimer.getTotalSecs())
-                                         + (gameOver ? " Final" : " Current") + " Score: " + freq0Score + "-" + freq1Score
-                                         + " (Bonus: +$" + moneyBonus + ")");
+                                         + (gameOver ? ". Final" : ". Current") + " Score: " + freq0Score + "-" + freq1Score
+                                         + " (Bonus: +$" + moneyBonus + ") Turnovers: " + turnovers);
 
 
         } else if (hunterFreqWon) {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: Levi Hunters (freq " + winnerFreq + ") win the round after " + getTimeString(flagTimer.getTotalSecs())
-                                         + ". (Bonus: NONE)");
+                                         + ". (Bonus: NONE) Turnovers: " + turnovers);
         } else if (winnerFreq < 100) {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: Freq " + winnerFreq + " wins the round after " + getTimeString(flagTimer.getTotalSecs())
-                                         + ". (Bonus: +$" + moneyBonus + ")");
+                                         + ". (Bonus: +$" + moneyBonus + ") Turnovers: " + turnovers);
         } else {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: A PRIVATE FREQ wins the round after " + getTimeString(flagTimer.getTotalSecs()) + "! (Bonus: +$"
-                                         + moneyBonus + ")");
+                                         + moneyBonus + ") Turnovers: " + turnovers);
         }
 
         // Clear any round restricted buyable items/commands
@@ -2900,6 +2901,7 @@ public class GameFlagTimeModule extends AbstractModule {
         int flagHoldingFreq, flagClaimingFreq;
         int secondsHeld, totalSecs, claimSecs, preTimeCount;
         int claimerID;
+        int turnovers[] = {0,0,0};      // Turnovers. Near to end of clock, mid-round and simple FR battles, respectively 
 
         HashMap<Integer, Integer> freqsSecs;
 
@@ -3092,6 +3094,7 @@ public class GameFlagTimeModule extends AbstractModule {
                         m_botAction.showObject(2600);
                         m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I'll give you $1000 for this.");
                         context.getPlayerManager().addMoney(p.getPlayerName(), 1000);
+                        turnovers[0]++;
 
                     } else if (remain < 11) {
                         m_botAction.sendArenaMessage("[FLAG] AMAZING!: " + p.getPlayerName() + " claims flag for "
@@ -3099,13 +3102,20 @@ public class GameFlagTimeModule extends AbstractModule {
                         m_botAction.showObject(2600); // 'Daym!' lvz
                         m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I'll give you $500 for this.");
                         context.getPlayerManager().addMoney(p.getPlayerName(), 500);
+                        turnovers[0]++;
 
                     } else if (remain < 26) {
                         m_botAction.sendArenaMessage("[FLAG] SAVE!: " + p.getPlayerName() + " claims flag for "
                                                      + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left!");
                         m_botAction.sendPrivateMessage(p.getPlayerName(), "Nice work. BONUS: $250");
                         context.getPlayerManager().addMoney(p.getPlayerName(), 250);
+                        turnovers[0]++;
+                        
                     } else {
+                        if (remain < 140)   // 2:30
+                            turnovers[1]++;
+                        else
+                            turnovers[2]++;
                         m_botAction.sendArenaMessage("[FLAG] Save: " + p.getPlayerName() + " claims flag for "
                                                      + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left.");
                     }
@@ -3450,6 +3460,22 @@ public class GameFlagTimeModule extends AbstractModule {
         public int getHoldingFreq() {
             return flagHoldingFreq;
         }
+        
+        /**
+            @return Number of flag turnovers
+         */
+        public int getTurnovers() {
+            return turnovers[0] + turnovers[1] + turnovers[2];
+        }
+
+        /**
+            @return Bonus seconds awarded for winning team based on number of flag turnovers 
+         */
+        public int getTurnoverSecondBonus() {
+            return turnovers[0] * 90 + turnovers[1] * 30 + turnovers[2] * 10;
+        }
+        
+        
 
         /**
             Timer running once per second that handles the starting of a round, displaying of information updates every 5 minutes, the flag claiming
