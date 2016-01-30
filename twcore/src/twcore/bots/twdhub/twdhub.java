@@ -1104,7 +1104,7 @@ public class twdhub extends SubspaceBot {
         String squadAlert = "";
         Boolean settingChange = false;
         ResultSet rs_InterpretCommand = getInterpretCommand(playerName, userMsg);
-
+        debug(rs_InterpretCommand.toString());
         try {
             while (rs_InterpretCommand.next()) {
                 if (rs_InterpretCommand.getInt("fnSettingUpdate") == 1) {
@@ -1115,16 +1115,19 @@ public class twdhub extends SubspaceBot {
                     	case "enable":
                             switchAlertsPB(playerName, 0);
                             settingChange = true;
+                            debug(playerName + " : Alerts Enabled");
                             break;
 
                         case "disable":
                             switchAlertsPB(playerName, 1);
                             settingChange = true;
+                            debug(playerName + " : Alerts Disabled");
                             break;
 
                         case "verify":
                             verifyAccount(playerName);
                             settingChange = true;
+                            debug(playerName + " : Account Verified");
                             break;
                         }
 
