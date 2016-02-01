@@ -109,7 +109,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     // Solo terr incentive: if player is only Terr on freq 0/1, provide a regular bonus
     // NOTE: Values are read from CFG, but these are there as a backup/guide.
-    private boolean giveTerrBonus = true;       // True if sole-terr-on-freq, non-LT terrs
+    private boolean giveTerrBonus = false;       // True if sole-terr-on-freq, non-LT terrs
     // receive a money bonus.
     private int terrBonusFrequency = 117; // How often terrs are given a bonus, in seconds
     private int terrBonusAmt = 250;       // Award amount
@@ -3092,23 +3092,23 @@ public class GameFlagTimeModule extends AbstractModule {
                                                      + (remain == 1 ? "" : "s") + " left!", 65);
                         m_botAction.showObject(2500);
                         m_botAction.showObject(2600);
-                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I'll give you $1000 for this.");
-                        context.getPlayerManager().addMoney(p.getPlayerName(), 1000);
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Wow!! I'll give you $500 for this.");
+                        context.getPlayerManager().addMoney(p.getPlayerName(), 500);
                         turnovers[0]++;
 
                     } else if (remain < 11) {
                         m_botAction.sendArenaMessage("[FLAG] AMAZING!: " + p.getPlayerName() + " claims flag for "
                                                      + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with just " + remain + " sec. left!");
                         m_botAction.showObject(2600); // 'Daym!' lvz
-                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I'll give you $500 for this.");
-                        context.getPlayerManager().addMoney(p.getPlayerName(), 500);
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Not bad at all! I'll give you $250 for this.");
+                        context.getPlayerManager().addMoney(p.getPlayerName(), 250);
                         turnovers[0]++;
 
                     } else if (remain < 26) {
                         m_botAction.sendArenaMessage("[FLAG] SAVE!: " + p.getPlayerName() + " claims flag for "
                                                      + (flagHoldingFreq < 100 ? "Freq " + flagHoldingFreq : "priv. freq") + " with " + remain + " sec. left!");
-                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Nice work. BONUS: $250");
-                        context.getPlayerManager().addMoney(p.getPlayerName(), 250);
+                        m_botAction.sendPrivateMessage(p.getPlayerName(), "Nice work. BONUS: $150");
+                        context.getPlayerManager().addMoney(p.getPlayerName(), 150);
                         turnovers[0]++;
                         
                     } else {
@@ -3475,7 +3475,7 @@ public class GameFlagTimeModule extends AbstractModule {
             @return Bonus seconds awarded for winning team based on number of flag turnovers 
          */
         public int getTurnoverSecondBonus() {
-            return turnovers[0] * 60 + turnovers[1] * 20 + turnovers[2] * 5;
+            return turnovers[0] * 40 + turnovers[1] * 15 + turnovers[2] * 4;
         }
         
         
