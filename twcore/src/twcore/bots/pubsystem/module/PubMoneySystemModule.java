@@ -4520,7 +4520,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
 
     /**
-    TimerTask that checks event hosts purchased previously, and refunds them if they have expired.
+    TimerTask that sends a small message after tea has been purchased.
      */
     private class TeaTimerTask extends TimerTask {
         String name;
