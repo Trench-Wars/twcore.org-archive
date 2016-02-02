@@ -352,6 +352,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         PubPlayer player = getPlayer(p.getPlayerName());
         if (player == null)
             return;
+        player.resetMoneyEarnedThisSession();
 
         if (player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
             if (player.hasStatsDB()) {
@@ -697,7 +698,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         Player player;
 
         while(iterator.hasNext()) {
-            player = (Player) iterator.next();
+            player = iterator.next();
             checkPlayer(player.getPlayerID());
         }
     }
@@ -883,7 +884,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         Player dummy;
 
         while( i.hasNext() ) {
-            dummy = (Player)i.next();
+            dummy = i.next();
 
             if( dummy != null) {
                 if( dummy.getFrequency() == player.getFrequency() ) {
@@ -1284,7 +1285,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         while(iterator.hasNext())
         {
-            player = (Player) iterator.next();
+            player = iterator.next();
             checkFreq(player.getPlayerID(), player.getFrequency(), false);
         }
     }
@@ -1304,7 +1305,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
         while(iterator.hasNext())
         {
-            player = (Player) iterator.next();
+            player = iterator.next();
             lowerName = player.getPlayerName().toLowerCase();
 
             if(player.getFrequency() == pubsystem.FREQ_0)
