@@ -158,10 +158,17 @@ public class PubSessionModule extends AbstractModule {
 
         m_botAction.sendPrivateMessage( requester, "SESSION RECORD of: " + player + "    Kills: " + k + "  Deaths: " + d + "  Ratio: " + getRatio(k, d) );
         PubPlayer pp = context.getPlayerManager().getPlayer(player, false);
-        if (pp != null)
-            m_botAction.sendPrivateMessage( requester, "Time played: " + Tools.getTimeDiffString(p.playingSince, true) + "  Money earned this session: $" + pp.getMoneyEarnedThisSession() );
+        String msg;
+        
+        if (p.playingSince != -1)
+            msg = "Time played: " + Tools.getTimeDiffString(p.playingSince, true);
         else
-            m_botAction.sendPrivateMessage( requester, "Time played: " + Tools.getTimeDiffString(p.playingSince, true) + "  Money earned this session: $N/A");
+            msg = "Time played: 0m:0s";
+        
+        if (pp != null)
+            msg += "  Money earned this session: $" + Tools.getTimeDiffString(p.playingSince, true);
+
+        m_botAction.sendPrivateMessage( requester, msg );
 
         for( int i = 1; i < 9; i++ ) {
             n =  Tools.shipNameSlang( i ).toUpperCase();
@@ -299,7 +306,7 @@ public class PubSessionModule extends AbstractModule {
         } else if( command.equalsIgnoreCase("!stats reset") ) {
             doSessionResetCmd(sender);
         } else if( command.startsWith("!stats ") ) {
-            doSessionCmd( command.substring(9), sender );
+            doSessionCmd( command.substring(7), sender );
         }
     }
 
@@ -379,7 +386,11 @@ public class PubSessionModule extends AbstractModule {
 
             lastKill = System.currentTimeMillis();
             lastDeath = System.currentTimeMillis();
-            playingSince = System.currentTimeMillis();
+            
+            if (ship != 0)
+                playingSince = System.currentTimeMillis();
+            else
+                playingSince = -1;
         }
 
         public void doReset() {
