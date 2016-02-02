@@ -166,7 +166,7 @@ public class PubSessionModule extends AbstractModule {
             msg = "Time played: 0m:0s";
         
         if (pp != null)
-            msg += "  Money earned this session: $" + Tools.getTimeDiffString(p.playingSince, true);
+            msg += "  Money earned this session: $" + pp.getMoneyEarnedThisSession();
 
         m_botAction.sendPrivateMessage( requester, msg );
 
