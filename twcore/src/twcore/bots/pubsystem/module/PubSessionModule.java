@@ -1,10 +1,12 @@
 package twcore.bots.pubsystem.module;
 
 import java.util.HashMap;
+
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
+import twcore.core.events.FrequencyShipChange;
 import twcore.core.events.PlayerEntered;
 import twcore.core.events.PlayerDeath;
 import twcore.core.events.PlayerLeft;
@@ -41,6 +43,7 @@ public class PubSessionModule extends AbstractModule {
         eventRequester.request(EventRequester.PLAYER_DEATH);
         eventRequester.request(EventRequester.PLAYER_LEFT);
         eventRequester.request(EventRequester.PLAYER_ENTERED);
+        eventRequester.request(EventRequester.FREQUENCY_SHIP_CHANGE);
     }
 
     public void handleEvent( PlayerEntered event ) {
@@ -51,8 +54,8 @@ public class PubSessionModule extends AbstractModule {
         if (p == null)
             return;
 
-        SessionPlayer sp = new SessionPlayer( p.getPlayerName() );
-        ps.put(  p.getPlayerName(), sp );
+        SessionPlayer sp = new SessionPlayer( p.getPlayerName(), event.getShipType() );
+        ps.put( p.getPlayerName(), sp );
     }
 
     public void handleEvent(PlayerLeft event) {
@@ -63,9 +66,7 @@ public class PubSessionModule extends AbstractModule {
         if (p == null)
             return;
 
-        @SuppressWarnings("unused")
-        SessionPlayer sp = ps.remove( p.getPlayerName() );
-        sp = null;
+        ps.remove( p.getPlayerName() );
     }
 
     public void handleEvent(PlayerDeath event) {
@@ -77,7 +78,7 @@ public class PubSessionModule extends AbstractModule {
 
         if( killer == null || killed == null )
             return;
-        else {           
+        else {
             SessionPlayer sKiller = ps.get(killer.getPlayerName());
 
             if (sKiller != null) {
@@ -90,6 +91,35 @@ public class PubSessionModule extends AbstractModule {
 
             if (sKilled != null)
                 sKilled.addDeath(killer.getShipType(), killed.getShipType());
+        }
+    }
+
+    public void handleEvent(FrequencyShipChange event) {
+        if (event.getShipType() == 0) {
+            Player p = m_botAction.getPlayer(event.getPlayerID());
+            if (p != null) {
+                SessionPlayer splayer = ps.get(p.getPlayerName());
+
+                if (splayer != null) {
+                    splayer.playingSince = -1;
+                    splayer.lastShip = 0;
+                    splayer.doTimeLandmarksReset();     // So when they re-enter, they can receive time-play awards again
+                }
+            }
+        } else {
+            Player p = m_botAction.getPlayer(event.getPlayerID());
+            if (p != null) {
+                SessionPlayer splayer = ps.get(p.getPlayerName());
+
+                if (splayer != null) {
+                    if (splayer.lastShip == 0) {
+                        splayer.playingSince = System.currentTimeMillis();
+                    }
+
+                    splayer.lastVerifiedActivity = System.currentTimeMillis();
+                    splayer.lastShip = event.getShipType();
+                }
+            }
         }
     }
 
@@ -114,7 +144,7 @@ public class PubSessionModule extends AbstractModule {
 
         if( p.isTracking() == false ) {
             if( player.equals( requester ) )
-                m_botAction.sendPrivateMessage( requester, "You currently are not tracking this session.  !session on to enable." );
+                m_botAction.sendPrivateMessage( requester, "You currently are not tracking this session.  !stats on to enable." );
             else
                 m_botAction.sendPrivateMessage( requester, "That player is currently not tracking this session." );
 
@@ -126,7 +156,8 @@ public class PubSessionModule extends AbstractModule {
         int k2, d2;
         String s, n;
 
-        m_botAction.sendPrivateMessage(  requester, "SESSION RECORD of: " + player + "    Kills: " + k + "  Deaths: " + d + "  Ratio: " + getRatio(k, d) );
+        m_botAction.sendPrivateMessage( requester, "SESSION RECORD of: " + player + "    Kills: " + k + "  Deaths: " + d + "  Ratio: " + getRatio(k, d) );
+        m_botAction.sendPrivateMessage( requester, "Time played: " + Tools.getTimeDiffString(p.playingSince, true) + "   Last active: " + Tools.getTimeDiffString(p.lastVerifiedActivity, true));
 
         for( int i = 1; i < 9; i++ ) {
             n =  Tools.shipNameSlang( i ).toUpperCase();
@@ -155,7 +186,7 @@ public class PubSessionModule extends AbstractModule {
         }
 
         if( p.isTracking() == false ) {
-            m_botAction.sendPrivateMessage( sender, "You currently are not tracking this session.  !session on to enable." );
+            m_botAction.sendPrivateMessage( sender, "You currently are not tracking this session.  !stats on to enable." );
             return;
         }
 
@@ -197,7 +228,7 @@ public class PubSessionModule extends AbstractModule {
         SessionPlayer p = ps.get( sender );
 
         if( p == null ) {
-            m_botAction.sendPrivateMessage( sender, "Can't find your session record.  Please contact a member of staff." );
+            m_botAction.sendPrivateMessage( sender, "Can't find your session stats record.  Please contact a member of staff." );
             return;
         }
 
@@ -209,7 +240,7 @@ public class PubSessionModule extends AbstractModule {
         SessionPlayer p = ps.get( sender );
 
         if( p == null ) {
-            m_botAction.sendPrivateMessage( sender, "Can't find your session record.  Please contact a member of staff." );
+            m_botAction.sendPrivateMessage( sender, "Can't find your session stats record.  Please contact a member of staff." );
             return;
         }
 
@@ -241,11 +272,11 @@ public class PubSessionModule extends AbstractModule {
     @Override
     public void handleCommand(String sender, String command) {
 
-        if( command.equalsIgnoreCase("!session") ) {
+        if( command.equalsIgnoreCase("!stats") ) {
             doSessionCmd( sender, sender );
-        } else if( command.startsWith( "!session ship " ) ) {
+        } else if( command.startsWith( "!stats ship " ) ) {
             try {
-                Integer ship = Integer.decode( command.substring(14) );
+                Integer ship = Integer.decode( command.substring(12) );
 
                 if( ship < 1 || ship > 8 ) {
                     m_botAction.sendPrivateMessage( sender, "Ship number must be between 1 and 8." );
@@ -254,16 +285,16 @@ public class PubSessionModule extends AbstractModule {
 
                 doSessionShipCmd( sender, ship );
             } catch (Exception e) {
-                m_botAction.sendPrivateMessage( sender, "Usage:  !session ship [shipnum]  (e.g.  !session ship 3  shows how well you've done as spider and vs spider in EVERY ship.)" );
+                m_botAction.sendPrivateMessage( sender, "Usage:  !stats ship [shipnum]  (e.g.  !stats ship 3  shows how well you've done as spider and vs spider in EVERY ship.)" );
                 return;
             }
-        } else if( command.equalsIgnoreCase("!session on") ) {
+        } else if( command.equalsIgnoreCase("!stats on") ) {
             doSessionOnOffCmd( sender, true );
-        } else if( command.equalsIgnoreCase("!session off") ) {
+        } else if( command.equalsIgnoreCase("!stats off") ) {
             doSessionOnOffCmd( sender, false );
-        } else if( command.equalsIgnoreCase("!session reset") ) {
+        } else if( command.equalsIgnoreCase("!stats reset") ) {
             doSessionResetCmd(sender);
-        } else if( command.startsWith("!session ") ) {
+        } else if( command.startsWith("!stats ") ) {
             doSessionCmd( command.substring(9), sender );
         }
     }
@@ -275,9 +306,9 @@ public class PubSessionModule extends AbstractModule {
     @Override
     public String[] getHelpMessage(String sender) {
         return new String[] {
-                   pubsystem.getHelpLine("!session [player]  -- Stats for [player] in each ship. Blank=yourself"),
-                   pubsystem.getHelpLine("!session ship [#]  -- Stats for ship#, broken down per-ship (as & vs)"),
-                   pubsystem.getHelpLine("!session [on|off|reset] -- Turn on/off record; reset rec for session")
+                   pubsystem.getHelpLine("!stats [player]  -- Stats for [player] in each ship. Blank=yourself"),
+                   pubsystem.getHelpLine("!stats ship [#]  -- Stats for ship#, broken down per-ship (as & vs)"),
+                   pubsystem.getHelpLine("!stats [on|off|reset] -- Turn on/off record; reset rec for session")
                };
     }
 
@@ -323,10 +354,15 @@ public class PubSessionModule extends AbstractModule {
         int[][] kills = new int[8][8];
         int[][] killedby = new int[8][8];
         byte[] landmarks = new byte[100];
+        byte[] timeLandmarks = new byte[10];
+        long lastVerifiedActivity;
+        long playingSince;
+        int lastShip;
         int bonus = 0;
 
-        public SessionPlayer( String name ) {
+        public SessionPlayer( String name, int ship ) {
             this.name = name;
+            this.lastShip = ship;
             tracking = true;
 
             for( int i = 0; i < 8; i++ ) {
@@ -335,6 +371,9 @@ public class PubSessionModule extends AbstractModule {
                     killedby[i][j] = 0;
                 }
             }
+
+            lastVerifiedActivity = System.currentTimeMillis();
+            playingSince = System.currentTimeMillis();
         }
 
         public void doReset() {
@@ -346,16 +385,28 @@ public class PubSessionModule extends AbstractModule {
             }
         }
 
+        public void doTimeLandmarksReset() {
+            for( int i = 0; i < 10; i++ ) {
+                timeLandmarks[i] = 0;
+            }
+        }
+
         public void addKill( int wship, int lship ) {
             if( tracking && wship > 0 && wship < 9 && lship > 0 && lship < 9 ) {
                 kills[ --wship ][ --lship ]++;
                 checkForLandmarkKills( wship, lship );
             }
+
+            checkForTimeLandmark();
+            lastVerifiedActivity = System.currentTimeMillis();
         }
 
         public void addDeath( int wship, int lship ) {
             if( tracking && wship > 0 && wship < 9 && lship > 0 && lship < 9 )
                 killedby[ --wship ][ --lship ]++;
+
+            checkForTimeLandmark();
+            lastVerifiedActivity = System.currentTimeMillis();
         }
 
         public boolean setTracking( boolean t ) {
@@ -563,9 +614,17 @@ public class PubSessionModule extends AbstractModule {
 
             if( landmarks[48] == 0 ) {
                 if( kills == 25 ) {
-                    bonus = 100;
-                    send( "25 kills this session.  (PM !session to see details.)" );
+                    bonus = 150;
+                    send( "25 kills this session.  (PM !stats to see details.)" );
                     landmarks[48] = 1;
+                }
+            }
+
+            if( landmarks[49] == 0 ) {
+                if( kills == 25 ) {
+                    bonus = 100;
+                    send( "10 kills this session.  (PM !stats to see details.)" );
+                    landmarks[49] = 1;
                 }
             }
 
@@ -967,6 +1026,72 @@ public class PubSessionModule extends AbstractModule {
             }
         }
 
+        public void checkForTimeLandmark() {
+            // Player is (probably) idle if they haven't killed, died or changed ship in last 5 min
+            if (lastVerifiedActivity + (5 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis()) {
+                // So let's pretend that time didn't exist for the purposes of checking playing landmarks.
+                // Players may lose some time as terr/shark, but it's necessary to prevent abuse.
+                playingSince += (5 * Tools.TimeInMillis.MINUTE);
+                return;
+            }
+
+            if (playingSince == -1)
+                return;
+
+            // Max reward is 4 hours, in case someone figures out a way to game this system.
+            // Plus, it's probably time to take a break anyhow.
+
+            if (playingSince + (240 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[0] == 0) {
+                bonus = 15000;
+                send( "4 hours played! You BEAST!!" );
+                timeLandmarks[0] = 1;
+
+            } else if (playingSince + (180 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[1] == 0) {
+                bonus = 10000;
+                send( "3 hours played! A legendary run." );
+                timeLandmarks[1] = 1;
+
+            } else if (playingSince + (150 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[2] == 0) {
+                bonus = 8500;
+                send( "2 and a half hours played! There's no stopping you." );
+                timeLandmarks[2] = 1;
+
+            } else if (playingSince + (120 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[3] == 0) {
+                bonus = 7500;
+                send( "2 hours played! You're holding it down." );
+                timeLandmarks[3] = 1;
+
+            } else if (playingSince + (90 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[4] == 0) {
+                bonus = 6000;
+                send( "90 minutes played this session!" );
+                timeLandmarks[4] = 1;
+
+            } else if (playingSince + (60 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[5] == 0) {
+                bonus = 5000;
+                send( "1 hour played this session!" );
+                timeLandmarks[5] = 1;
+
+            } else if (playingSince + (45 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[6] == 0) {
+                bonus = 1000;
+                send( "45 minutes played this session." );
+                timeLandmarks[6] = 1;
+
+            } else if (playingSince + (30 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[7] == 0) {
+                bonus = 500;
+                send( "30 minutes played this session." );
+                timeLandmarks[7] = 1;
+
+            } else if (playingSince + (20 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[8] == 0) {
+                bonus = 250;
+                send( "20 minutes played this session." );
+                timeLandmarks[8] = 1;
+
+            } else if (playingSince + (10 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[9] == 0) {
+                bonus = 100;
+                send( "10 minutes played this session." );
+                timeLandmarks[9] = 1;
+            }
+        }
 
         public boolean landmarkEventCheck( int pship, int eship, int comparison, int value ) {
 
@@ -1058,7 +1183,6 @@ public class PubSessionModule extends AbstractModule {
 
     @Override
     public void handleSmodCommand(String sender, String command) {
-        // TODO Auto-generated method stub
 
     }
 
