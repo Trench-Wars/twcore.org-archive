@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
+import twcore.bots.pubsystem.module.player.PubPlayer;
 import twcore.core.BotAction;
 import twcore.core.EventRequester;
 import twcore.core.events.FrequencyShipChange;
@@ -116,7 +117,6 @@ public class PubSessionModule extends AbstractModule {
                         splayer.playingSince = System.currentTimeMillis();
                     }
 
-                    splayer.lastVerifiedActivity = System.currentTimeMillis();
                     splayer.lastShip = event.getShipType();
                 }
             }
@@ -157,7 +157,11 @@ public class PubSessionModule extends AbstractModule {
         String s, n;
 
         m_botAction.sendPrivateMessage( requester, "SESSION RECORD of: " + player + "    Kills: " + k + "  Deaths: " + d + "  Ratio: " + getRatio(k, d) );
-        m_botAction.sendPrivateMessage( requester, "Time played: " + Tools.getTimeDiffString(p.playingSince, true) + "   Last active: " + Tools.getTimeDiffString(p.lastVerifiedActivity, true));
+        PubPlayer pp = context.getPlayerManager().getPlayer(player, false);
+        if (pp != null)
+            m_botAction.sendPrivateMessage( requester, "Time played: " + Tools.getTimeDiffString(p.playingSince, true) + "  Money earned this session: $" + pp.getMoneyEarnedThisSession() );
+        else
+            m_botAction.sendPrivateMessage( requester, "Time played: " + Tools.getTimeDiffString(p.playingSince, true) + "  Money earned this session: $N/A");
 
         for( int i = 1; i < 9; i++ ) {
             n =  Tools.shipNameSlang( i ).toUpperCase();
@@ -355,7 +359,8 @@ public class PubSessionModule extends AbstractModule {
         int[][] killedby = new int[8][8];
         byte[] landmarks = new byte[100];
         byte[] timeLandmarks = new byte[10];
-        long lastVerifiedActivity;
+        long lastKill;
+        long lastDeath;
         long playingSince;
         int lastShip;
         int bonus = 0;
@@ -372,7 +377,8 @@ public class PubSessionModule extends AbstractModule {
                 }
             }
 
-            lastVerifiedActivity = System.currentTimeMillis();
+            lastKill = System.currentTimeMillis();
+            lastDeath = System.currentTimeMillis();
             playingSince = System.currentTimeMillis();
         }
 
@@ -398,7 +404,7 @@ public class PubSessionModule extends AbstractModule {
             }
 
             checkForTimeLandmark();
-            lastVerifiedActivity = System.currentTimeMillis();
+            lastKill = System.currentTimeMillis();
         }
 
         public void addDeath( int wship, int lship ) {
@@ -406,7 +412,7 @@ public class PubSessionModule extends AbstractModule {
                 killedby[ --wship ][ --lship ]++;
 
             checkForTimeLandmark();
-            lastVerifiedActivity = System.currentTimeMillis();
+            lastDeath = System.currentTimeMillis();
         }
 
         public boolean setTracking( boolean t ) {
@@ -1027,66 +1033,71 @@ public class PubSessionModule extends AbstractModule {
         }
 
         public void checkForTimeLandmark() {
-            // Player is (probably) idle if they haven't killed, died or changed ship in last 5 min
-            if (lastVerifiedActivity + (5 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis()) {
-                // So let's pretend that time didn't exist for the purposes of checking playing landmarks.
-                // Players may lose some time as terr/shark, but it's necessary to prevent abuse.
-                playingSince += (5 * Tools.TimeInMillis.MINUTE);
-                return;
-            }
-
             if (playingSince == -1)
                 return;
+
+            long currTime = System.currentTimeMillis();
+
+            // Player is (probably) idle if they haven't killed in 3 minutes and haven't died within the last 30 seconds
+            if (lastKill + (3 * Tools.TimeInMillis.MINUTE) < currTime) {
+
+                if (lastDeath + (30 * Tools.TimeInMillis.SECOND) < currTime) {
+                    // So let's erase that time for the purposes of checking playing landmarks.
+                    // Players may lose some time as terr/shark, but it's necessary to prevent abuse.
+                    playingSince += (3 * Tools.TimeInMillis.MINUTE);
+                    return;
+                }
+            }
 
             // Max reward is 4 hours, in case someone figures out a way to game this system.
             // Plus, it's probably time to take a break anyhow.
 
-            if (playingSince + (240 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[0] == 0) {
+            if (playingSince + (240 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[0] == 0) {
                 bonus = 15000;
                 send( "4 hours played! You BEAST!!" );
                 timeLandmarks[0] = 1;
 
-            } else if (playingSince + (180 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[1] == 0) {
+            } else if (playingSince + (180 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[1] == 0) {
                 bonus = 10000;
                 send( "3 hours played! A legendary run." );
                 timeLandmarks[1] = 1;
 
-            } else if (playingSince + (150 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[2] == 0) {
+            } else if (playingSince + (150 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[2] == 0) {
                 bonus = 8500;
                 send( "2 and a half hours played! There's no stopping you." );
                 timeLandmarks[2] = 1;
 
-            } else if (playingSince + (120 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[3] == 0) {
+            } else if (playingSince + (120 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[3] == 0) {
                 bonus = 7500;
                 send( "2 hours played! You're holding it down." );
                 timeLandmarks[3] = 1;
 
-            } else if (playingSince + (90 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[4] == 0) {
+            } else if (playingSince + (90 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[4] == 0) {
                 bonus = 6000;
                 send( "90 minutes played this session!" );
                 timeLandmarks[4] = 1;
 
-            } else if (playingSince + (60 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[5] == 0) {
+            } else if (playingSince + (60 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[5] == 0) {
                 bonus = 5000;
                 send( "1 hour played this session!" );
                 timeLandmarks[5] = 1;
 
-            } else if (playingSince + (45 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[6] == 0) {
+            } else if (playingSince + (45 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[6] == 0) {
                 bonus = 1000;
                 send( "45 minutes played this session." );
                 timeLandmarks[6] = 1;
 
-            } else if (playingSince + (30 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[7] == 0) {
+            } else if (playingSince + (30 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[7] == 0) {
                 bonus = 500;
                 send( "30 minutes played this session." );
                 timeLandmarks[7] = 1;
 
-            } else if (playingSince + (20 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[8] == 0) {
+            } else if (playingSince + (20 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[8] == 0) {
                 bonus = 250;
                 send( "20 minutes played this session." );
                 timeLandmarks[8] = 1;
 
-            } else if (playingSince + (10 * Tools.TimeInMillis.MINUTE) < System.currentTimeMillis() && timeLandmarks[9] == 0) {
+            } else if (playingSince + (10 * Tools.TimeInMillis.MINUTE) < currTime && timeLandmarks[9] == 0) {
                 bonus = 100;
                 send( "10 minutes played this session." );
                 timeLandmarks[9] = 1;
