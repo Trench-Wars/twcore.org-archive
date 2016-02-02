@@ -594,7 +594,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     PubItemDuration duration = item.getDuration();
 
                     if (duration.hasTime()) {
-                        final int currentShip = (int) player.getShipType();
+                        final int currentShip = player.getShipType();
                         TimerTask timer = new TimerTask() {
                             public void run() {
                                 m_botAction.setShip(receiver.getPlayerName(), currentShip);
@@ -662,7 +662,7 @@ public class PubMoneySystemModule extends AbstractModule {
             
             Player p;
             
-            boolean isRandom = name.equals("?"); 
+            boolean isRandom = name.equals("?");
             
             if (isRandom) {
                 if (Integer.valueOf(money) < 1000) {
@@ -686,14 +686,14 @@ public class PubMoneySystemModule extends AbstractModule {
                 
                 p = m_botAction.getFuzzyPlayer(sbplaying.grab());
                 if (p == null)
-                    p = m_botAction.getFuzzyPlayer(sbnotplaying.grab());                
+                    p = m_botAction.getFuzzyPlayer(sbnotplaying.grab());
             } else {
                 if (Integer.valueOf(money) < 10) {
                     m_botAction.sendSmartPrivateMessage(sender, "You cannot donate for less than $10.");
                     return;
                 }
                 
-                p = m_botAction.getFuzzyPlayer(name);            
+                p = m_botAction.getFuzzyPlayer(name);
             }
 
             if (p == null) {
@@ -1245,15 +1245,15 @@ public class PubMoneySystemModule extends AbstractModule {
                 PubItemDuration d = item.getDuration();
 
                 if (d.getDeaths() != -1 && d.getSeconds() != -1 && d.getSeconds() > 60) {
-                    m_botAction.sendSmartPrivateMessage(sender, " - " + d.getDeaths() + " life(s) or " + (int) (d.getSeconds() / 60) + " minutes");
+                    m_botAction.sendSmartPrivateMessage(sender, " - " + d.getDeaths() + " life(s) or " + d.getSeconds() / 60 + " minutes");
                 } else if (d.getDeaths() != -1 && d.getSeconds() != -1 && d.getSeconds() <= 60) {
-                    m_botAction.sendSmartPrivateMessage(sender, " - " + d.getDeaths() + " life(s) or " + (int) (d.getSeconds()) + " seconds");
+                    m_botAction.sendSmartPrivateMessage(sender, " - " + d.getDeaths() + " life(s) or " + (d.getSeconds()) + " seconds");
                 } else if (d.getDeaths() != -1) {
                     m_botAction.sendSmartPrivateMessage(sender, " - " + d.getDeaths() + " life(s)");
                 } else if (d.getSeconds() != -1 && d.getSeconds() > 60) {
-                    m_botAction.sendSmartPrivateMessage(sender, " - " + (int) (d.getSeconds() / 60) + " minutes");
+                    m_botAction.sendSmartPrivateMessage(sender, " - " + d.getSeconds() / 60 + " minutes");
                 } else if (d.getSeconds() != -1 && d.getSeconds() <= 60) {
-                    m_botAction.sendSmartPrivateMessage(sender, " - " + (int) (d.getSeconds()) + " seconds");
+                    m_botAction.sendSmartPrivateMessage(sender, " - " + (d.getSeconds()) + " seconds");
                 }
             }
 
@@ -1369,7 +1369,7 @@ public class PubMoneySystemModule extends AbstractModule {
             }
         }
 
-        if (bet < 10 || bet > 500) {
+        if (bet < 10 || bet > 1000) {
             m_botAction.sendPrivateMessage(sender, "Provide an amount between 10 and 500. (To bet larger amounts, use !fruit amt:times, e.g., !fruit 100:10 to bet 100 for 10 total pulls of the fruit machine)");
             return;
         }
@@ -1487,9 +1487,9 @@ public class PubMoneySystemModule extends AbstractModule {
                     winFactor = 2;
                     winMsg = "LeviTerr Matchup!";
                 } else if (hits[5] >= 1) {
-                    // Each Terr has a 33% chance of giving a free play
+                    // Each Terr has a 25% chance of giving a free play
                     for (int k = 0; k < hits[5]; k++)
-                        if (r.nextInt(3) == 0)
+                        if (r.nextInt(4) == 0)
                             winFactor = 1;
                 }
             }
@@ -1600,7 +1600,7 @@ public class PubMoneySystemModule extends AbstractModule {
             ".|      Double LeviTerr (Terr, 2 Levis)             ... x3    ||",
             ".| .    Base Fighter (any 3 Lancs or Spiders)       ... x3    ||",
             ",|      LeviTerr (Terr, Levi)                       ... x2    ||",
-            "|| |    Portal (every Terr)   ... 33% CHANCE FOR FREE PLAY    ||",
+            "|| |    Portal (every Terr)       ... CHANCE FOR FREE PLAY    ||",
             "|:::::::::::::::::::,.     !fruit $:#     .,:::::::::::::::::::|",
             "||  +1 to multipliers 5 and up when you are playing in-game    |",
             "::::::::::::gl::::::::::::,.   :D   .,::::::::::::hf::::::::::::"
@@ -2825,7 +2825,7 @@ public class PubMoneySystemModule extends AbstractModule {
                     }
                 }
 
-                pubPlayerKiller.setLastKillShips((int) killer.getShipType(), (int) killed.getShipType());
+                pubPlayerKiller.setLastKillShips(killer.getShipType(), killed.getShipType());
                 pubPlayerKiller.setLastKillLocation(location);
                 pubPlayerKiller.setLastKillKilledName(killed.getPlayerName());
                 pubPlayerKiller.setLastKillWithFlag(withFlag);
@@ -3154,7 +3154,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         int x = p.getXLocation();
         int y = p.getYLocation();
-        int angle = (int) p.getRotation() * 9;
+        int angle = p.getRotation() * 9;
 
         int bot_x = x + (int) (-distance * Math.sin(Math.toRadians(angle)));
         int bot_y = y + (int) (distance * Math.cos(Math.toRadians(angle)));
@@ -3222,7 +3222,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
         int toExclude = m_botAction.getPlayingFrequencySize(p.getFrequency());
         int total = m_botAction.getNumPlaying() - toExclude;
-        int jump = (int) (360 / total);
+        int jump = 360 / total;
         Iterator<Player> it = m_botAction.getPlayingPlayerIterator();
 
         // Center of the circle (wormhole) + diameter
@@ -3695,7 +3695,7 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.sendPrivateMessage(p.getPlayerName(), ">>>>>>>>>>>>>>>>>>>>>>" + sender.toUpperCase());
         // [SHOUTOUT]     \o/   Bob Dole gives a shoutout to Barbara Walters!   \o/
 
-        m_botAction.showObjectForPlayer(p.getPlayerID(), 2746);        
+        m_botAction.showObjectForPlayer(p.getPlayerID(), 2746);
     }
 
     /**
@@ -3729,9 +3729,9 @@ public class PubMoneySystemModule extends AbstractModule {
             
             p = m_botAction.getFuzzyPlayer(sbplaying.grab());
             if (p == null)
-                p = m_botAction.getFuzzyPlayer(sbnotplaying.grab());                
+                p = m_botAction.getFuzzyPlayer(sbnotplaying.grab());
         } else {
-            p = m_botAction.getFuzzyPlayer(params);            
+            p = m_botAction.getFuzzyPlayer(params);
         }
 
         if (p == null) {
@@ -3802,7 +3802,7 @@ public class PubMoneySystemModule extends AbstractModule {
         } else {
             // SPILL
             m_botAction.sendPrivateMessage(p.getPlayerID(), sender + " spills " + teaType + " on you.");
-            m_botAction.sendArenaMessage("c\\_/   Teatime!  " + sender + " spills " + teaType + " on " + p.getPlayerName() + ".");            
+            m_botAction.sendArenaMessage("c\\_/   Teatime!  " + sender + " spills " + teaType + " on " + p.getPlayerName() + ".");
             m_botAction.sendTeamMessage("::watches as " + p.getPlayerName() + " screams in horror::");
         }
         
