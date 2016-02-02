@@ -549,7 +549,6 @@ public class PubPlayer implements Comparable<PubPlayer> {
 
     @Override
     public int compareTo(PubPlayer o) {
-        // TODO Auto-generated method stub
         if(o.getMoney() > getMoney()) return 1;
 
         if(o.getMoney() < getMoney()) return 0;
