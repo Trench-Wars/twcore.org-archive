@@ -74,6 +74,7 @@ public class PubPlayer implements Comparable<PubPlayer> {
 
     private String name;
     private int money;
+    private int moneyEarnedThisSession;
     private LinkedList<PubItemUsed> itemsBought;
     private LinkedList<PubItemUsed> itemsBoughtForOther;
     private LinkedList<PubItem> itemsBoughtThisLife;
@@ -195,6 +196,10 @@ public class PubPlayer implements Comparable<PubPlayer> {
         return money;
     }
 
+    public int getMoneyEarnedThisSession() {
+        return moneyEarnedThisSession;
+    }
+
     public void reloadPanel(boolean fullReset) {
         if (fullReset) {
             cashPanel.reset();
@@ -218,11 +223,17 @@ public class PubPlayer implements Comparable<PubPlayer> {
     public void addMoney(int money) {
         money = Math.abs(money);
         setMoney(this.money + money);
+        moneyEarnedThisSession += money;
     }
 
     public void removeMoney(int money) {
         money = Math.abs(money);
         setMoney(this.money - money);
+        moneyEarnedThisSession -= money;
+    }
+
+    public void resetMoneyEarnedThisSession() {
+        moneyEarnedThisSession = 0;
     }
 
     public void addItem(PubItem item, String param) {
@@ -403,7 +414,7 @@ public class PubPlayer implements Comparable<PubPlayer> {
     }
 
     public boolean isOnSpec() {
-        return ((int)m_botAction.getPlayer(name).getShipType()) == 0;
+        return (m_botAction.getPlayer(name).getShipType()) == 0;
     }
 
     public boolean isInSafeZone() {
