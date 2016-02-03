@@ -638,7 +638,7 @@ public class PubSessionModule extends AbstractModule {
             }
 
             if( landmarks[49] == 0 ) {
-                if( kills == 25 ) {
+                if( kills == 10 ) {
                     bonus = 100;
                     send( "10 kills this session.  (PM !stats to see details.)" );
                     landmarks[49] = 1;
