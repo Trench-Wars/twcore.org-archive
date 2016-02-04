@@ -1,97 +1,15 @@
-<head>
-
-<style type="text/css"> 
-#topbar{ 
-	position:absolute; 
-	border: 1px solid black; 
-	padding: 2px; 
-	background-color: lightyellow; 
-	width: 620px; visibility: 
-	hidden; z-index: 100; 
-}
-</style>
-<script type="text/javascript">
-var persistclose=0 //set to 0 or 1. 1 means once the bar is manually closed, it will remain closed for browser session
-var startX = 150 //set x offset of bar in pixels
-var startY = 5 //set y offset of bar in pixels
-var verticalpos="fromtop" //enter "fromtop" or "frombottom"
-
-function iecompattest(){ 
-	return (document.compatMode && document.compatMode!="BackCompat")? document.documentElement : document.body 
-}
-function get_cookie(Name) { 
-	var search = Name + "="; 
-	var returnvalue = ""; 
-	if (document.cookie.length > 0) { 
-		offset = document.cookie.indexOf(search); 
-		if (offset != -1) { 
-			offset += search.length; 
-			end = document.cookie.indexOf(";", offset); 
-			if (end == -1) end = document.cookie.length; 
-			returnvalue=unescape(document.cookie.substring(offset, end)); 
-		} 
-	} 
-	return returnvalue; 
-}
-
-function closebar(){ 
-	if (persistclose) document.cookie="remainclosed=1"; 
-	document.getElementById("topbar").style.visibility="hidden"; 
-}
-
-function staticbar(){
-	barheight=document.getElementById("topbar").offsetHeight
-	var ns = (navigator.appName.indexOf("Netscape") != -1) || window.opera;
-	var d = document;
-	function ml(id){
-		var el=d.getElementById(id);
-		if (!persistclose || persistclose && get_cookie("remainclosed")=="")
-		el.style.visibility="visible"
-		if(d.layers)el.style=el;
-		el.sP=function(x,y){this.style.left=x+"px";this.style.top=y+"px";};
-		el.x = startX;
-		if (verticalpos=="fromtop")
-		el.y = startY;
-		else{
-		el.y = ns ? pageYOffset + innerHeight : iecompattest().scrollTop + iecompattest().clientHeight;
-		el.y -= startY;
-		}
-		return el;
-	}
-	window.stayTopLeft=function(){
-		if (verticalpos=="fromtop"){
-		var pY = ns ? pageYOffset : iecompattest().scrollTop;
-		ftlObj.y += (pY + startY - ftlObj.y)/8;
-		}
-		else{
-		var pY = ns ? pageYOffset + innerHeight - barheight: iecompattest().scrollTop + iecompattest().clientHeight - barheight;
-		ftlObj.y += (pY - startY - ftlObj.y)/8;
-		}
-		ftlObj.sP(ftlObj.x, ftlObj.y);
-		setTimeout("stayTopLeft()", 10);
-	}
-	ftlObj = ml("topbar");
-	stayTopLeft();
-}
-
-if (window.addEventListener)
-window.addEventListener("load", staticbar, false)
-else if (window.attachEvent)
-window.attachEvent("onload", staticbar)
-else if (document.getElementById)
-window.onload=staticbar
-</script>
-
-</head>
-
-<body>
-<div id="topbar"><a href="" onClick="closebar(); return false">[X]</a>
-<b>Keywords</b> <font color="blue">Extra keywords</font> &nbsp;&nbsp; <font color="red">Not matching keywords</font>
-</div>
+<html><head><link type="text/css" rel="stylesheet" href="robohelp.css" /></head><body>
+<div id="topbar"><b>Keywords</b> <font color="blue">Extra keywords</font> &nbsp;&nbsp; <font color="red">Not matching keywords</font></div>
 <p><b>TWD OP </b> <br/>
 <em>If there is a current TWD Op available, he or she will try to help you as soon as possible. If you do not receive a response within 5 minutes of when the ?help call was placed, please leave a message for any of the following TWD Ops found here: http://www.trenchwars.org/index.php?v=staff</em></p>
 
 <p><b>TWD Ops </b> <br/>
+<em>If there is a current TWD Op available, he or she will try to help you as soon as possible. If you do not receive a response within 5 minutes of when the ?help call was placed, please leave a message for any of the following TWD Ops found here: http://www.trenchwars.org/index.php?v=staff</em></p>
+
+<p><b>TWDOp </b> <br/>
+<em>If there is a current TWD Op available, he or she will try to help you as soon as possible. If you do not receive a response within 5 minutes of when the ?help call was placed, please leave a message for any of the following TWD Ops found here: http://www.trenchwars.org/index.php?v=staff</em></p>
+
+<p><b>TWDOps </b> <br/>
 <em>If there is a current TWD Op available, he or she will try to help you as soon as possible. If you do not receive a response within 5 minutes of when the ?help call was placed, please leave a message for any of the following TWD Ops found here: http://www.trenchwars.org/index.php?v=staff</em></p>
 
 <p><b>Squad Join How </b> <br/>
@@ -134,7 +52,22 @@ window.onload=staticbar
 <em>To check to see who the squad owner of a specific squad is type ?squadowner Squad where &lt;Squad&gt; is the name of the squad that you are checking.  If nothing returns that means the squad does not exist.</em></p>
 
 <p><b>What TWD </b> <br/>
-<em>TWD stands for Trench Wars Divisions.  It is an automated, bot-run league consisting of Warbird dueling (TWDD), Javelin dueling (TWDJ) and Basing (TWDB). More information can be found at http://twd.trenchwars.org/documents/introduction .</em></p>
+<em>TWD stands for Trench Wars Divisions.  It is an automated, bot-run league consisting of Warbird dueling (TWDD), Javelin dueling (TWDJ),Spider dueling (TWSD),Fighter dueling (TWFD) and Basing (TWDB). More information can be found at http://twd.trenchwars.org/documents/introduction .</em></p>
+
+<p><b>What TWDD </b> <br/>
+<em>TWDD stands for Trench Wars Dueling Division. It is a pure warbird deathmatch between 2 different squads; either 4v4 or 5v5 to 10 deaths per squad member. The matches are held in ?go twdd arenas.</em></p>
+
+<p><b>What TWJD </b> <br/>
+<em>TWJD stands for Trench Wars Javelin Division. It is a pure javelin deathmatch between 2 different squads; either 4v4 or 5v5 to 10 deaths per squad member. The matches are held in ?go twjd arenas.</em></p>
+
+<p><b>What TWBD </b> <br/>
+<em>TWBD stands for Trench Wars Basing Division. It is a basing style timed race between 2 different squads (much like Pure Public arenas). First squad to hold flag for 15 minutes wins. Games can range between 5-8 players per team. Common ships used are the terrier, spiders and sharks. Warbirds, Javelins and Lancaster are rarely used. The matches are held in ?go twbd arenas.</em></p>
+
+<p><b>What TWSD </b> <br/>
+<em>TWSD stands for Trench Wars Spider Division. It is a pure spider deathmatch between 2 different squads; either 4v4 or 5v5 up to a combined of 50 deaths per squad. The matches are held in ?go twsd arenas.</em></p>
+
+<p><b>What TWFD </b> <br/>
+<em>TWFD stands for Trench Wars Fighter Division.It is a deathmatch of fighter ships(spiders,warbirds,lancasters) between 2 different squads; either 4v4 or 5v5 to 10 deaths per squad member.The matches are held in ?go twfd arenas.</em></p>
 
 <p><b>SayTWDDown</b> <br/>
 <em>The website has currently lost connectivity with the matchbots which means that any roster changes made on the site will not be recognized by the bots.  Please keep this in mind when challenging other teams.  This issue should be resolved in the next day or two.  Thank you for your patience.</em></p>
@@ -146,10 +79,10 @@ window.onload=staticbar
 <em>Squad applications are handled automatically by TWDBot. Please ?go twd and pm the bot with !help (:TWDBot:!help). To sign up a squad you have to be ?squadjoined, ?squadowner of the squad and !registered with TWDBot. If you have any problems with this, please contact a TWD Operator.</em></p>
 
 <p><b>RegisterHelp</b> <br/>
-<em>If you got problems with the !register command, need to change names or other relative things please first read forum theard about how you can do it on your own (http://twd.trenchwars.org/documents/howsignup, ?go twd and :TWDBot:!help). If this guide does not help you and you really need two names registered on your computer, because you have two (or possibly more) TWD/TWL players in your family, please contact a TWD Operator.</em></p>
+<em>If you got problems with the !register command, need to change names or other relative things please first read forum thread about how you can do it on your own (http://twd.trenchwars.org/documents/howsignup, ?go twd and :TWDBot:!help). If this guide does not help you and you really need two names registered on your computer, because you have two (or possibly more) TWD/TWL players in your family, please contact a TWD Operator.</em></p>
 
 <p><b>!register </b> <br/>
-<em>If you got problems with the !register command, need to change names or other relative things please first read forum theard about how you can do it on your own (http://forums.trenchwars.org/showthread.php?t=13296, ?go twd and :TWDBot:!help). If this guide does not help you and you really need two names registered on your computer, because you have two (or possibly more) TWD/TWL players in your family, please contact a TWD Operator.</em></p>
+<em>If you got problems with the !register command, need to change names or other relative things please first read forum theard about how you can do it on your own (http://twd.trenchwars.org/documents/howsignup, ?go twd and :TWDBot:!help). If this guide does not help you and you really need two names registered on your computer, because you have two (or possibly more) TWD/TWL players in your family, please contact a TWD Operator.</em></p>
 
 <p><b>What TWEL </b> <br/>
 <em>TWEL stands for Trench Wars Extreme League, a 1v1 duelling ladder hosted in ?go duel. The TWEL website can be found at: http://www.trenchwars.org/TWEL</em></p>
@@ -161,16 +94,16 @@ window.onload=staticbar
 <em>If you have problems signing up to the TWEL League because you share your connection with another person, please contact a TWEL Operator which can be found by PM'ing !ops to Duelbot.</em></p>
 
 <p><b>Elim What </b> <br/>
-<em>Elim is an arena dedicated to elimination style matches for fighter ships (Warbird, Spider, Levi and Lancaster).  Everyone is put on their own freq and is specced after a certain number of deaths.  The last person standing is declared the winner.  Teaming, trucing or refusing to fight is illegal.  Elim requires 36 hours of usage.</em></p>
+<em>Elim is an arena dedicated to elimination style matches for fighter ships (Warbird, Spider, Levi and Lancaster).  Everyone is put on their own freq and is specced after a certain number of deaths.  The last person standing is declared the winner.  Teaming, trucing or refusing to fight is illegal.</em></p>
 
 <p><b>BaseElim What </b> <br/>
-<em>BaseElim is an arena dedicated to elimination style matches for base ships (Javelin, Terrier, Weasel and Shark).  Everyone is put on their own freq and is specced after a certain number of deaths.  The last person standing is declared the winner.  Teaming, trucing, refusing to fight or not going to the base is illegal.  BaseElim requires 36 hours of usage.</em></p>
-
-<p><b>36 Hours </b> <br/>
-<em>Elim and BaseElim require a minimum of 36 hours of usage.  If you have that amount but still cannot play, please exit Continuum and re-enter to fix it.</em></p>
+<em>BaseElim is an arena dedicated to elimination style matches for base ships (Javelin, Terrier, Weasel and Shark).  Everyone is put on their own freq and is specced after a certain number of deaths.  The last person standing is declared the winner.  Teaming, trucing, refusing to fight or not going to the base is illegal.</em></p>
 
 <p><b>Event List Where </b> <br/>
-<em>You can view a list of all events here: http://www.trenchwars.org/Trench_oldskool/index.php?action=Events .</em></p>
+<em>You can view a list of all arenas/events here: http://forums.trenchwars.org/showthread.php?t=32600 or ?go Events .</em></p>
+
+<p><b>Player Suggestion </b> <br/>
+<em>Have a suggestion for Trench Wars? Great! Submit it here and we'll have a look! http://trenchwars.org/support</em></p>
 
 <p><b>Repel </b> (<font color="blue">What </font>) <br/>
 <em>When you use a repel, all nearby enemy bullets, bombs and ships will be pushed away from you.  The icon on the right side of your screen depicting a yellow circle indicates the number of repels that your ship currently has.  In public arenas, only the Shark (Ship 8) can equip repels.</em></p>
@@ -194,13 +127,16 @@ window.onload=staticbar
 <em>When used, a decoy creates a false image of your ship that distracts and confuses enemies.  The decoy will disappear after a certain amount of time.  The icon on the right side of your screen depicting a blue triangle indicates the number of decoys that your ship currently has.  In public arenas, all of the ships can equip decoys.</em></p>
 
 <p><b>Decoy </b> (<font color="blue">How </font>) [<font color=red>Buy </font>] <br/>
-<em>To use a decoy press &lt;F4&gt;.  In public arenas, all of the ships can equip and use decoys.</em></p>
+<em>To use a decoy press &lt;F5&gt;.  In public arenas, all of the ships can equip and use decoys.</em></p>
 
 <p><b>Burst </b> (<font color="blue">What </font>) <br/>
 <em>When used, a burst sends several bouncing bullets flying outwards from your ship.  The burst will not damage enemies until after it has bounced once and will disappear after a certain time.  The icon on the right side of your screen depicting a blue star indicates the number of bursts that your ship currently has.  In public arenas, only the Terrier (Ship 5) can equip bursts.</em></p>
 
 <p><b>Burst </b> (<font color="blue">How </font>) [<font color=red>Buy </font>] <br/>
 <em>To use a burst press &lt;Shift&gt; and &lt;Del&gt; at the same time.  In public arenas, only the Terrier (Ship 5) can equip and use bursts.</em></p>
+
+<p><b>Brick </b> (<font color="blue">How </font>) [<font color=red>Buy </font>] <br/>
+<em>To use a brick press &lt;F4&gt;.</em></p>
 
 <p><b>Thor </b> (<font color="blue">What </font>) <br/>
 <em>When used, a thor shoots a powerful bomb from your ship.  This bomb will go through walls and asteroids and will disappear after a certain time.  The icon on the right side of your screen depicting a hammer over a blue background indicates the number of thors that your ship currently has.  In public arenas, no ships can equip thors.</em></p>
@@ -236,10 +172,10 @@ window.onload=staticbar
 <em>To toggle antiwarp, press &lt;Shift&gt; and &lt;End&gt; together.  In public arenas, only the Spider (Ship 3) is able to equip antiwarp and it must be bought.</em></p>
 
 <p><b>Buy </b> (<font color="blue">How </font>) <br/>
-<em>To see a list of items that are available for purchase, type ?buy.  To buy an item, type ?buy Item where &lt;Item&gt; is the item that you wish to buy.  Buying things deducts from your points.  In public arenas, items can only be bought in safe zones.</em></p>
+<em>To see a list of items you can buy in the public arena, type :tw-p:!buy  This shows a list of items you can buy from TW-PubSystem anywhere in the arena. However, Leviathans and their Terriers have special restrictions on where they can buy (usually only in safe). </em></p>
 
 <p><b>Buy </b> (<font color="blue">Where </font>) <br/>
-<em>In public arenas, items can only be bought in safe zones.</em></p>
+<em>In public arenas, items can be bought anywhere in the arena from TW-PubSystem by typing :tw-p:!buy -- but Leviathans and their Terriers have special restrictions on where they can buy (usually only in safe).</em></p>
 
 <p><b>Attach How </b> <br/>
 <em>To attach, select a person on the name list using the &lt;Pg Up&gt; and &lt;Pg Dn&gt; buttons then press &lt;F7&gt;.  Pressing &lt;F7&gt; while attached will make you detach.  In public arenas ships may only attach to the Terrier (Ship 5).</em></p>
@@ -394,86 +330,107 @@ window.onload=staticbar
 <p><b><ER> What </b> <br/>
 <em>ER stands for Event Referee.  They are staff members that are responsible for hosting games and other special events.</em></p>
 
-<p><b>ZH What </b> <br/>
-<em>ZH stands for Zone Helper.  They answer your help questions if I am unable to.</em></p>
-
-<p><b><ZH> What </b> <br/>
-<em>ZH stands for Zone Helper.  They answer your help questions if I am unable to.</em></p>
-
 <p><b>Staff Join How </b> <br/>
-<em>TW Staff are looking for players who play regulary and are friendly, helpful, knowledgeable and who show a desire to improving the zone. If you are interested in joining TW Staff, e-mail TWStaff@gmail.com with 1) Aliases 2) Interests in staff 3) References from current staffers 4) Availability 5) Why you should be hired instead of someone else 6) Other useful info.</em></p>
+<em>Trench Wars Staff are always looking for players who play regularly and are friendly, helpful, knowledgeable and who show a desire to improve the zone. You are invited to fill out a staff application at http://www.trenchwars.org/index.php?v=staffapplication</em></p>
 
 <p><b>Staff Become How </b> <br/>
-<em>TW Staff are looking for players who play regulary and are friendly, helpful, knowledgeable and who show a desire to improving the zone. If you are interested in joining TW Staff, e-mail TWStaff@gmail.com with 1) Aliases 2) Interests in staff 3) References from current staffers 4) Availability 5) Why you should be hired instead of someone else 6) Other useful info.</em></p>
+<em>Trench Wars Staff are always looking for players who play regularly and are friendly, helpful, knowledgeable and who show a desire to improve the zone. You are invited to fill out a staff application at http://www.trenchwars.org/index.php?v=staffapplication</em></p>
 
 <p><b>Staff Invite </b> <br/>
-<em>TW Staff are looking for players who play regulary and are friendly, helpful, knowledgeable and who show a desire to improving the zone. If you are interested in joining TW Staff, e-mail TWStaff@gmail.com with 1) Aliases 2) Interests in staff 3) References from current staffers 4) Availability 5) Why you should be hired instead of someone else 6) Other useful info.</em></p>
+<em>Trench Wars Staff are always looking for players who play regularly and are friendly, helpful, knowledgeable and who show a desire to improve the zone. You are invited to fill out a staff application at http://www.trenchwars.org/index.php?v=staffapplication</em></p>
 
 <p><b>Sysop Who </b> <br/>
-<em>The sysops of SSCU Trench Wars are Pure_Luck and Kim.</em></p>
+<em>The sysops of SSCU Trench Wars are M_M God and Beasty.</em></p>
+
+<p><b>Sysops Who </b> <br/>
+<em>The sysops of SSCU Trench Wars are M_M God and Beasty.</em></p>
 
 <p><b>Owner Who </b> <br/>
 <em>The owners of SSCU Trench Wars are DoCk&gt; and PriitK.</em></p>
 
-<p><b>AbuseAbusingAbusedAbuser</b> <br/>
-<em>To register any complaints about any Trench Wars staff member(s), please e-mail your side of the story to Complaints@TrenchWars.org</em></p>
+<p><b>Owners Who </b> <br/>
+<em>The owners of SSCU Trench Wars are DoCk&gt; and PriitK.</em></p>
+
+<p><b>Staffabuse</b> <br/>
+<em>To register instances of abuse by any Trench Wars staff member(s), please send your complaint to the deans at TWcomplaints@gmail.com.</em></p>
+
+<p><b>Staff Abuse </b> <br/>
+<em>To register instances of abuse by any Trench Wars staff member(s), please send your complaint to the deans at TWcomplaints@gmail.com.</em></p>
+
+<p><b>Complaints</b> <br/>
+<em>To file a general complaint or to register instances of abuse by any Trench Wars staff member(s), please send your complaint to the deans at TWcomplaints@gmail.com.</em></p>
+
+<p><b>Email Beasty </b> <br/>
+<em>To file a general complaint or to register instances of abuse by any Trench Wars Staff member please email Beasty at TWcomplaints@gmail.com.</em></p>
 
 <p><b>Staff Complaint </b> <br/>
-<em>To register instances of abuse by any Trench Wars staff member(s), please e-mail your side of the story to Complaints@TrenchWars.org</em></p>
+<em>To register any complaints about any Trench Wars staff member(s), please send your complaint to the deans at TWcomplaints@gmail.com.</em></p>
 
-<p><b>HostH0stHo$tH0$thozth-o-s-ttsoh</b> [<font color=red>Zombies Enigma Twtown Twcity Gatez Gatez2 Base Base2 Base3 Wbduel Wbduel2 Javduel Javduel2 Highschool Jurassic </font>] <br/>
-<em>Trench Wars Staff have received your request for an event to be hosted. There is no guarantee that your event will be hosted. If you wish to contact an event referee about this, find a staffer with the &lt;ER&gt; tag next to their name.</em></p>
+<p><b>Sysop Contact </b> <br/>
+<em>To contact a sysop, please email twsysops@gmail.com with your query.</em></p>
+
+<p><b>HostH0stHo$tH0$thozth-o-s-ttsohhist</b> <br/>
+<em>Thank you for submitting your hosting request. We will attempt to handle your request as promptly as possible but there is no guarantee that your event will be hosted.</em></p>
 
 <p><b>Host Base </b> <br/>
-<em>Base is an automated event. The MatchBot hosting base advertises automatically every 10 minutes if there aren't enough players in the arena. If you already have enough people, then a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the base bot if there are 2 captains present in the arena. Staff will advertise for base if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Base2 </b> <br/>
-<em>Base is an automated event. The MatchBot hosting base advertises automatically every 10 minutes if there aren't enough players in the arena. If you already have enough people, then a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the base bot if there are 2 captains present in the arena. Staff will advertise for base if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Base3 </b> <br/>
-<em>Base is an automated event. The MatchBot hosting base advertises automatically every 10 minutes if there aren't enough players in the arena. If you already have enough people, then a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the base bot if there are 2 captains present in the arena. Staff will advertise for base if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Wbduel </b> <br/>
-<em>Only upperstaff is allowed to advertise for WBDuel.  If you already have enough people, a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the wbduel bot if there are 2 captains present in the arena. Staff will advertise for wbduel if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Wbduel2 </b> <br/>
-<em>Only upperstaff is allowed to advertise for WBDuel.  If you already have enough people, a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the wbduel bot if there are 2 captains present in the arena. Staff will advertise for wbduel if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Wbduel3 </b> <br/>
-<em>Only upperstaff is allowed to advertise for WBDuel.  If you already have enough people, a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the wbduel bot if there are 2 captains present in the arena. Staff will advertise for wbduel if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Javduel </b> <br/>
-<em>Only upperstaff is allowed to advertise for Javduel.  If you already have enough people, a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the javduel bot if there are 2 captains present in the arena. Staff will advertise for javduel if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Javduel2 </b> <br/>
-<em>Only upperstaff is allowed to advertise for Javduel.  If you already have enough people, a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the javduel bot if there are 2 captains present in the arena. Staff will advertise for javduel if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Javduel3 </b> <br/>
-<em>Only upperstaff is allowed to advertise for Javduel.  If you already have enough people, a staff member can start the bot for you.</em></p>
+<em>An available staff member will start the javduel bot if there are 2 captains present in the arena. Staff will advertise for javduel if there are 2 captains, but not enough players present.</em></p>
 
 <p><b>Host Tourny </b> <br/>
-<em>Keep in mind that Tourny is only run in the weekends from Friday morning till Sunday evening (EST).</em></p>
+<em>Tourny is only run in the weekends from Friday morning till Sunday evening (EST).</em></p>
 
 <p><b>Forum Ban </b> <br/>
 <em>Issues regarding to banishment at Trench Wars's forums should be talked directly to a forum staff member. Please consult this page for a name to contact: http://forums.trenchwars.org/showgroups.php . </em></p>
 
 <p><b>Ban Email </b> <br/>
-<em>To lodge appeals VS Bans, please send an Email to bans21@trenchwars.org detailing the circumstances regarding your ban.</em></p>
+<em>If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the ban operators.</em></p>
+
+<p><b>Ban Site </b> <br/>
+<em>If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the ban operators.</em></p>
+
+<p><b>Ban </b> <br/>
+<em>If you feel your ban is not warranted, please visit http://www.trenchwars.org/support/ to fill out a ticket for the ban operators.</em></p>
+
+<p><b>Ban OldEmail </b> <br/>
+<em>E-mail twbans@gmail.com for legitimate ban disputes. You must include your BanID # and user name(s) in the E-mail subject to avoid being filtered as spam.</em></p>
 
 <p><b>Lost Password </b> <br/>
-<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost.  The password for that name will be set to a temporary, randomly generated password and emailed to you.  The temporary password is valid for 24 hours.  If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.ssbase.com/billing.shtml.</em></p>
+<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost. The password for that name will be set to a temporary, randomly generated password and emailed to you. The temporary password is valid for 24 hours. If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.subspaceforum.com/help-desk</em></p>
 
 <p><b>TWD Name Change </b> <br/>
 <em>To change name for TWD: 1. Log on with the name you wish to remove.  2. ?go TWD  3. PM TWDBot with !resetname  4. Wait 24 hours.  5. After 24 hours, log in with the new name you wish to register.  6. PM TWDBot with !register in the TWD arena.  If anyone else in your household is using the same connection, please contact a TWD op to change your name, or use the Contact form on twd.trenchwars.org.</em></p>
 
 <p><b>Lost Pass </b> <br/>
-<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost.  The password for that name will be set to a temporary, randomly generated password and emailed to you.  The temporary password is valid for 24 hours.  If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.ssbase.com/billing.shtml.</em></p>
+<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost. The password for that name will be set to a temporary, randomly generated password and emailed to you. The temporary password is valid for 24 hours. If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.subspaceforum.com/help-desk</em></p>
 
 <p><b>Forgot Password </b> <br/>
-<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost.  The password for that name will be set to a temporary, randomly generated password and emailed to you.  The temporary password is valid for 24 hours.  If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.ssbase.com/billing.shtml.</em></p>
+<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost. The password for that name will be set to a temporary, randomly generated password and emailed to you. The temporary password is valid for 24 hours. If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.subspaceforum.com/help-desk</em></p>
 
 <p><b>Forgot Pass </b> <br/>
-<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost.  The password for that name will be set to a temporary, randomly generated password and emailed to you.  The temporary password is valid for 24 hours.  If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.ssbase.com/billing.shtml.</em></p>
+<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost. The password for that name will be set to a temporary, randomly generated password and emailed to you. The temporary password is valid for 24 hours. If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.subspaceforum.com/help-desk</em></p>
 
 <p><b>Change Password How </b> <br/>
 <em>To change your password type ?password=Newpass where &lt;Newpass&gt; is your new password.</em></p>
@@ -482,7 +439,7 @@ window.onload=staticbar
 <em>To change your password type ?password=Newpass where &lt;Newpass&gt; is your new password.</em></p>
 
 <p><b>Stolen Name </b> <br/>
-<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost.  The password for that name will be set to a temporary, randomly generated password and emailed to you.  The temporary password is valid for 24 hours.  If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.ssbase.com/billing.shtml.</em></p>
+<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost. The password for that name will be set to a temporary, randomly generated password and emailed to you. The temporary password is valid for 24 hours. If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.subspaceforum.com/help-desk</em></p>
 
 <p><b>Setemail What </b> <br/>
 <em>The setemail has currently been disabled.</em></p>
@@ -491,7 +448,7 @@ window.onload=staticbar
 <em>The setemail has currently been disabled.</em></p>
 
 <p><b>Lostpassword How </b> <br/>
-<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost.  The password for that name will be set to a temporary, randomly generated password and emailed to you.  The temporary password is valid for 24 hours.  If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.ssbase.com/billing.shtml.</em></p>
+<em>To retrieve a lost name, log on under a different user name and type ?lostpassword Playername, where &lt;Playername&gt; is the name of the player whose password you lost. The password for that name will be set to a temporary, randomly generated password and emailed to you. The temporary password is valid for 24 hours. If this does not work, or if your email address isnt set correctly, please fill out the form at http://www.subspaceforum.com/help-desk</em></p>
 
 <p><b>Where Server </b> <br/>
 <em>The SSCU Trench Wars server is located in Washington, D.C.</em></p>
@@ -500,46 +457,61 @@ window.onload=staticbar
 <em>The SSCU Trench Wars server is being paid for by Priitk and the Subspace players that have donated.</em></p>
 
 <p><b>Help Server </b> <br/>
-<em>For help setting up your own server please refer to: http://www.shanky.com/server.</em></p>
+<em>For help setting up your own server please refer to: http://www.minegoboom.com/server/howto.html.</em></p>
 
 <p><b>Settings Trench Wars </b> <br/>
-<em>Sorry but the Trench Wars settings are not publicly available.</em></p>
+<em>Sorry, but the Trench Wars settings are not publicly available.</em></p>
 
 <p><b>Settings TW </b> <br/>
-<em>Sorry but the Trench Wars settings are not publicly available.</em></p>
+<em>Sorry, but the Trench Wars settings are not publicly available.</em></p>
 
-<p><b>Banners Download Where </b> (<font color="blue">Banner </font>) <br/>
-<em>To download banners, refer to the following websites: http://www.trenchwars.org/SSBE, http://www.subspacedownloads.com/index.php?act=banners&f=1, http://www.deathstarbattle.com/bannervault and http://www.mama.twzone.net/files .</em></p>
+<p><b>Banners Site </b> (<font color="blue">Banner </font>) <br/>
+<em>To download banners, refer to the following websites: http://www.trenchwars.org/SSBE</em></p>
+
+<p><b>Banners Download </b> (<font color="blue">Banner </font>) <br/>
+<em>To download banners, refer to the following websites: http://www.trenchwars.org/SSBE</em></p>
 
 <p><b>Banners Website </b> (<font color="blue">Banner </font>) <br/>
-<em>To download banners, refer to the following websites: http://www.trenchwars.org/SSBE, http://www.subspacedownloads.com/index.php?act=banners&f=1, http://www.deathstarbattle.com/bannervault and http://www.mama.twzone.net/files .</em></p>
+<em>To download banners, refer to the following websites: http://www.trenchwars.org/SSBE</em></p>
 
-<p><b>Continuum Download Where </b> <br/>
-<em>The latest version of Continuum can be downloaded from the following location: http://www.trenchwars.org/downloads/game/Continuum040Setup.exe .</em></p>
+<p><b>Continuum Download </b> <br/>
+<em>The latest version of Continuum can be downloaded from the following location: http://www.trenchwars.org/downloads/game/Continuum040Setup.exe</em></p>
 
-<p><b>Subspace Download Where </b> <br/>
-<em>The latest version of Continuum can be downloaded from the following location: http://www.trenchwars.org/downloads/game/Continuum040Setup.exe .</em></p>
+<p><b>Subspace Download </b> <br/>
+<em>The latest version of Continuum can be downloaded from the following location: http://www.trenchwars.org/downloads/game/Continuum040Setup.exe</em></p>
 
-<p><b>Subspace 1.35 Download Where </b> <br/>
-<em>Subspace v1.35 can be downloaded from the following location: http://www.subspacedownloads.com/index.php?act=file&fid=11 .</em></p>
+<p><b>SSME Download </b> <br/>
+<em>Subspace Map Editor, or SSME can be downloaded from the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip</em></p>
 
-<p><b>SSME Download Where </b> <br/>
-<em>Subspace Map Editor, or SSME can be downloaded from the following location: http://www.subspacedownloads.com/index.php?act=file&fid=182 .</em></p>
+<p><b>Map Editor Download </b> <br/>
+<em>Subspace Map Editor, or SSME can be downloaded from the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip  DCME, a newer editor, can be found here: http://www.trenchwars.org/downloads/editors/dcme3.4.15.zip  </em></p>
 
-<p><b>Map Editor Download Where </b> <br/>
-<em>Subspace Map Editor, or SSME can be downloaded from the following location: http://www.subspacedownloads.com/index.php?act=file&fid=182 .</em></p>
+<p><b>DCME Download </b> <br/>
+<em>Drake's Continuum Map Editor can be downloaded here: http://www.trenchwars.org/downloads/editors/dcme3.4.15.zip</em></p>
 
-<p><b>Tileedit Download Where </b> <br/>
-<em>TileEdit can be downloaded from the following location: http://www.subspacedownloads.com/index.php?act=file&fid=187 .</em></p>
+<p><b>Tileedit Download </b> <br/>
+<em>TileEdit can be downloaded from the following location: http://www.trenchwars.org/downloads/editors/tileedit.zip</em></p>
 
-<p><b>TeamSpeak Download where </b> <br/>
-<em>Teamspeak can be downloaded from the following location: http://www.goteamspeak.com/index.php?page=downloads</em></p>
+<p><b>TeamSpeak Download </b> <br/>
+<em>Teamspeak can be downloaded from the following location: https://www.teamspeak.com/downloads</em></p>
 
-<p><b>Shipset Download Where </b> <br/>
-<em>Shipsets can be found at Subspace Downloads: http://www.subspacedownloads.com.</em></p>
+<p><b>Shipset Download </b> <br/>
+<em>Shipsets can be found at Subspace Downloads: http://www.subspaceforum.com/downloads</em></p>
 
-<p><b>Shipsets Download Where </b> <br/>
-<em>Shipsets can be found at Subspace Downloads: http://www.subspacedownloads.com.</em></p>
+<p><b>Shipsets Download </b> <br/>
+<em>Shipsets can be found at Subspace Downloads: http://www.subspaceforum.com/downloads</em></p>
+
+<p><b>LVZToolkit Download </b> <br/>
+<em>LVZToolkit can be found at: http://www.trenchwars.org/downloads/editors/lvztoolkit.zip</em></p>
+
+<p><b>LVZBuilder Download </b> <br/>
+<em>LVZBuilder can be found at: http://www.trenchwars.org/downloads/editors/lvzbuilder.zip</em></p>
+
+<p><b>FACTS Download </b> <br/>
+<em>FACTS (a multi-purpose map design tool), with features such as importing an image to a map file, can be found at: http://www.trenchwars.org/downloads/editors/facts.zip  Note: you need MSCOMCTL.OCX and COMDLG32.OCX in the FACTS folder to run it. Download from: http://www.ocxdump.com  You may also need to run the file in compatibility mode for Windows XP.</em></p>
+
+<p><b>Help Editor Download </b> <br/>
+<em>Download the F1 help editor here: http://www.trenchwars.org/downloads/editors/cF1Editor-v1.2beta4.zip</em></p>
 
 <p><b>Team Talk How </b> [<font color=red>Another </font>] <br/>
 <em>To send a message to your whole team type &lt;'&gt; or &lt;//&gt; before your message.  The message should appear in yellow.  Example: 'Hello team!</em></p>
@@ -626,10 +598,10 @@ window.onload=staticbar
 <em>To send a message to all of the members of your squad type #Message where &lt;Message&gt; is the message that you would like to send.  Example: #Hello squad!  The message should appear in green.</em></p>
 
 <p><b>How Bong Noise </b> <br/>
-<em>To make a bong noise type %Number where &lt;Number&gt; is the number of the noise that you would like to play.  In most arenas, nobody else can hear the bong noises.  A list of the sounds can be found at: http://www.shanky.com/server/commands.html.</em></p>
+<em>To make a bong noise type %Number where &lt;Number&gt; is the number of the noise that you would like to play.  In most arenas, nobody else can hear the bong noises.  A list of the sounds can be found at: http://www.minegoboom.com/server/commands.html.</em></p>
 
 <p><b>How Bong Noises </b> <br/>
-<em>To make a bong noise type %Number where &lt;Number&gt; is the number of the noise that you would like to play.  In most arenas, nobody else can hear the bong noises.  A list of the sounds can be found at: http://www.shanky.com/server/commands.html.</em></p>
+<em>To make a bong noise type %Number where &lt;Number&gt; is the number of the noise that you would like to play.  In most arenas, nobody else can hear the bong noises.  A list of the sounds can be found at: http://www.minegoboom.com/server/commands.html.</em></p>
 
 <p><b>Away Message How </b> <br/>
 <em>To set an away message type ?away Message where &lt;Message&gt; is the away message that you want to you set.  Example ?away I am away!  To turn your away message off type ?away.</em></p>
@@ -657,6 +629,15 @@ window.onload=staticbar
 
 <p><b>Logbuffer </b> (<font color="blue">How </font>) <br/>
 <em>To toggle the logging of your chat on and off, type ?log Filename where &lt;Filename&gt; is the name of the log file that the chat will be appended to.  If no Filename is specified then it will be saved in Session.log.</em></p>
+
+<p><b>Score Erase </b> (<font color="blue">Javs </font>) [<font color=red>When Public </font>] <br/>
+<em>In ?go javs you're able to reset your own score using the available RoboBot. Type :RoboBot:!scorereset to reset your score immediately. If you get no response or there is no RoboBot available, please contact staff by typing ::!summon. </em></p>
+
+<p><b>Score reset </b> (<font color="blue">Javs </font>) [<font color=red>When Public </font>] <br/>
+<em>In ?go javs you're able to reset your own score using the available RoboBot. Type :RoboBot:!scorereset to reset your score immediately. If you get no response or there is no RoboBot available, please contact staff by typing ::!summon.</em></p>
+
+<p><b>Scorereset </b> (<font color="blue">Javs </font>) [<font color=red>When Public </font>] <br/>
+<em>In ?go javs you're able to reset your own score using the available RoboBot. Type :RoboBot:!scorereset to reset your score immediately. If you get no response or there is no RoboBot available, please contact staff by typing ::!summon.</em></p>
 
 <p><b>Score Erase </b> [<font color=red>When Elim Baseelim Public </font>] <br/>
 <em>Your request for a scorereset has been sent to the online moderators.  If one is available to reset your score, they will contact you shortly.</em></p>
@@ -713,40 +694,64 @@ window.onload=staticbar
 <em>To set a banner go to spectator mode &lt;F11&gt; then press &lt;Esc&gt; followed by &lt;B&gt; to open the banner selection window.  Use &lt;Pg Up&gt; and &lt;Pg Dn&gt; to select your banner and press &lt;Enter&gt;.</em></p>
 
 <p><b>Map Make How </b> <br/>
-<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.subspacedownloads.com/index.php?act=file&fid=182.  TileEdit is also a useful tool and can be downloaded here: http://www.subspacedownloads.com/index.php?act=file&fid=187.  To submit a completed map to be posted on SSCU Trench Wars, please email it zipped, along with a set of rules and description to:  TWMaps@gmail.com.</em></p>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip.  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip. To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
 
 <p><b>Maps Make How </b> <br/>
-<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.subspacedownloads.com/index.php?act=file&fid=182.  TileEdit is also a useful tool and can be downloaded here: http://www.subspacedownloads.com/index.php?act=file&fid=187.  To submit a completed map to be posted on SSCU Trench Wars, please email it zipped, along with a set of rules and description to:  TWMaps@gmail.com.</em></p>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip.  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip. To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
 
 <p><b>Level Make How </b> <br/>
-<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.subspacedownloads.com/index.php?act=file&fid=182.  TileEdit is also a useful tool and can be downloaded here: http://www.subspacedownloads.com/index.php?act=file&fid=187.  To submit a completed map to be posted on SSCU Trench Wars, please email it zipped, along with a set of rules and description to:  TWMaps@gmail.com.</em></p>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip.  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip. To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
 
 <p><b>Levels Make How </b> <br/>
-<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.subspacedownloads.com/index.php?act=file&fid=182.  TileEdit is also a useful tool and can be downloaded here: http://www.subspacedownloads.com/index.php?act=file&fid=187.  To submit a completed map to be posted on SSCU Trench Wars, please email it zipped, along with a set of rules and description to:  TWMaps@gmail.com.</em></p>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip.  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip. To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
 
 <p><b>Arena Make How </b> <br/>
-<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.subspacedownloads.com/index.php?act=file&fid=182.  TileEdit is also a useful tool and can be downloaded here: http://www.subspacedownloads.com/index.php?act=file&fid=187.  To submit a completed map to be posted on SSCU Trench Wars, please email it zipped, along with a set of rules and description to:  TWMaps@gmail.com.</em></p>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip.  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip. To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
 
 <p><b>Arenas Make How </b> <br/>
-<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.subspacedownloads.com/index.php?act=file&fid=182.  TileEdit is also a useful tool and can be downloaded here: http://www.subspacedownloads.com/index.php?act=file&fid=187.  To submit a completed map to be posted on SSCU Trench Wars, please email it zipped, along with a set of rules and description to:  TWMaps@gmail.com.</em></p>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip.  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip. To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
 
 <p><b>Squad Arena </b> <br/>
-<em>In order to get your squad map up, the squad must have 10 or more ACTIVE members and be a valid squad for at least 3 months (6 server scoreresets) and be actively playing in one of the leagues (TWL or TWD). Also, squad maps can not use .lvz in them however, we can enable a LVZ that is already on the server (such as miniset). Email maps to: TWMaps@gmail.com</em></p>
+<em>In order to get your squad map up, the squad must have 10 or more ACTIVE members and be a valid squad for at least 3 months (6 server scoreresets) and be actively playing in one of the leagues (TWL or TWD). Also, squad maps can not use .lvz in them however, we can enable a LVZ that is already on the server (such as miniset). Submit maps to: http://trenchwars.org/index.php?v=submitmap</em></p>
 
 <p><b>Squad Map </b> <br/>
-<em>In order to get your squad map up, the squad must have 10 or more ACTIVE members and be a valid squad for at least 3 months (6 server scoreresets) and be actively playing in one of the leagues (TWL or TWD). Also, squad maps can not use .lvz in them however, we can enable a LVZ that is already on the server (such as miniset). Email maps to: TWMaps@gmail.com</em></p>
+<em>In order to get your squad map up, the squad must have 10 or more ACTIVE members and be a valid squad for at least 3 months (6 server scoreresets) and be actively playing in one of the leagues (TWL or TWD). Also, squad maps can not use .lvz in them however, we can enable a LVZ that is already on the server (such as miniset). Submit maps to: http://trenchwars.org/index.php?v=submitmap</em></p>
+
+<p><b>Map Make How </b> <br/>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip .  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip .  To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
+
+<p><b>Maps Make How </b> <br/>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip .  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip . To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
+
+<p><b>Level Make How </b> <br/>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip .  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip .  To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
+
+<p><b>Levels Make How </b> <br/>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip .  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip .  To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
+
+<p><b>Arena Make How </b> <br/>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip .  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip .  To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
+
+<p><b>Arenas Make How </b> <br/>
+<em>To make your own arena you must download the Subspace Map Editor.  You can find this at the following location: http://www.trenchwars.org/downloads/editors/ssme81a.zip .  TileEdit is also a useful tool and can be downloaded here: http://www.trenchwars.org/downloads/editors/tileedit.zip .  To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file.</em></p>
+
+<p><b>Squad Arena </b> <br/>
+<em>In order to get your squad map up, the squad must have 10 or more ACTIVE members and be a valid squad for at least 3 months (6 server scoreresets) and be actively playing in one of the leagues (TWL or TWD). Also, squad maps can not use .lvz in them however, we can enable a LVZ that is already on the server (such as miniset). Submit maps to: http://trenchwars.org/index.php?v=submitmap</em></p>
+
+<p><b>Squad Map </b> <br/>
+<em>In order to get your squad map up, the squad must have 10 or more ACTIVE members and be a valid squad for at least 3 months (6 server scoreresets) and be actively playing in one of the leagues (TWL or TWD). Also, squad maps can not use .lvz in them however, we can enable a LVZ that is already on the server (such as miniset). Submit maps to: http://trenchwars.org/index.php?v=submitmap</em></p>
 
 <p><b>Zone Make How </b> <br/>
-<em>For information on how to make a zone, please refer to: http://www.shanky.com/server.</em></p>
+<em>For information on how to make a zone, please refer to: http://www.minegoboom.com/server/download/howto-zone.txt.</em></p>
 
 <p><b>Zone Create How </b> <br/>
-<em>For information on how to make a zone, please refer to: http://www.shanky.com/server.</em></p>
+<em>For information on how to make a zone, please refer to: http://www.minegoboom.com/server/download/howto-zone.txt.</em></p>
 
 <p><b>Submit Map How </b> <br/>
-<em>To submit a completed map to be posted on SSCU Trench Wars, please email it zipped, along with a set of rules and description to:  TWMaps@gmail.com.</em></p>
+<em>To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file</em></p>
 
 <p><b>Submit Maps How </b> <br/>
-<em>To submit a completed map to be posted on SSCU Trench Wars, please email it zipped, along with a set of rules and description to:  TWMaps@gmail.com.</em></p>
+<em>To submit a completed map to be posted on SSCU Trench Wars, please fill out the information on http://trenchwars.org/index.php?v=submitmap and make sure to attach the .zip file</em></p>
 
 <p><b>Warbird What </b> <br/>
 <em>The Warbird (Ship 1), or WB, is primarily a dueling ship.  It is relatively fast and maneuverable and has bullets that can kill in one hit.  To switch to a Warbird, press &lt;Esc&gt; followed by &lt;1&gt;.</em></p>
@@ -821,10 +826,10 @@ window.onload=staticbar
 <em>Spechunting is when a person in spectator mode locates a player then either enters the game and hunts them or gives away their location.  Spechunting is illegal in Trenchwars.  To report a spechunter use the ?cheater command.</em></p>
 
 <p><b>Vulching What </b> <br/>
-<em>Vulching is when you kill someone right after they have used all their energy to kill someone else.	</em></p>
+<em>Vulching is when you kill someone right after they have used all their energy to kill someone else. </em></p>
 
 <p><b>Vulch What </b> <br/>
-<em>Vulching is when you kill someone right after they have used all their energy to kill someone else.	</em></p>
+<em>Vulching is when you kill someone right after they have used all their energy to kill someone else.    </em></p>
 
 <p><b>Spawn What </b> <br/>
 <em>Spawning has two definitions.  1) When you reappear after dying.  2) Short for spawnkilling: When you kill someone right after they appear after dying.  Spawnkilling is not illegal in Trench Wars.</em></p>
@@ -907,10 +912,10 @@ window.onload=staticbar
 <p><b>Spec Frequency </b> <br/>
 <em>Spectating at a frequency other then the default spectator frequency in Pure Publics is illegal as it will make the frequencies (teams) uneven.</em></p>
 
-<p><b>Spectate Freq </b> <br/>
+<p><b>Spec Freq </b> <br/>
 <em>Spectating at a frequency other then the default spectator frequency in Pure Publics is illegal as it will make the frequencies (teams) uneven.</em></p>
 
-<p><b>Spec Freq </b> <br/>
+<p><b>Spectate Freq </b> <br/>
 <em>Spectating at a frequency other then the default spectator frequency in Pure Publics is illegal as it will make the frequencies (teams) uneven.</em></p>
 
 <p><b>Robohelp Who </b> <br/>
@@ -931,11 +936,11 @@ window.onload=staticbar
 <p><b>Framerate What </b> <br/>
 <em>Framerate or FPS stands for Frames Per Second.  It is a measure of how often your screen updates the picture. You can toggle a framerate indicator by pressing &lt;Esc&gt; + &lt;F&gt;.</em></p>
 
+<p><b>Teamspeak </b> [<font color=red>Download </font>] <br/>
+<em>The Trench Wars TeamSpeak server is: TrenchWars.TeamSpeak.cc  It can also be connected to from twd.trenchwars.org after logging in.</em></p>
+
 <p><b>FPS What </b> <br/>
 <em>FPS stands for Frames Per Second.  It is a measure of how often your screen updates the picture. You can toggle a framerate indicator by pressing &lt;Esc&gt; + &lt;F&gt;.</em></p>
-
-<p><b>FU What </b> <br/>
-<em>FU stands for F**k You.</em></p>
 
 <p><b>GG What </b> <br/>
 <em>GG stands for either Good Going or Good Game.</em></p>
@@ -955,9 +960,6 @@ window.onload=staticbar
 <p><b>BRB What </b> <br/>
 <em>BRB stands for Be Right Back.</em></p>
 
-<p><b>FFS What </b> <br/>
-<em>FFS stands for For F**ks Sake.</em></p>
-
 <p><b>LOL What </b> <br/>
 <em>LOL stands for Laughing Out Loud.</em></p>
 
@@ -975,6 +977,18 @@ window.onload=staticbar
 
 <p><b>ASAP What </b> <br/>
 <em>ASAP stands for As Soon As Possible.</em></p>
+
+<p><b>SSCU What </b> <br/>
+<em>SSCU stands for SubSpace Central eUrope. Note that the SSCU Trench Wars server is not hosted in Europe but is currently hosted in Washington, DC.</em></p>
+
+<p><b>SCCC What </b> <br/>
+<em>SSCC stands for SubSpace Central Center (US)</em></p>
+
+<p><b>SCCE What </b> <br/>
+<em>SSCE stands for SubSpace Central East (US)</em></p>
+
+<p><b>SSC What </b> <br/>
+<em>SSC stands for SubSpace Central</em></p>
 
 <p><b>Kill Messages </b> <br/>
 <em>To toggle kill messages off, to chat, and to the center of your screen, type: ?kill.</em></p>
@@ -1235,7 +1249,7 @@ window.onload=staticbar
 <em>The Trench Wars Divisions website is: http://twd.trenchwars.org.</em></p>
 
 <p><b>What TWL </b> <br/>
-<em>TWL stands for Trench Wars Leagues. It has three divisions: Javelin (TWLJ), Dueling (TWLD), and Basing (TWLB). Javelin and Dueling play matches of 5 players per team, while basing features 8 players per team. Months before the league starts, squads compete in duels for ranking. In order to qualify for TWL, a squad must play 15 games in one division. The exact number of squads that are invited to participate depends on the amount of competition and demand in a specific division. If a squad drops out of the league, then the next highest ranking squad is invited to play. The TWL season is a very competitive time for most squads. It brings the most skilled players to the same arena in order to battle it out for victory and gain the esteem from all players as "the best." It is the highlight of Trench Wars and its reputation and prestige can not be compared to any other zone in Continuum.  	 </em></p>
+<em>TWL stands for Trench Wars Leagues. It has three divisions: Javelin (TWLJ), Dueling (TWLD), and Basing (TWLB). Javelin and Dueling play matches with 5 players per team, while basing features 8 players per team. Months before the league starts, squads compete in duels for ranking. In order to qualify for TWL, a squad must play 15 games in one division. The exact number of squads that are invited to participate depends on the amount of competition and demand in a specific division. If a squad drops out of the league, then the next highest ranking squad is invited to play. The TWL season is a very competitive time for most squads. It brings the most skilled players to the same arena in order to battle it out for victory and gain the esteem from all players as "the best." It is the highlight of Trench Wars and its reputation and prestige can not be compared to any other zone in Continuum.     </em></p>
 
 <p><b>What TWL Website </b> <br/>
 <em>The Trench Wars Leagues website is: http://twl.trenchwars.org.</em></p>
@@ -1280,16 +1294,28 @@ window.onload=staticbar
 <em>The history of Trench Wars website is: http://www.trenchwars.org/index.php?v=gethelp&id=1</em></p>
 
 <p><b>What SubspaceDownloads Website </b> <br/>
-<em>The SubspaceDownloads website is: http://www.subspacedownloads.com/</em></p>
+<em>The SubspaceDownloads website is: http://www.subspaceforum.com/downloads</em></p>
 
 <p><b>What SubspaceDownloads Site </b> <br/>
-<em>The SubspaceDownloads website is: http://www.subspacedownloads.com/</em></p>
+<em>The SubspaceDownloads website is: http://www.subspaceforum.com/downloads</em></p>
+
+<p><b>What SubSpaceForum Website </b> <br/>
+<em>The SubspaceForum website is: http://www.subspaceforum.com/</em></p>
+
+<p><b>What SubSpaceForum Site </b> <br/>
+<em>The SubspaceForum website is: http://www.subspaceforum.com/</em></p>
 
 <p><b>What Shanky Website </b> <br/>
-<em>The Shanky Server website is: http://www.shanky.com/server.</em></p>
+<em>The Shanky Server website is: http://www.minegoboom.com/server/howto.html.</em></p>
 
 <p><b>What Shanky Site </b> <br/>
-<em>The Shanky Server website is: http://www.shanky.com/server.</em></p>
+<em>The Shanky Server website is: http://www.minegoboom.com/server/howto.html.</em></p>
+
+<p><b>What MineGoBoom Website </b> <br/>
+<em>The MineGoBoom Server website is: http://www.minegoboom.com/server/howto.html.</em></p>
+
+<p><b>What MineGoBOom Site </b> <br/>
+<em>The MineGoBoom Server website is: http://www.minegoboom.com/server/howto.html.</em></p>
 
 <p><b>What TWEL Website </b> <br/>
 <em>The TWEL Website is: http://www.trenchwars.org/TWEL.</em></p>
@@ -1297,14 +1323,32 @@ window.onload=staticbar
 <p><b>What TWEL Site </b> <br/>
 <em>The TWEL Website is: http://www.trenchwars.org/TWEL.</em></p>
 
+<p><b>What TWT Site& </b> <br/>
+<em>The Trench Wars Tourny Website is: http://twt.trenchwars.org/</em></p>
+
+<p><b>What TWT Website </b> <br/>
+<em>The Trench Wars Tourny Website is: http://twt.trenchwars.org/</em></p>
+
+<p><b>What Tourny Site </b> <br/>
+<em>The Trench Wars Tourny Website is: http://twt.trenchwars.org/</em></p>
+
+<p><b>What Tourny Website </b> <br/>
+<em>The Trench Wars Tourny Website is: http://twt.trenchwars.org/</em></p>
+
+<p><b>Donate How </b> <br/>
+<em>To donate to the Trench Wars fund, http://www.trenchwars.org/donations</em></p>
+
+<p><b>What Donation </b> <br/>
+<em>Beer addictions are expensive. And so is hosting a server, advertizing and organizing cash events. So donate now to support your zone ! Visit www.trenchwars.org/donations for more information.</em></p>
+
 <p><b>What PlayerGuide Site </b> <br/>
 <em>For all basics about playing Continuum, check out the Player Help Guide: http://www.trenchwars.org/index.php?v=gethelp&id=2</em></p>
 
-<p><b>New 38 What </b> (<font color="blue">0.38 </font>) <br/>
-<em>For a complete listing of the improvements and modifications made in Continuum 0.38, please refer to the whatsnew.txt file in your continuum folder.</em></p>
+<p><b>New 40 What </b> (<font color="blue">0.40 </font>) <br/>
+<em>For a complete listing of the improvements and modifications made in Continuum 0.40, please refer to the whatsnew.txt file in your continuum folder.</em></p>
 
-<p><b>Different 38 What </b> (<font color="blue">0.38 </font>) <br/>
-<em>For a complete listing of the improvements and modifications made in Continuum 0.38, please refer to the whatsnew.txt file in your continuum folder.</em></p>
+<p><b>Different 40 What </b> (<font color="blue">0.40 </font>) <br/>
+<em>For a complete listing of the improvements and modifications made in Continuum 0.40, please refer to the whatsnew.txt file in your continuum folder.</em></p>
 
 <p><b>Question(question)</b> <br/>
 <em>What is your question?  Please type ?help followed with your question.  Example: ?help How do I shoot?</em></p>
@@ -1323,6 +1367,12 @@ window.onload=staticbar
 
 <p><b>TwlHost</b> <br/>
 <em>During TWL match times (Saturday and Sunday from 1pm to 6pm EST), only one TWD arena per division will be allowed. Elimination-type (?go elim/baseelim/tourny) events will play on, but no other events will be hosted.</em></p>
+
+<p><b>TwdtHost</b> <br/>
+<em>During TWDT only one TWD arena per division will be allowed. Elimination-type (?go elim/baseelim) events will play on, but no other events will be hosted.</em></p>
+
+<p><b>BwcHost</b> <br/>
+<em>During BWC only one TWD arena per division will be allowed. Elimination-type (?go elim/baseelim) events will play on, but no other events will be hosted.</em></p>
 
 <p><b>WeekendHost</b> <br/>
 <em>During the Scheduled Weekend Events no other TW events are hosted. However the Elims and WBduel/JavDuel and Base will play on.</em></p>
@@ -1367,16 +1417,16 @@ window.onload=staticbar
 <em>Sorry, but that is not illegal in Trench Wars.</em></p>
 
 <p><b>Dontberude</b> <br/>
-<em>Please do not be rude to the staff.</em></p>
+<em>Please do not be rude to members of staff.</em></p>
 
 <p><b>HelpAbuse</b> <br/>
-<em>Please do not use ?help unless you have a valid question.</em></p>
+<em>Please discontinue your use of the ?help command as Trench Wars Staff has deemed your requests invalid or excessive.</em></p>
 
 <p><b>CheaterAbuse</b> <br/>
-<em>Please do not use ?cheater unless you have a valid cheater to report.</em></p>
+<em>Please do not abuse ?cheater unless you have a valid cheater to report.</em></p>
 
 <p><b>AdvertAbuse</b> <br/>
-<em>Please do not use ?advert.  If you would like to request an event, please use the ?help command.  Example: ?help Please host safewars!</em></p>
+<em>Please do not abuse ?advert.  If you would like to request an event, type '?help Please host eventname'. For instance, type '?help Please host turretwars!'</em></p>
 
 <p><b>Onit</b> <br/>
 <em>We have received your ?help or ?cheater call and are currently attending to it.  Please be assured that we will assist you in any way possible.</em></p>
@@ -1389,6 +1439,9 @@ window.onload=staticbar
 
 <p><b>BotsDied</b> <br/>
 <em>The bots are currently out of order.  Sorry for the inconvenience. We are trying to fix them ASAP.</em></p>
+
+<p><b>BotUpdate</b> <br/>
+<em>The bots are currently restarting for an update. We apologize for the inconvenience and appreciate your patience.</em></p>
 
 <p><b>SayPatience</b> <br/>
 <em>Please be patient, we will assist you as soon as we possibly can.</em></p>
@@ -1405,134 +1458,23 @@ window.onload=staticbar
 <p><b>NotTWRelated</b> <br/>
 <em>Your question is not Trench Wars related and therefore Staff can't help you. Sorry!</em></p>
 
-<p><b>What Meaning Of Life </b> <br/>
-<em>The meaning of life is to play TrenchWars and die.</em></p>
+<p><b>Distension Site </b> <br/>
+<em>Thanks for your interest in my game, Distension. The site for Distension is: http://trenchwars.org/distension/  -qan</em></p>
 
-<p><b>His Nice Ass </b> <br/>
-<em>You have a nice ass!!</em></p>
+<p><b>Distension When </b> <br/>
+<em>The Distension schedule is: WED 6PM, SAT 4PM, SUN possible random host (not guaranteed). All times EST (GMT-4) (!servertime to TW-Pubsystem for help).  See: http://trenchwars.org/distension/schedule.php</em></p>
 
-<p><b>Her Nice Ass </b> <br/>
-<em>Whoa mama!!!  You have a nice posterior!!</em></p>
+<p><b>Distension Schedule </b> <br/>
+<em>The Distension schedule is: WED 6PM, SAT 4PM, SUN possible random host (not guaranteed). All times EST (GMT-4) (!servertime to TW-Pubsystem for help).  See: http://trenchwars.org/distension/schedule.php</em></p>
 
-<p><b>Stop Slacking </b> <br/>
-<em>Please pick up your monthly stats and get more active or you will get the axe from Falker and Nycler, TY.</em></p>
+<p><b>Dist time </b> <br/>
+<em>The Distension schedule is: WED 6PM, SAT 4PM, SUN possible random host (not guaranteed). All times EST (GMT-4) (!servertime to TW-Pubsystem for help).  See: http://trenchwars.org/distension/schedule.php</em></p>
 
-<p><b>Drinking And Driving </b> <br/>
-<em>Please take care when operating your ship while under the influence of alcohol.</em></p>
+<p><b>Dist Schedule </b> <br/>
+<em>The Distension schedule is: WED 6PM, SAT 4PM, SUN possible random host (not guaranteed). All times EST (GMT-4) (!servertime to TW-Pubsystem for help).  See: http://trenchwars.org/distension/schedule.php</em></p>
 
-<p><b>Weaver Who </b> <br/>
-<em>Weaver: If you've got a problem he's not your man, but if you're a problem he'll give you a ban! =)</em></p>
-
-<p><b>Dock> Who </b> <br/>
-<em>Dock is a sysop of SSCU Trench Wars.  He, along with Sphonk, created the bot core that is currently being used in Trench Wars.  His email address is DoCk@yaunet.com.</em></p>
-
-<p><b>Priitk Who </b> <br/>
-<em>PriitK is a SSCU Trench Wars SysOp, a Billing Server Operator and the creator of Continuum.  His email address is priitk@trenchwars.org.</em></p>
-
-<p><b>Pure_Luck Who </b> <br/>
-<em>Pure_Luck&gt; greatest terr alive (base + lt) thanks</em></p>
-
-<p><b>M_M Who </b> <br/>
-<em>M_M God is Candy King For Life!</em></p>
-
-<p><b>Reaver Who </b> <br/>
-<em>April Fools! Hahahaha</em></p>
-
-<p><b>Diakka Who </b> <br/>
-<em>Diakka is a nobody, and nobody is perfect; therefore Diakka is perfect.</em></p>
-
-<p><b>Leaf Who </b> <br/>
-<em>Wtf, Leaf is a jerk, if you're friends with this guy you are pathetic, get a life!</em></p>
-
-<p><b>Beasty Who </b> <br/>
-<em>Beasty is the cute staffer! Shes like one of the Powerpuff Girls, except the pony tails.</em></p>
-
-<p><b>cool koen Who </b> <br/>
-<em>CK superman cool that's all you need to know.</em></p>
-
-<p><b>Pred_FNM Who </b> <br/>
-<em>Pred_FNM usually dances around with Credit Account and M_M God in the late hours around the trenches.  Together they are the indestructible Mambo team! When you approach Pred make sure you have some beer in your hand and whatever you do.. NEVER! I repeat NEVER talk about salsa, it will get you killed.</em></p>
-
-<p><b>Rudy Who </b> <br/>
-<em>Rudy is the Trench Wars ban administrator. He has a short temper and a shorter attention span. Do not waste his time with trivialities or (un)pleasantries, get to the point!</em></p>
-
-<p><b>Nethila Who </b> <br/>
-<em>Nethila is the king of nerds. Listen to him or you will feel the wrath of his lvl 99 Mage</em></p>
-
-<p><b>Shayde Who </b> <br/>
-<em>Shayde is your ever friendly neighborhood moderator!</em></p>
-
-<p><b>dameon angell Who </b> <br/>
-<em>Dameon Angell spawns people with a weasel and doesn't feel guilty.</em></p>
-
-<p><b>Asmodeus Who </b> <br/>
-<em>Asmodeus is thE one and ONLY Asmo.  Lame/wrong him and you WILL be sorry! ;)</em></p>
-
-<p><b>Kim Who </b> <br/>
-<em>^______I AM KIMCHI, OVERMIND OF ENDLESS RICE FIELDS______^</em></p>
-
-<p><b>Danger Who </b> <br/>
-<em>DangerGirl is Danger, Danger, Will Robinson!</em></p>
-
-<p><b>Revolt Who </b> <br/>
-<em>Revolt is a high powered lawyer here to protect the rights of those in confusion.  Has your life been ruined?  Have you been injured fighting for your squad?  Break a finger trying to burst in base?  If so, give Revolt a call at 1800 -Call-Rev and press "1" for legal advice, and "2" for phone sex.</em></p>
-
-<p><b>Acumo Who </b> <br/>
-<em>Acumo is TW's greatest jav and the sweetest lookin' boy!  o_O</em></p>
-
-<p><b>Pascone Who </b> <br/>
-<em>pascone might be afk or might be banning you. also, dont spam. a`</em></p>
-
-<p><b>Aqua Who </b> <br/>
-<em>The sky was dark, the moon was high. All alone just her and I. Her hair so soft, her eyes so blue. I knew just what she wanted to do. Her skin so soft, her legs so fine. I ran my fingers down her spine. I didn't know how, but I tried my best, to place my hand on her breast. I remember my fear, my fast beating heart, but slowly she spread her legs apart. And when she did I felt no shame, as all at once the white stuff came. At last it was finished, it's all over now, my first time... milking a cow.</em></p>
-
-<p><b>Da1andonly Who </b> <br/>
-<em>Da1andonly is your friendly fellow SSCU Trench Wars Moderator! _o/</em></p>
-
-<p><b>Punk Who </b> <br/>
-<em>You just got PUNK'D!</em></p>
-
-<p><b>Ewan Who </b> <br/>
-<em>Ewan is asleep. ZzZzZzZzZzZzZzZzZzZzZzZzZz ZzZzZzZzZzZzZzZzZzZzZzZzZz ZzZzZzZzZzZzZzZzZzZzZzZzZz ZzZzZzZzZzZzZzZzZzZzZzZzZz ZzZzZzZzZzZzZzZzZzZzZzZzZz ZzZzZzZzZzZzZzZzZzZzZzZzZz ZzZzZzZzZzZzZzZzZzZzZzZzZz ZzZzZzZzZzZzZzZzZzZzZzZzZz </em></p>
-
-<p><b>Falk Who </b> <br/>
-<em>WTFalK!</em></p>
-
-<p><b>Scoop Who </b> <br/>
-<em>I'm a man who discovered the wheel and built the Eiffel Tower out of metal and brawn. That's what kind of man I am. You're just a woman with a small brain. With a brain a third the size of us. It's science.</em></p>
-
-<p><b>Tera Who </b> <br/>
-<em>Tera is your friendly super sexy, super pretty, super hot, super javelin, TW Moderator ^_^</em></p>
-
-<p><b>Witness Who </b> <br/>
-<em>You want the truth?!?!? YOu CaNT Handle The TRUTH!! I was there.</em></p>
-
-<p><b>O.M.G. Who </b> <br/>
-<em>O.M.G. is the one who will be pulling off the impossible or sitting in spec disgusted.. face it, the name says it all, Oh. My. God...</em></p>
-
-<p><b>420 Who </b> <br/>
-<em>Bigger and Bolder and Rougher and Tougher in other words sucka, there is no other! I'm the one and only DOMINATOR! -Mr. 420</em></p>
-
-<p><b>Stargazer Who </b> <br/>
-<em>H.M.S. Stargazer&gt; NO! NO! NO! NO! NO! FOR THE LOVE OF GOD NO! NO! NO! NO! NO! HOW MANY TIME DO I HAVE TO TELL YOU? NO! NO! NO! NO! NO! NEVER! NOT IN A MILLION YEARS! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO! NO!</em></p>
-
-<p><b>MMaverick Who </b> <br/>
-<em>..                                                      __                                         .. /'\_/`\                                   __        /\ \                                         ../\      \     __     __  __     __   _ __ /\_\    ___\ \ \/'\                                     ..\ \ \__\ \  /'__`\  /\ \/\ \  /'__`\/\`'__\/\ \  /'___\ \ , &lt;                                     .. \ \ \_/\ \/\ \L\.\_\ \ \_/ </em></p>
-
-<p><b>Maverick Who </b> <br/>
-<em>..                                                      __                                         .. /'\_/`\                                   __        /\ \                                         ../\      \     __     __  __     __   _ __ /\_\    ___\ \ \/'\                                     ..\ \ \__\ \  /'__`\  /\ \/\ \  /'__`\/\`'__\/\ \  /'___\ \ , &lt;                                     .. \ \ \_/\ \/\ \L\.\_\ \ \_/ </em></p>
-
-<p><b>Bounty Who </b> <br/>
-<em>Bounty is pro pub slut LT and the quicker-picker-upper! ?find Bounty for a killing display. :D</em></p>
-
-<p><b>Nycle Who </b> <br/>
-<em>Nycle &gt; Falk \(o_O)/</em></p>
-
-<p><b>Yojo Who </b> <br/>
-<em>Yojo's power level is over nine thousAAAAANNNDD</em></p>
-
-<p><b>Left_Eye Who </b> <br/>
-<em>All the time I turn around, brothers gather round!  Always lookin at me up and down look at my UHHHHHHHH!  I just want to say now I ain't tryin to round up drama, little mama!  I don't want to take your man!  And I know I'm comin off just a little bit concieted, and I keep repeating how the boys wanna eat it!  But I'm tryin to tell that I can't be treated like clientele!  Cause they say she delicious!  But I ain't promiscuous!  And if you was suspicious, all that shit is fictitious!  I blow kisses that puts them boys on rock rock!  And they be lining down the block just to watch what I got!  Four!  Tres!  Two!  Uno!  So delicious!  So delicious!  So delicious!  I'm LEFTALICIOUS!</em></p>
+<p><b>Distension What </b> <br/>
+<em>Distension is an RPG-style action game using TW ship settings, and can be found in ?go distension and ?go distension3</em></p>
 
 <p><b>prizerecharge </b> <br/>
 <em>The prize number for recharge is 1.</em></p>
@@ -1618,10 +1560,274 @@ window.onload=staticbar
 <p><b>prizeportal </b> <br/>
 <em>The prize number for portal is 28.</em></p>
 
-<p><b>TWCore Download </b> <br/>
-<em>You can download TWCore at http://www.twcore.org.</em></p>
+<p><b>TWCore </b> (<font color="blue">Download </font>) <br/>
+<em>You can get TWCore by checking out the most recent version from SVN. Talk to a developer if you need to get SVN access. See www.twcore.org/wiki/RunningOnWindows and www.twcore.org/wiki/RunningOnLinux for more information</em></p>
 
-<p><b>TWcore Info </b> <br/>
-<em>You can find out more information about TWCore at http://www.twcore.org.</em></p>
+<p><b>TWcore </b> (<font color="blue">Info </font>) <br/>
+<em>You can find out more information about TWCore at: http://www.twcore.org</em></p>
+
+<p><b>Ticket </b> <br/>
+<em>You can create a new ticket for a bug or enhancement at: http://twcore.org/newticket</em></p>
+
+<p><b>Weaver Who </b> <br/>
+<em>Weaver: If you've got a problem he's not your man, but if you're a problem he'll give you a ban! =)</em></p>
+
+<p><b>Dock> Who </b> <br/>
+<em>Dock is a sysop of SSCU Trench Wars.  He, along with Sphonk, created the bot core that is currently being used in Trench Wars.  His email address is DoCk@yaunet.com.</em></p>
+
+<p><b>Priitk Who </b> <br/>
+<em>PriitK is a SSCU Trench Wars SysOp, a Billing Server Operator and the creator of Continuum.  His email address is priitk@trenchwars.org.</em></p>
+
+<p><b>Sphonk Who </b> <br/>
+<em>An SS legend, one of the creators of TWCore (along with DoCk&gt;) and an all-around good guy.</em></p>
+
+<p><b>Pure_Luck Who </b> <br/>
+<em>Pure_Luck&gt; greatest terr alive (base + lt) thanks</em></p>
+
+<p><b>M_M Who </b> <br/>
+<em>M_M God is Candy King For Life!</em></p>
+
+<p><b>cool koen Who </b> <br/>
+<em>Does it look like I care...!?</em></p>
+
+<p><b>Rudy Who </b> <br/>
+<em>Rudy was a Trench Wars ban administrator. He has a short temper and a shorter attention span. Do not waste his time with trivialities or (un)pleasantries, get to the point!</em></p>
+
+<p><b>dameon angell Who </b> <br/>
+<em>Dameon Angell spawns frequently and with extreme prejudice during DDs.  Because, he feels that all the spawns make up for all the eats that come from you and your crappy 56k connections.  ?buy broadband, kthx.</em></p>
+
+<p><b>Kim Who </b> <br/>
+<em>^______I AM KIMCHI, OVERMIND OF ENDLESS RICE FIELDS______^</em></p>
+
+<p><b>Pascone Who </b> <br/>
+<em>Pascone is the elim king, season 11 twld winner, and has more usage than you'll ever attain</em></p>
+
+<p><b>Aqua Who </b> <br/>
+<em>The sky was dark, the moon was high. All alone just her and I. Her hair so soft, her eyes so blue. I knew just what she wanted to do. Her skin so soft, her legs so fine. I ran my fingers down her spine. I didn't know how, but I tried my best, to place my hand on her breast. I remember my fear, my fast beating heart, but slowly she spread her legs apart. And when she did I felt no shame, as all at once the white stuff came. At last it was finished, it's all over now, my first time... milking a cow.</em></p>
+
+<p><b>Punk Who </b> <br/>
+<em>You just got PUNK'D!</em></p>
+
+<p><b>O.M.G. Who </b> <br/>
+<em>O.M.G. is the one who will be pulling off the impossible or sitting in spec disgusted.. face it, the name says it all, Oh. My. God...</em></p>
+
+<p><b>hms Who </b> <br/>
+<em>To quote Hamlet, Act III, Scene III Line 87: No!</em></p>
+
+<p><b>milosh Who </b> <br/>
+<em>I am working on your problem as we speak. Please, hold on to your butts.</em></p>
+
+<p><b>Maverick Who </b> <br/>
+<em>..                                                      __                                          .. /'\_/`\                                   __        /\ \                                         ../\      \     __     __  __     __   _ __ /\_\    ___\ \ \/'\                                     ..\ \ \__\ \  /'__`\  /\ \/\ \  /'__`\/\`'__\/\ \  /'___\ \ , &lt;                                     .. \ \ \_/\ \/\ \L\.\_\ \ \_/ </em></p>
+
+<p><b>Upster Who </b> <br/>
+<em>Putting the zone first, by putting the players first. Immediately after prioritizing Staff          responsibility and leveraging practicality toward exceeding by empowering our zone to put players   (and themselves) first, in a diverse and respectful gaming environment of only those that           come first, first.                                                                                  �                    o           ( ( (         ( ( (                                                �     ,,,         ` /_\ '      '. ___ .'     '. ___ .'                                              �    (o o)       - (o o) -    '  (&gt; &lt;) '    '  (&gt; &lt;) '                                              冩oO--(_)--Ooo-ooO--(_)--Ooo-ooO--(_)--Ooo-ooO--(_)--Ooo</em></p>
+
+<p><b>Nycle Who </b> <br/>
+<em>Nycle &gt; Falk \(o_O)/</em></p>
+
+<p><b>Kahlan Who </b> <br/>
+<em>Who is the man that would risk his neck for his brother man? KAHLAN! They say this cat Kahlan is a bad mother SHUT YOUR MOUTH! I'm talkin' bout Kahlan. THEN WE CAN DIG IT! He's a complicated man but no one understands him but his woman. KAHLAN!</em></p>
+
+<p><b>Krazie Who </b> <br/>
+<em>Krazie &lt;ER&gt; + Pandora's Box = END OF THE WORLD!!!</em></p>
+
+<p><b>AI Who </b> <br/>
+<em>I play Continuum a cant ya see, I play it everyday cause I'm so carefree                            I like to Shark you better believe, pullin those reps right outta my sleeve                         Put me in a Lanc and i'll kick da booty, Makin da NME look reel Fruity                              My name is A I, If yer lookin for me, C'mon and Jump in to T W B D!</em></p>
+
+<p><b>HTF Who </b> <br/>
+<em>Hate The Fake is a celebrity, a person who works hard all of their life to become well known, and then wears dark glasses to avoid being recognized.</em></p>
+
+<p><b>Tyler Who </b> <br/>
+<em>Hes that guy with that real name thing.. TW's version of some good ol Southern Justice</em></p>
+
+<p><b>Turban Who </b> <br/>
+<em>Listen up! Let's say you drink too much strawberry milk, and have to use the bathroom in the middle of the night. But, it's cold outside your bed. You don't want to get up, but the urge to urinate is just too strong! You make up your mind! You run to the bathroom, stand in front of the toilet, and let loose! You think all your life has lead to this moment! But then you realize, it isn't the bathroom, you're still in bed! That feeling of lukewarm wetness spreads like wildfire! But you don't stop! You can't stop! That's what I'm talking about! THAT IS THE TRUTH OF THE STRAWBERRY MILK! DO YOU GET IT?</em></p>
+
+<p><b>Bounty Who </b> <br/>
+<em>Bounty the quicker picker and greener upper!</em></p>
+
+<p><b>hurricane Who </b> <br/>
+<em>hurricane is the real #1 player! Both in game and in real life! With girls on his side, he is the fear of every subspace player out there!</em></p>
+
+<p><b>Geio Who </b> <br/>
+<em>Geio is the King of all Wb's, and the best basketball player in TW.</em></p>
+
+<p><b>Arobas+ Who </b> <br/>
+<em>ALL YOUR BASE ARE BELONG TO US!!!</em></p>
+
+<p><b>Pinkstar Who </b> <br/>
+<em>Roses are red,                                                                                                 Violets are corny,                                                                                                 When I think of you                                                                                                 Ohhh baby I get horny!!!</em></p>
+
+<p><b>EvilDeed Who </b> <br/>
+<em>hi my name is EvilDeed and i like to play the javelin</em></p>
+
+<p><b>Dexter Who </b> <br/>
+<em>Dexter is the guy that hides in a laboratory to do scientific studies, then Dee Dee comes and KABOOM!</em></p>
+
+<p><b>Jacklyn Who </b> <br/>
+<em>Huhhhhhhh!~?!?!?!?! ...where'd the cookies go?</em></p>
+
+<p><b>Dominant Who </b> <br/>
+<em>I'll kill you where you stand</em></p>
+
+<p><b>Dezmond Who </b> <br/>
+<em>Dezmond is the guy that is blamed for everything bad that happens.......Dezmond&gt; i didn't do it :(</em></p>
+
+<p><b>Witness Who </b> <br/>
+<em>I bet your Mommy still thinks your cute. ROFL Your Mom is one funny person. </em></p>
+
+<p><b>Warthog Who </b> <br/>
+<em>Warthog is a benighted ninja dwarf searching for his wife's true killer. She's a disco-crazy kleptomaniac doctor with the power to bend men's minds. They fight crime!</em></p>
+
+<p><b>Zazu Who </b> <br/>
+<em>Zazu needs your money as he is addicted to beer. So go to www.trenchwars.org/donations and donate NOW!</em></p>
+
+<p><b>Horatio Who </b> <br/>
+<em>Ginger King of Crime and Space</em></p>
+
+<p><b>Qan Who </b> <br/>
+<em>qan is a criminal injury lawyer and a creative consulantant for BET. (HAVE YOU BEEN HURT AT WORK WHILE COMMITTING A CRIME? ARE YOU ALSO PRODUCING AND DIRECTING A SHOW TARGETED FOR AFRICAN AMERICANS? CONTACT QAN FOR A FREE CONSULTATION TODAY)</em></p>
+
+<p><b>Roboking Who </b> <br/>
+<em>RoboKing is the name of the old development botcore running on TWCore, used for newer, less stable bots.</em></p>
+
+<p><b>Roboqueen Who </b> <br/>
+<em>qan</em></p>
+
+<p><b>JabJabJab Who </b> <br/>
+<em>JABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJABJAB</em></p>
+
+<p><b>Stark Who </b> <br/>
+<em>That's what she said.</em></p>
+
+<p><b>Beam Who </b> <br/>
+<em>I LUV U ^___________^ &lt;333333333</em></p>
+
+<p><b>Kane Who </b> <br/>
+<em>Can you please calm down? Help is on the way.</em></p>
+
+<p><b>Lefty Who </b> <br/>
+<em>All the time I turn around, brothers gather round!  Always lookin at me up and down look at my UHHHHHHHH!  I just want to say now I ain't tryin to round up drama, little mama!  I don't want to take your man!  And I know I'm comin off just a little bit concieted, and I keep repeating how the boys wanna eat it!  But I'm tryin to tell that I can't be treated like clientele!  Cause they say blow kisses that puts them boys on rock rock!  And they be lining down the block just to watch what I got!  Four!  Tres!  Two!  Uno!  So delicious!  So delicious!  So delicious!  I'm LEFTALICIOUS!</em></p>
+
+<p><b>Verm Who </b> <br/>
+<em>.::sips tea::</em></p>
+
+<p><b>Gazo Who </b> <br/>
+<em>#Yolo!</em></p>
+
+<p><b>Reckful Who </b> <br/>
+<em>Behold! The field in which I grow my fucks. Lay thine eyes upon it and thou shalt see that it is barren.</em></p>
+
+<p><b>Sheriff Who </b> <br/>
+<em>For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life. -John 3:16</em></p>
+
+<p><b>Senorita Who </b> <br/>
+<em>&lt;3</em></p>
+
+<p><b>Kian Who </b> <br/>
+<em>Being a top player in Trench Wars, it will be my pleasure to show you how to become a better player yourself.</em></p>
+
+<p><b>Conspiracy Who </b> <br/>
+<em>If you seriously need help with anything, follow me.. i know exactly what im doing!</em></p>
+
+<p><b>Willby Who </b> <br/>
+<em>Down, down to hell; and say I sent thee thither: / I, that have neither pity, love, nor fear. / Indeed, 'tis true that Henry told me of; / For I have often heard my mother say / I came into the world with my legs forward: / Had I not reason, think ye, to make haste, / And seek their ruin that usurp'd our right? / The midwife wonder'd and the women cried / 'O, Jesus bless us, he is born with teeth!' / And so I was; which plainly signified / That I should snarl and bite and play the dog. / Then, since the heavens have shaped my body so, Let hell make crook'd my mind to answer it. / I have no brother, I am like no brother; / And this word 'love,' which graybeards call divine, / Be resident in men like one another / And not in me: I am myself alone.</em></p>
+
+<p><b>Weedle Who </b> <br/>
+<em>A Weedle Appears. Soft Gliding Across Wet Grass. Gotta Catchem All.</em></p>
+
+<p><b>Azov Who </b> <br/>
+<em>Throw down your guns, and come on out with your hands up. Or come on out, then throw down your guns, whichever way you wanna do it. Just remember the two key elements here: one, guns to be thrown down; two, come on out!</em></p>
+
+<p><b>Board Who </b> <br/>
+<em>Terrs are red, Levs are blue, I shot you ded, PEW PEW PEW</em></p>
+
+<p><b>Begz Who </b> <br/>
+<em>A continuum is something that keeps on going, changing slowly over time, like the continuum of the four seasons. In addition to meaning "a whole made up of many parts," continuum, pronounced "kon-TIN-yoo-um," can describe a range that is always present. For example, in the game, at any time, there are newplayers who are learning warbird, then advancing to javelin, spider, and terrier. Just as the newplayers master their particular ship, they move on to the next one, as other newplayers enter the game and the vets retire.</em></p>
+
+<p><b>fiS Who </b> <br/>
+<em>My responses are limited. You must ask the right questions.</em></p>
+
+<p><b>LF Who </b> <br/>
+<em>~!~ Wow!  Have a great time in SSCU Trench Wars! ~!~</em></p>
+
+<p><b>Griz Who </b> <br/>
+<em>Slacker extraordinaire.</em></p>
+
+<p><b>Residue Who </b> <br/>
+<em>If you want to walk the heavenly streets of gold, you gotta know the password, "ROLL, TIDE, ROLL!"</em></p>
+
+<p><b>zreqdf Who </b> <br/>
+<em>Have fun in EG!</em></p>
+
+<p><b>Lena Who </b> <br/>
+<em>I'd rather drink bleach, jump off a cliff or shoot myself in the head than host bug for someone like you.</em></p>
+
+<p><b>9th Who </b> <br/>
+<em>$$.o888P     Y8o8Y     Y888o.                                                                       $d88888      88888      88888b                                                                      d888888b_  _d88888b_  _d888888b £9th!                                                               8888888888888888888888888888888 ££is                                                                8888888888888888888888888888888 batman                                                              YJGS8P"Y888P"Y888P"Y888P"Y8888P ££!!                                                                $Y888   '8'   Y8P   '8'   888Y                                                                      $$'8o          V          o8'</em></p>
+
+<p><b>Haze Who </b> <br/>
+<em>YOUZA THOT #3HUNNA #SCUTTAH #GBE #OTF #BANGBANG</em></p>
+
+<p><b>Undercut Who </b> <br/>
+<em>Take these crayons and go to your room!</em></p>
+
+<p><b>Underquota Who </b> <br/>
+<em>wilcim to staff ~~!!</em></p>
+
+<p><b>the block who </b> <br/>
+<em>1:the block&gt; !8ball robo are you threatening to rape me? 1:RoboHelp&gt; Yes, definitely.</em></p>
+
+<p><b>field who </b> <br/>
+<em>I would die if I waxed my chest.</em></p>
+
+<p><b>Beasty who </b> <br/>
+<em>Maybe I'm off my hinges, but I believe you. That's why I'm gonna let you go. I'm gonna give you to the count of three to get your lousy, lyin', low-down, four flushing carcass OUT my door! 1... 2....</em></p>
+
+<p><b>Missa Who </b> <br/>
+<em>It's not happening.</em></p>
+
+<p><b>Heaven Who </b> <br/>
+<em>Look left. Look right. Heaven bitch slapped you with his mind.</em></p>
+
+<p><b>Shadowmere Who </b> <br/>
+<em>Who am I? I'm no one. Just a spy.</em></p>
+
+<p><b>pod Who </b> <br/>
+<em>7:pod&gt; some ppl take it so seriously as if they are a judge irl its like brasef this an online pew pew spaceship game</em></p>
+
+<p><b>Lip Shadow Who </b> <br/>
+<em>If you ever meet lip shadow, you won't forget his face. Even if you keep trying.</em></p>
+
+<p><b>What Meaning Of Life </b> <br/>
+<em>The meaning of life is to play TrenchWars and die.</em></p>
+
+<p><b>His Nice Ass </b> <br/>
+<em>You have a nice ass!!</em></p>
+
+<p><b>Her Nice Ass </b> <br/>
+<em>Whoa mama!!! You have a nice posterior!!</em></p>
+
+<p><b>bangbangbang</b> <br/>
+<em>I don't want to know your name, I just want.. Bang bang bang!</em></p>
+
+<p><b>Stop Slacking </b> <br/>
+<em>Please pick up your monthly stats and get more active or you will get the axe from one of the deans! :-[</em></p>
+
+<p><b>Drinking And Driving </b> <br/>
+<em>Please take care when operating your ship while under the influence of alcohol.</em></p>
+
+<p><b>Love What Is </b> <br/>
+<em>Baby, don't hurt me. Don't hurt me... no more... </em></p>
+
+<p><b>Time Drowned River </b> <br/>
+<em>So I was around 12 years old when I almost died the first time. I was floating on an innertube down the river, pretty wide, deep river, flooded every year and it always brought a lot of trees down with it when it did. This means there were a lot of logjams, of course. Now a logjam is a nasty piece of business for a child; you get under there and you're bound to be caught between two logs, easy, drown forever. Gone. Never heard from again. Well, I wasn't too experienced on the water yet, but what do you know? I got ahead of my mom a bit, just floating down the river, a swift river ... and suddenly the current starts to steer me into one of the logjams at a sharp bend. I start backpeddling, but there's nothing doing ... I'm pushed right toward it. Before I know it I'm up against a log, just hanging on for dear sweet life. I thought I could wait for my mom, right? She'd rescue me? Ah, good parenting. Nothing. I waited, and I waited, holding on, my grip slipping. I yelled. I was too scared to cry. And as I felt my grip weakening, I knew I had to just do it or get sucked down .... so all at once I gathered the last bit of my strength, and, giving up my only grip, the only thing keeping me from getting taken under, I pushed off HARD with my legs. It was just enough -- just enough to clear that logjam. And the river took me down into the peaceful warm currents on a sunny day. I didn't say a word about it to anyone.</em></p>
+
+<p><b>Happy Halloween </b> <br/>
+<em>.                           _...---..._                                                             .                         ,'_         _`.                                                           .                        / / `.     ,' \ \                                                          .                       :  \___`._,'___/  :                                                         .              _        </em></p>
+
+<p><b>Smile How </b> <br/>
+<em>=)                                                    ..::''''::..                                  =D                                          .:::.   .;''        ``;.                                =&gt;  ....                                    :::::  ::    ::  ::    ::                               =J,;' .;:                ()  ..:            `:::' ::     ::  ::     ::                              =A::.      ..:,:;.,:;.    .   ::   .::::.    `:'  :: .:' ::  :: `:. ::                              =} '''::,   ::  ::  ::  `::   ::  ;:   .::    :   ::  :          :  ::                              =]:';  ::;  ::  ::  ::   ::   ::  ::,::''.    .    :: `:.      .:' ::                               &gt;D:,,,,;;' ,;; ,;;, ;;, ,;;, ,;;, `:,,,,:'   :;:    `;..``::::''..;'                                D:                                                    ``::,,,,::''</em></p>
 
 </body></html>
