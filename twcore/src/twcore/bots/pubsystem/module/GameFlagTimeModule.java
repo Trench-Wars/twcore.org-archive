@@ -3505,14 +3505,13 @@ public class GameFlagTimeModule extends AbstractModule {
                 }
 
                 if (preTimeCount >= 10) {
+                    warpPlayers(strictFlagTimeMode);
                     String message = "[FLAG] " + (roundNum == MAX_FLAGTIME_ROUNDS ? "FINAL ROUND" : "ROUND " + roundNum) + " START!  Hold flag for "
                                      + flagMinutesRequired + " consecutive minute" + (flagMinutesRequired == 1 ? "" : "s") + " to win.";
                     //int sound = strictFlagTimeMode ? Tools.Sound.GOGOGO : Tools.Sound.BEEP1;
                     //m_botAction.sendArenaMessage(message, sound);
                     m_botAction.sendArenaMessage(message);
                     setupPlayerTimes();
-                    warpPlayers(strictFlagTimeMode);
-                    m_botAction.resetFlagGame();
                     Iterator<?> i = m_botAction.getPlayingPlayerIterator();
 
                     while (i.hasNext()) {
@@ -3522,6 +3521,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
                     // Clear any round restricted buyable items/commands
                     context.getMoneySystem().resetRoundRestrictions();
+                    m_botAction.resetFlagGame();
                     isStarted = true;
                     isRunning = true;
 
