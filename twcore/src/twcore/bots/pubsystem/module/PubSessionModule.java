@@ -1,6 +1,7 @@
 package twcore.bots.pubsystem.module;
 
 import java.util.HashMap;
+import java.util.TimerTask;
 
 import twcore.bots.pubsystem.PubContext;
 import twcore.bots.pubsystem.pubsystem;
@@ -22,8 +23,7 @@ public class PubSessionModule extends AbstractModule {
 
     HashMap <String, SessionPlayer>ps = new HashMap<String, SessionPlayer>();
     PubContext context;
-
-    //private boolean moneyEnabled = false;
+    TimerTask checkForIdles;
 
     //default tax deduction for TKs
     //int tax = 10;
@@ -38,6 +38,13 @@ public class PubSessionModule extends AbstractModule {
         super(botAction, context, "Session");
         this.context = context;
         reloadConfig();
+        
+        checkForIdles = new TimerTask() {
+        	public void run() {
+        		checkForIdles();
+        	}
+        };
+        m_botAction.scheduleTask(checkForIdles, 3 * Tools.TimeInMillis.MINUTE, 30 * Tools.TimeInMillis.SECOND);
     }
 
     public void requestEvents(EventRequester eventRequester) {
@@ -103,7 +110,7 @@ public class PubSessionModule extends AbstractModule {
 
                 if (splayer != null) {
                     splayer.playingSince = -1;
-                    splayer.lastShip = 0;
+                    splayer.ship = 0;
                     splayer.doTimeLandmarksReset();     // So when they re-enter, they can receive time-play awards again
                 }
             }
@@ -113,11 +120,11 @@ public class PubSessionModule extends AbstractModule {
                 SessionPlayer splayer = ps.get(p.getPlayerName());
 
                 if (splayer != null) {
-                    if (splayer.lastShip == 0) {
+                    if (splayer.ship == 0) {
                         splayer.playingSince = System.currentTimeMillis();
                     }
 
-                    splayer.lastShip = event.getShipType();
+                    splayer.ship = event.getShipType();
                 }
             }
         }
@@ -260,6 +267,41 @@ public class PubSessionModule extends AbstractModule {
     }
 
     // Helper methods
+    
+    /**
+     * Checks players for idle status so as not to award them when they are idle.
+     * 
+     * Player is (probably) idle if they haven't killed in 3 minutes and haven't died within the last 30 seconds
+     * (or 5 min / 60 sec for Terr & Shark).
+     * 
+     * Therefore, that time is effectively erased
+     */
+    public void checkForIdles() {
+    	long currTime = System.currentTimeMillis();
+    	
+    	for ( SessionPlayer player : ps.values()) {    		
+    		if (player.ship == Tools.Ship.TERRIER || player.ship == Tools.Ship.SHARK) {
+    			if (player.lastKill + (5 * Tools.TimeInMillis.MINUTE) < currTime) {
+
+    				if (player.lastDeath + (60 * Tools.TimeInMillis.SECOND) < currTime) {
+    					player.playingSince += (5 * Tools.TimeInMillis.MINUTE);
+    					// XXX: Update lastkill, even though they aren't making a kill.
+    					// This way they are only penalized once per cycle.
+    					player.lastKill = System.currentTimeMillis();
+    				}
+    			}    			
+    		} else {
+    			if (player.lastKill + (3 * Tools.TimeInMillis.MINUTE) < currTime) {
+
+    				if (player.lastDeath + (30 * Tools.TimeInMillis.SECOND) < currTime) {
+    					player.playingSince += (3 * Tools.TimeInMillis.MINUTE);
+    					player.lastKill = System.currentTimeMillis();
+    				}
+    			}
+    		}
+    	}
+    }
+    
     public String getRatio( int k, int d ) {
         if( k == 0 )
             return "0:" + d;
@@ -331,7 +373,6 @@ public class PubSessionModule extends AbstractModule {
 
     @Override
     public void start() {
-        // TODO Auto-generated method stub
 
     }
 
@@ -348,11 +389,6 @@ public class PubSessionModule extends AbstractModule {
         //}
 
         enabled = true;
-        /*  TODO: Uncomment if you ever use money (rewarding people for certain feats for example)
-            if (m_botAction.getBotSettings().getInt("session_money_enabled")==1) {
-            moneyEnabled = true;
-            }
-        */
     }
 
     private class SessionPlayer {
@@ -369,12 +405,12 @@ public class PubSessionModule extends AbstractModule {
         long lastKill;
         long lastDeath;
         long playingSince;
-        int lastShip;
+        int ship;
         int bonus = 0;
 
         public SessionPlayer( String name, int ship ) {
             this.name = name;
-            this.lastShip = ship;
+            this.ship = ship;
             tracking = true;
 
             for( int i = 0; i < 8; i++ ) {
@@ -1048,17 +1084,6 @@ public class PubSessionModule extends AbstractModule {
                 return;
 
             long currTime = System.currentTimeMillis();
-
-            // Player is (probably) idle if they haven't killed in 3 minutes and haven't died within the last 30 seconds
-            if (lastKill + (3 * Tools.TimeInMillis.MINUTE) < currTime) {
-
-                if (lastDeath + (30 * Tools.TimeInMillis.SECOND) < currTime) {
-                    // So let's erase that time for the purposes of checking playing landmarks.
-                    // Players may lose some time as terr/shark, but it's necessary to prevent abuse.
-                    playingSince += (3 * Tools.TimeInMillis.MINUTE);
-                    return;
-                }
-            }
 
             // Max reward is 4 hours, in case someone figures out a way to game this system.
             // Plus, it's probably time to take a break anyhow.
