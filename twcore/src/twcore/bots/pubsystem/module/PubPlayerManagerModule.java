@@ -67,7 +67,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     private String databaseName;
 
     private SavePlayersTask saveTask = new SavePlayersTask();       // Autosave Task. Money also saved when players leave arena
-    private int SAVETASK_INTERVAL = 5;                  // Frequency of saves for all unsaved players (money changed since last save), in minutes
+    private int SAVETASK_INTERVAL = 1;                  // Frequency of saves for all unsaved players (money changed since last save), in minutes
 
     //private Log logMoneyDBTransaction;
 
@@ -354,6 +354,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             return;
         player.resetMoneyEarnedThisSession();
 
+        /*
         if (player.getLastMoneyUpdate() > player.getLastMoneySavedState()) {
             if (player.hasStatsDB()) {
                 m_botAction.SQLBackgroundQuery(databaseName, "moneydb:" + player.getPlayerName() + ":" + player.getMoney() + ":1", "UPDATE tblPlayerStats SET fnMoney=" + player.getMoney() + " WHERE fcName='" + Tools.addSlashes(player.getPlayerName()) + "'");
@@ -362,6 +363,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 player.setHasStatsDB(true);
             }
         }
+        */
         //checkFreqSizes();
     }
 
@@ -1366,6 +1368,10 @@ public class PubPlayerManagerModule extends AbstractModule {
                     //player.savedState();
                     //}
 
+                }
+                
+                if (m_botAction.getPlayer(player.getPlayerName()) == null) {
+                    it2.remove();
                 }
 
                 // Not anymore on this arena? remove this player from the PubPlayerManager
