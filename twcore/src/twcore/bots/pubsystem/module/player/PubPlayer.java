@@ -113,7 +113,9 @@ public class PubPlayer implements Comparable<PubPlayer> {
     private boolean notifiedAboutEZ = false;
     private TimerTask spawnDelay;
 
+    // Misc vars
     private short lastFreq = 9999;
+    private int deploys = 0;
     private boolean warp;
     // Used to track whether a shark is in safe due to the mine clearing warp, or because he was already there.
     private boolean minesCleared = false;
@@ -155,6 +157,8 @@ public class PubPlayer implements Comparable<PubPlayer> {
 
         reloadPanel(false);
     }
+    
+    // TODO: Reoder methods into proper functions vs basic getters/setters
 
     public void setName(String name) {
         this.name = name;
@@ -668,6 +672,18 @@ public class PubPlayer implements Comparable<PubPlayer> {
             m_botAction.sendPrivateMessage( name, "2cool4school Bonus: $100" );
             addMoney( 100 );
         }
+    }
+    
+    public int getDeploys() {
+        return deploys;
+    }
+
+    public void addDeploy() {
+        deploys++;
+    }
+    
+    public void resetDeploys() {
+        deploys = 0;
     }
 
 }

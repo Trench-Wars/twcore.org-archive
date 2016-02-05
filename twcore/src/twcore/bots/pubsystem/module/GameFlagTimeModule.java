@@ -97,6 +97,9 @@ public class GameFlagTimeModule extends AbstractModule {
     private Point[] warpPtsLeft;
     private Point[] warpPtsRight;
 
+    // Warp coords for !deploy, which sends a player to the roof if they are in base
+    private Point[] warpPtsDeploy;
+    
     // Warp coords for safes (for use in strict flag time mode)
     Point warpSafeLeft;
     Point warpSafeRight;
@@ -225,6 +228,9 @@ public class GameFlagTimeModule extends AbstractModule {
 
         // Warp points for start of round, right side of base.
         warpPtsRight = cfg.getPointArray("warp_right", ",", ":");
+        
+        // Warp points for !deploy, arranged at the edge of the rock ring around roof
+        warpPtsDeploy = cfg.getPointArray("warp_right", ",", ":");
 
         // Coordinates of left safe.
         warpSafeLeft = cfg.getPoint("safe_left", ":");
@@ -305,6 +311,7 @@ public class GameFlagTimeModule extends AbstractModule {
                             if (!levTerr.isEmpty() && levTerr.alertAllowed()) {
                                 String message = "[LEVTERR Alert] " + p1.getPlayerName() + " (Terrier) with ";
                                 String hunterAdv = (hunterFreqEnabled ? "   =" + hunterFreq + " for LT Hunter freq." : "");
+                                String deployAdv = "  !deploy to warp to roof";
                                 String lev = "";
 
                                 for (String name : levTerr.getLeviathans())
@@ -622,7 +629,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 return;
 
             if (context.getPubMap().currentBase == PubMapModule.SMALL_BASE) {
-                // During small base, large base areas and FR tunnels all count as roof. 
+                // During small base, large base areas and FR tunnels all count as roof.
                 if (Region.ROOF.equals(reg) || Region.LARGE_FR.equals(reg) || Region.MED_FR.equals(reg) || Region.TUNNELS.equals(reg)) {
                     m_botAction.sendPrivateMessage(p.getPlayerID(), "Please stay away from the roof when a new round is starting.");
                     m_botAction.warpTo(p.getPlayerID(), 512, 693);  // Bottom safe. Forgive the magic #s
@@ -651,10 +658,12 @@ public class GameFlagTimeModule extends AbstractModule {
                 cmd_levTerr(sender);
             else if (warpCmdsAllowed && (command.trim().equals("!warp") || command.trim().equals("!w")))
                 cmd_warp(sender);
+            else if (warpCmdsAllowed && (command.trim().equals("!deploy") || command.trim().equals("!dp")))
+                cmd_deploy(sender);
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
-                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+                m_botAction.sendPrivateMessage(sender, e.getMessage());
         }
     }
 
@@ -673,7 +682,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         } catch (RuntimeException e) {
             if (e != null && e.getMessage() != null)
-                m_botAction.sendSmartPrivateMessage(sender, e.getMessage());
+                m_botAction.sendPrivateMessage(sender, e.getMessage());
         }
 
     }
@@ -764,7 +773,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 //players++;
             }
 
-            m_botAction.sendSmartPrivateMessage(sender, text);
+            m_botAction.sendPrivateMessage(sender, text);
         }
     }
 
@@ -778,7 +787,7 @@ public class GameFlagTimeModule extends AbstractModule {
             throw new RuntimeException("Can't find you. Please report this to staff.");
 
         if (levterrs.isEmpty())
-            m_botAction.sendSmartPrivateMessage(sender, "No active LevTerr.");
+            m_botAction.sendPrivateMessage(sender, "No active LevTerr.");
         else {
             boolean active = false;
             int levNameLength = 15;
@@ -807,7 +816,7 @@ public class GameFlagTimeModule extends AbstractModule {
                         ;
                         header += Tools.formatString("Leviathan(s)", levNameLength + 4);
                         header += "Since";
-                        m_botAction.sendSmartPrivateMessage(sender, header);
+                        m_botAction.sendPrivateMessage(sender, header);
                     }
 
                     String freq = (terr.getFrequency() < 100) ? terr.getFrequency() + "" : "(P)";
@@ -820,12 +829,12 @@ public class GameFlagTimeModule extends AbstractModule {
 
                     message += Tools.formatString(levs.substring(2), levNameLength + 4);
                     message += Tools.getTimeDiffString(lt.levvingSince, true);
-                    m_botAction.sendSmartPrivateMessage(sender, message);
+                    m_botAction.sendPrivateMessage(sender, message);
                     active = true;
                 }
 
             if (!active)
-                m_botAction.sendSmartPrivateMessage(sender, "No active LevTerr.");
+                m_botAction.sendPrivateMessage(sender, "No active LevTerr.");
 
         }
     }
@@ -847,13 +856,13 @@ public class GameFlagTimeModule extends AbstractModule {
         if (!i.hasNext())
             throw new RuntimeException("ERROR: No players detected on your frequency!");
 
-        m_botAction.sendSmartPrivateMessage(sender, "Name of Terrier          Last seen");
+        m_botAction.sendPrivateMessage(sender, "Name of Terrier          Last seen");
 
         while (i.hasNext()) {
             Player terr = i.next();
 
             if (terr.getShipType() == Tools.Ship.TERRIER)
-                m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(terr.getPlayerName(), 25)
+                m_botAction.sendPrivateMessage(sender, Tools.formatString(terr.getPlayerName(), 25)
                                                     + context.getPubUtil().getPlayerLocation(terr.getXTileLocation(), terr.getYTileLocation()));
         }
     }
@@ -879,27 +888,27 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.cancelTask(voteWait);
             context.getPlayerManager().checkSizesAndShuffle(name);
         } else {
-            m_botAction.sendSmartPrivateMessage(name, "!shufflevote may only be used immediately following the end of a round.");
+            m_botAction.sendPrivateMessage(name, "!shufflevote may only be used immediately following the end of a round.");
             return;
         }
     }
 
     public void cmd_shuffleRounds(String sender, String msg) {
-        m_botAction.sendSmartPrivateMessage(sender, "Shuffle is presently disabled.");
+        m_botAction.sendPrivateMessage(sender, "Shuffle is presently disabled.");
         /*
             int r = 3;
             try {
             r = Integer.valueOf(msg.substring(msg.indexOf(" ") + 1));
             } catch (NumberFormatException e) {
-            m_botAction.sendSmartPrivateMessage(sender, "Could not convert " + msg);
+            m_botAction.sendPrivateMessage(sender, "Could not convert " + msg);
             return;
             }
             if (r < 1) {
-            m_botAction.sendSmartPrivateMessage(sender, "Rounds must be greater than 0");
+            m_botAction.sendPrivateMessage(sender, "Rounds must be greater than 0");
             return;
             }
             minShuffleRound = r;
-            m_botAction.sendSmartPrivateMessage(sender, "Minimum shuffle rounds set to " + r);
+            m_botAction.sendPrivateMessage(sender, "Minimum shuffle rounds set to " + r);
         */
     }
 
@@ -907,9 +916,9 @@ public class GameFlagTimeModule extends AbstractModule {
         autoVote = !autoVote;
 
         if (!autoVote)
-            m_botAction.sendSmartPrivateMessage(name, "Auto shuffle vote has been DISABLED");
+            m_botAction.sendPrivateMessage(name, "Auto shuffle vote has been DISABLED");
         else
-            m_botAction.sendSmartPrivateMessage(name, "Auto shuffle vote has been ENABLED");
+            m_botAction.sendPrivateMessage(name, "Auto shuffle vote has been ENABLED");
     }
 
     /**
@@ -975,16 +984,16 @@ public class GameFlagTimeModule extends AbstractModule {
             strictFlagTimeMode = false;
 
             if (isFlagTimeStarted())
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled. Changes will go into effect next round.");
+                m_botAction.sendPrivateMessage(sender, "Strict flag time mode disabled. Changes will go into effect next round.");
             else
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode disabled. !starttime <minutes> to begin a normal flag time game.");
+                m_botAction.sendPrivateMessage(sender, "Strict flag time mode disabled. !starttime <minutes> to begin a normal flag time game.");
         } else {
             strictFlagTimeMode = true;
 
             if (isFlagTimeStarted())
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled. All players will be warped into base next round.");
+                m_botAction.sendPrivateMessage(sender, "Strict flag time mode enabled. All players will be warped into base next round.");
             else
-                m_botAction.sendSmartPrivateMessage(sender, "Strict flag time mode enabled. !starttime <minutes> to begin a strict flag time game.");
+                m_botAction.sendPrivateMessage(sender, "Strict flag time mode enabled. !starttime <minutes> to begin a strict flag time game.");
         }
     }
 
@@ -1006,15 +1015,15 @@ public class GameFlagTimeModule extends AbstractModule {
     */
     public void cmd_autoWarp(String sender) {
         if(!warpCmdsAllowed) {
-            m_botAction.sendSmartPrivateMessage(sender, "Sorry, the use of warp commands on this bot are presently disabled. Please speak to Local Dev Union #646 to change this.");
+            m_botAction.sendPrivateMessage(sender, "Sorry, the use of warp commands on this bot are presently disabled. Please speak to Local Dev Union #646 to change this.");
             return;
         }
 
         if (autoWarp) {
-            m_botAction.sendSmartPrivateMessage(sender, "Players will no longer automatically be added to the !warp list when they enter the arena.");
+            m_botAction.sendPrivateMessage(sender, "Players will no longer automatically be added to the !warp list when they enter the arena.");
             autoWarpDisable();
         } else {
-            m_botAction.sendSmartPrivateMessage(sender, "Players will be automatically added to the !warp list when they enter the arena.");
+            m_botAction.sendPrivateMessage(sender, "Players will be automatically added to the !warp list when they enter the arena.");
             autoWarpEnable();
         }
     }
@@ -1027,19 +1036,23 @@ public class GameFlagTimeModule extends AbstractModule {
     */
     public void cmd_allowWarp(String sender) {
         if(!warpCmdsAllowed) {
-            m_botAction.sendSmartPrivateMessage(sender, "Sorry, the use of warp commands on this bot are presently disabled. Please speak to Local Dev Union #646 to change this.");
+            m_botAction.sendPrivateMessage(sender, "Sorry, the use of warp commands on this bot are presently disabled. Please speak to Local Dev Union #646 to change this.");
             return;
         }
 
         if (isWarpEnabled()) {
-            m_botAction.sendSmartPrivateMessage(sender, "Players will no longer be able to use !warp.");
+            m_botAction.sendPrivateMessage(sender, "Players will no longer be able to use !warp.");
             warpDisable();
         } else {
-            m_botAction.sendSmartPrivateMessage(sender, "Players will be allowed to use !warp.");
+            m_botAction.sendPrivateMessage(sender, "Players will be allowed to use !warp.");
             warpEnable();
         }
     }
 
+    /**
+     * Toggles warp status.
+     * @param sender Player
+     */
     public void cmd_warp(String sender) {
 
         PubPlayer player = context.getPlayerManager().getPlayer(sender);
@@ -1050,23 +1063,82 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         if (!isFlagTimeStarted()) {
-            m_botAction.sendSmartPrivateMessage(sender, "Flag Time mode is not currently running.");
+            m_botAction.sendPrivateMessage(sender, "Flag Time mode is not currently running.");
             return;
         } else if (strictFlagTimeMode) {
-            m_botAction.sendSmartPrivateMessage(sender, "Strict Flag mode is currently running, !warp has no effect. You will automatically be warped.");
+            m_botAction.sendPrivateMessage(sender, "Strict Flag mode is currently running, !warp has no effect. You will automatically be warped.");
             return;
         } else if (!warpEnabled) {
-            m_botAction.sendSmartPrivateMessage(sender, "Warping into base at round start is not currently allowed.");
+            m_botAction.sendPrivateMessage(sender, "Warping into base at round start is not currently allowed.");
             return;
         }
 
         if (!player.setWarp()) {
-            m_botAction.sendSmartPrivateMessage(sender, "You will NOT be warped inside the base at the start of each round. Type !warp again to turn back on.");
+            m_botAction.sendPrivateMessage(sender, "You will NOT be warped inside the base at the start of each round. Type !warp again to turn back on.");
         } else {
-            m_botAction.sendSmartPrivateMessage(sender, "You WILL be warped inside the base at the start of each round. Type !warp again to turn off.");
+            m_botAction.sendPrivateMessage(sender, "You WILL be warped inside the base at the start of each round. Type !warp again to turn off.");
         }
     }
 
+    /**
+     * Allows a player to warp to the roof if inside base, or on the LT-hunting freq.
+     * @param sender
+     */
+    public void cmd_deploy(String sender) {
+        
+        Player p = m_botAction.getPlayer(sender);
+        PubPlayer player = context.getPlayerManager().getPlayer(sender);
+
+        if (p == null || player == null) {
+            m_botAction.sendPrivateMessage(sender, "Unable to find you in the system. Please report this to staff.");
+            return;
+        }
+        
+        if (p.getShipType() != Tools.Ship.WARBIRD && p.getShipType() != Tools.Ship.SPIDER && p.getShipType() != Tools.Ship.LANCASTER) {
+            m_botAction.sendPrivateMessage(sender, "Only Fighter ships (1,3,7) may use !deploy.");
+            return;
+        }
+        
+        if (!context.getPubUtil().isInBase(p.getXTileLocation(), p.getYTileLocation()) && p.getFrequency() != hunterFreq) {
+            if (hunterFreqEnabled)
+                m_botAction.sendPrivateMessage(sender, "Only players on the LT Hunter Freq (=99) may use !deploy outside of base.");
+            else
+                m_botAction.sendPrivateMessage(sender, "You must be in base to use !deploy.");
+            return;
+        }
+       
+        // TODO: Move deploy cost to CFG
+        int cost;
+        if (player.getDeploys() < 2)
+            cost = player.getDeploys() * 500;
+        else
+            cost = (int)(Math.pow(2.0d, player.getDeploys() - 1)) * 500;
+        int nextcost;
+        if (player.getDeploys() == 0)
+            nextcost = 500;
+        else
+            nextcost = (int)(Math.pow(2.0d, (player.getDeploys()))) * 500;
+        
+        if (player.getMoney() < cost) {
+            m_botAction.sendPrivateMessage(sender, "You do not have enough money to deploy. Cost: $" + cost);
+            return;
+        }
+        
+        if (cost == 0) {
+            m_botAction.sendPrivateMessage(sender, "DEPLOYED! First deploy of the round is free.  Next: $" + nextcost );
+        } else {
+            player.removeMoney(cost);
+            m_botAction.sendPrivateMessage(sender, "DEPLOYED! You have been charged $" + cost + ".  Next: $" + nextcost);
+        }
+
+        player.addDeploy();
+        
+        Random r = new Random();
+        int rand = r.nextInt(warpPtsLeft.length);
+        m_botAction.warpTo(p.getPlayerID(), warpPtsDeploy[rand]);
+    }
+
+    
     /**
         Shows and hides scores (used at intermission only).
 
@@ -1245,22 +1317,22 @@ public class GameFlagTimeModule extends AbstractModule {
 
                             if (percentOnFreq == 100) {
                                 MVPs.add(playerName);
-                                m_botAction.sendSmartPrivateMessage(playerName, "For staying with the same freq the entire match, you are an MVP and receive the full bonus: "
+                                m_botAction.sendPrivateMessage(playerName, "For staying with the same freq the entire match, you are an MVP and receive the full bonus: "
                                         + modbounty);
                                 int grabs = flagTimer.getFlagGrabs(playerName);
                                 if (special == 4) {
-                                    m_botAction.sendSmartPrivateMessage(playerName, "You also receive an additional " + weight
+                                    m_botAction.sendPrivateMessage(playerName, "You also receive an additional " + weight
                                             + " bounty as a special prize!");
                                     modbounty *= 2;
                                 }
                                 if (grabs != 0) {
                                     modbounty += (modbounty * (grabs / 10.0));
-                                    m_botAction.sendSmartPrivateMessage(playerName, "For your " + grabs
+                                    m_botAction.sendPrivateMessage(playerName, "For your " + grabs
                                             + " flag grabs, you also receive an additional " + grabs + "0% bounty, for a total of " + modbounty);
                                 }
 
                             } else
-                                m_botAction.sendSmartPrivateMessage(playerName, "You were with the same freq and ship for the last "
+                                m_botAction.sendPrivateMessage(playerName, "You were with the same freq and ship for the last "
                                         + getTimeString(timeOnFreq) + ", and receive " + percentOnFreq + "% of the bounty reward: " + modbounty);
 
                             m_botAction.sendUnfilteredPrivateMessage(player.getPlayerID(), "*prize " + modbounty);
@@ -2657,13 +2729,14 @@ public class GameFlagTimeModule extends AbstractModule {
                 continue;
 
             pname = p.getPlayerName();
-
+            
+            PubPlayer player = context.getPlayerManager().getPlayer(pname);
+            player.resetDeploys();
+            
             // TODO: Check instead if dueling (why wasn't that done in the first place, I do not know)
             // Also, consider not warping if a terr and on a private freq.
             if (p.getFrequency() != 0 && p.getFrequency() != 1)
                 continue;
-
-            PubPlayer player = context.getPlayerManager().getPlayer(pname);
 
             // Check if the player is a lev. If so, do not warp.
             if (p.getShipType() == Tools.Ship.LEVIATHAN && !player.wasFRCleared())
@@ -2811,7 +2884,7 @@ public class GameFlagTimeModule extends AbstractModule {
     public void statusMessage(String playerName) {
         if (isFlagTimeStarted())
             if (flagTimer != null)
-                m_botAction.sendSmartPrivateMessage(playerName, flagTimer.getTimeInfo());
+                m_botAction.sendPrivateMessage(playerName, flagTimer.getTimeInfo());
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -2901,7 +2974,7 @@ public class GameFlagTimeModule extends AbstractModule {
         int flagHoldingFreq, flagClaimingFreq;
         int secondsHeld, totalSecs, claimSecs, preTimeCount;
         int claimerID;
-        int turnovers[] = {0,0,0};      // Turnovers. Near to end of clock, mid-round and simple FR battles, respectively 
+        int turnovers[] = {0,0,0};      // Turnovers. Near to end of clock, mid-round and simple FR battles, respectively
 
         HashMap<Integer, Integer> freqsSecs;
 
@@ -3121,7 +3194,7 @@ public class GameFlagTimeModule extends AbstractModule {
                         turnovers[1]++;
                     else
                         turnovers[2]++;
-                }                
+                }
             }
 
             m_botAction.showObject(2400); // Shows flag claimed lvz
@@ -3257,7 +3330,7 @@ public class GameFlagTimeModule extends AbstractModule {
                       Person to send info to
         */
         public void sendTimeRemaining(String name) {
-            m_botAction.sendSmartPrivateMessage(name, getTimeInfo());
+            m_botAction.sendPrivateMessage(name, getTimeInfo());
         }
 
         /**
@@ -3472,7 +3545,7 @@ public class GameFlagTimeModule extends AbstractModule {
         }
 
         /**
-            @return Bonus seconds awarded for winning team based on number of flag turnovers 
+            @return Bonus seconds awarded for winning team based on number of flag turnovers
          */
         public int getTurnoverSecondBonus() {
             return turnovers[0] * 40 + turnovers[1] * 15 + turnovers[2] * 4;
@@ -3536,7 +3609,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             if (totalSecs == 5) {
                 stayOffRoof = false;
-            }            
+            }
             
             // Display mode info at 5 min increments, unless we are near the end of a game;
             //   also check for severe freq imbalance every minute
