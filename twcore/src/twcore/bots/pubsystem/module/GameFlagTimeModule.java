@@ -230,7 +230,7 @@ public class GameFlagTimeModule extends AbstractModule {
         warpPtsRight = cfg.getPointArray("warp_right", ",", ":");
         
         // Warp points for !deploy, arranged at the edge of the rock ring around roof
-        warpPtsDeploy = cfg.getPointArray("warp_right", ",", ":");
+        warpPtsDeploy = cfg.getPointArray("deploy_coords", ",", ":");
 
         // Coordinates of left safe.
         warpSafeLeft = cfg.getPoint("safe_left", ":");
@@ -321,10 +321,10 @@ public class GameFlagTimeModule extends AbstractModule {
                                 int freq = p1.getFrequency();
 
                                 if (freq != 0)
-                                    m_botAction.sendOpposingTeamMessageByFrequency(0, message + hunterAdv, 26);
+                                    m_botAction.sendOpposingTeamMessageByFrequency(0, message + hunterAdv + deployAdv, 26);
 
                                 if (freq != 1)
-                                    m_botAction.sendOpposingTeamMessageByFrequency(1, message + hunterAdv, 26);
+                                    m_botAction.sendOpposingTeamMessageByFrequency(1, message + hunterAdv + deployAdv, 26);
 
                                 if (hunterFreqEnabled)
                                     m_botAction.sendOpposingTeamMessageByFrequency(hunterFreq, message, 26);
