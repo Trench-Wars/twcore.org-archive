@@ -51,7 +51,7 @@ public class PubUtilModule extends AbstractModule {
         LARGE_FR,               // Area between the FR tunnels and the FR that opens up on mid/large base
         MED_FR,                 // FR tunnels
         TUNNELS,                // Mid expansion area for large base + mid tunnels
-        CRAM,                   // Cram area + area below it where sharks usually mine, to the bottom of the FR turrets 
+        CRAM,                   // Cram area + area below it where sharks usually mine, to the bottom of the FR turrets
         LOWER,
         ROOF,                   // Area encompassing roof
         SPAWN,                  // Much larger than actual spawn area
@@ -153,6 +153,7 @@ public class PubUtilModule extends AbstractModule {
             } catch (IllegalArgumentException e) {
                 if (region.equals(Region.CRAM) || region.equals(Region.LARGE_FR) || region.equals(Region.MED_FR))
                     location = Location.valueOf("FLAGROOM");
+                // XXX: Change BUYZONE location return if you change location of Buyzones
                 else if (region.equals(Region.TUNNELS) || region.equals(Region.BUYZONE))
                     location = Location.valueOf("MID");
                 else if (region.equals(Region.SAFE))
@@ -177,6 +178,18 @@ public class PubUtilModule extends AbstractModule {
         return false;
     }
 
+    public boolean isInBase(int x, int y) {
+        Region region = getRegion(x, y);
+
+        if (region != null) {
+            // XXX: Remove BUYZONE if it is moved outside of base
+            if (region.equals(Region.CRAM) || region.equals(Region.LARGE_FR) || region.equals(Region.MED_FR) ||
+                    region.equals(Region.TUNNELS) || region.equals(Region.BUYZONE) || region.equals(Region.LOWER))
+                return true;
+        }
+        return false;
+    }
+    
     public boolean isLevAttachEnabled() {
         return levAttachEnabled;
     }
@@ -459,7 +472,7 @@ public class PubUtilModule extends AbstractModule {
         Player dummy;
 
         while( i.hasNext() ) {
-            dummy = (Player)i.next();
+            dummy = i.next();
 
             if( dummy != null) {
                 if( dummy.getShipType() == Tools.Ship.SHARK ) {
