@@ -1151,7 +1151,8 @@ public class matchbot extends SubspaceBot {
                         m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " "
                                                      + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
                                                      + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
-                        m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
+                        //m_botAction.sendSmartPrivateMessage(name, "Your challenge has been sent out to " + nmySquad);
+                        m_botAction.sendSquadMessage(dp.getTeamName(), name + " challenged " + nmySquad + " to " + players + "vs" + players + " in " + m_arena);
                         //String toBot, EventType type, String arena, String name, String squad1, String squad2, int players
                         m_botAction.ipcTransmit(IPC, new IPCChallenge("TWDBot", EventType.CHALLENGE, m_botAction.getArenaName(), name, dp.getTeamName(), nmySquad, players));
                         m_botAction.ipcTransmit(IPC, new IPCCommand(Command.CHALL, TWDHUB, m_botAction.getArenaName()));
@@ -1232,7 +1233,7 @@ public class matchbot extends SubspaceBot {
                         m_botAction.sendSquadMessage(nmySquad, name + " is challenging you for a game of " + players + "vs" + players + " "
                                                      + m_rules.getString("name") + " versus " + dp.getTeamName() + ". Captains/assistants, ?go "
                                                      + m_botAction.getArenaName() + " and pm me with '!accept " + dp.getTeamName() + "'");
-
+                        
                         if (!squads.isLast()) {
                             squadsChalled += nmySquad + ", ";
                             numSquads++;
@@ -1242,7 +1243,9 @@ public class matchbot extends SubspaceBot {
                     }
 
                     m_botAction.SQLClose(squads);
-                    m_botAction.sendSmartPrivateMessage(name, squadsChalled);
+                    //m_botAction.sendSmartPrivateMessage(name, squadsChalled);
+                    m_botAction.sendSquadMessage(dp.getTeamName(), name + " challenged top squads to " + players + "vs" + players + " in " + m_arena + ": " + squadsChalled);
+
                     m_botAction.ipcTransmit(IPC, new IPCCommand(Command.CHALL, TWDHUB, m_botAction.getArenaName()));
                     final IPCCommand com = new IPCCommand(Command.EXPIRED, TWDHUB, m_botAction.getArenaName());
 
