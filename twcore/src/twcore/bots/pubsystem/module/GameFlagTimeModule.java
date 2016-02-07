@@ -1094,8 +1094,8 @@ public class GameFlagTimeModule extends AbstractModule {
             return;
         }
         
-        if (p.getShipType() != Tools.Ship.WARBIRD && p.getShipType() != Tools.Ship.SPIDER && p.getShipType() != Tools.Ship.LANCASTER) {
-            m_botAction.sendPrivateMessage(sender, "Only Fighter ships (1,3,7) may use !deploy.");
+        if (p.getShipType() != Tools.Ship.WARBIRD && p.getShipType() != Tools.Ship.JAVELIN && p.getShipType() != Tools.Ship.SPIDER && p.getShipType() != Tools.Ship.LANCASTER) {
+            m_botAction.sendPrivateMessage(sender, "Only ships 1, 2, 3, and 7 may use !deploy.");
             return;
         }
         
@@ -2751,6 +2751,7 @@ public class GameFlagTimeModule extends AbstractModule {
                 if(reg != null)
 
                     // Check unusual circumstances
+                    // FIXME: Vet this code when not sick. Sharks seem to get warped to safe and not warped back
                     if( !player.getWarp() ) {
                         if( !Region.FLAGROOM.equals(reg) ) {
                             if( Region.SAFE.equals(reg) ) {
