@@ -645,12 +645,22 @@ public class GameFlagTimeModule extends AbstractModule {
                 // During small base, large base areas and FR tunnels all count as roof.
                 if (Region.ROOF.equals(reg) || Region.LARGE_FR.equals(reg) || Region.MED_FR.equals(reg) || Region.TUNNELS.equals(reg)) {
                     m_botAction.sendPrivateMessage(p.getPlayerID(), "Please stay away from the roof when a new round is starting.");
-                    m_botAction.warpTo(p.getPlayerID(), 512, 693);  // Bottom safe. Forgive the magic #s
+                    Random r = new Random();
+                    int i = r.nextInt(2);
+                    if (i == 0)
+                        m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
+                    else
+                        m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
                 }
             } else {
                 if (Region.ROOF.equals(reg)) {
                     m_botAction.sendPrivateMessage(p.getPlayerID(), "Please stay away from the roof when a new round is starting.");
-                    m_botAction.warpTo(p.getPlayerID(), 512, 693);  // Bottom safe. Forgive the magic #s
+                    Random r = new Random();
+                    int i = r.nextInt(2);
+                    if (i == 0)
+                        m_botAction.warpTo(p.getPlayerID(), warpSafeLeft);
+                    else
+                        m_botAction.warpTo(p.getPlayerID(), warpSafeRight);
                 }
             }
         }
