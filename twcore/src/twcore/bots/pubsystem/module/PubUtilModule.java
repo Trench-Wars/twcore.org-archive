@@ -183,7 +183,8 @@ public class PubUtilModule extends AbstractModule {
 
         if (region != null) {
             // XXX: Remove BUYZONE if it is moved outside of base
-            if (region.equals(Region.CRAM) || region.equals(Region.LARGE_FR) || region.equals(Region.MED_FR) ||
+            if (region.equals(Region.FLAGROOM) || region.equals(Region.MID) ||
+                    region.equals(Region.CRAM) || region.equals(Region.LARGE_FR) || region.equals(Region.MED_FR) ||
                     region.equals(Region.TUNNELS) || region.equals(Region.BUYZONE) || region.equals(Region.LOWER))
                 return true;
         }
