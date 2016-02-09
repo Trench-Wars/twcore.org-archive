@@ -18,6 +18,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -3856,13 +3857,21 @@ public class PubMoneySystemModule extends AbstractModule {
                 PubPlayer pp = playerManager.getPlayer(sender);
 
                 if( pp != null ) {
-                    // Player still in pub: refund directly
+                    // Staffer in pub: direct deposit
                     pp.addMoney(event.amount);
                 } else {
-                    // Player has left: refund via database
+                    // Staffer outside pub: database
                     String query = "UPDATE tblPlayerStats SET fnMoney = (fnMoney + " + amountEarned + ") WHERE fcName = '" + Tools.addSlashesToString(sender) + "'";
                     m_botAction.SQLBackgroundQuery("pubstats", null, query);
                 }
+
+                java.util.Date day = Calendar.getInstance().getTime();
+                String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(day);
+                String query = "INSERT INTO `tblAdvert` (`fcUserName`, `fcEventName`, `fcAdvert`, `fdTime`) VALUES ('"
+                        + Tools.addSlashesToString(event.event + "(accept)") + "', '" + event.event + "', '(!acceptevent)', '" + time + "')";
+                try {
+                    m_botAction.SQLQueryAndClose(database, query);
+                } catch (SQLException e) {}
 
                 eventFound = true;
             }
