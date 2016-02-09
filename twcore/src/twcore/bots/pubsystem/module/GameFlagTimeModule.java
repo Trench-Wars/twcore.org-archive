@@ -509,7 +509,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             // Killed by Levi on private freq? Occasionally suggest they join the LT Hunter freq.
             if (killer.getShipType() == Tools.Ship.LEVIATHAN) {
-                if (context.getPubUtil().getRegion(killer.getXLocation(), killer.getYLocation()) == Region.ROOF) {
+                if (context.getPubUtil().getRegion(killer.getXTileLocation(), killer.getYTileLocation()) == Region.ROOF) {
                     Random r = new Random();
                     if (r.nextInt(5) == 0) {
                         if (killed.isShip(1) || killed.isShip(2) || killed.isShip(3) || killed.isShip(7)) {
