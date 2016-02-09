@@ -438,80 +438,93 @@ public class GameFlagTimeModule extends AbstractModule {
             if (levterrs.containsKey(killed.getPlayerName()))
                 levterrs.get(killed.getPlayerName()).allowAlert(true);
 
-        // Check for slain LTs and award bonuses appropriately
-        if (killed.getShipType() == Tools.Ship.LEVIATHAN) {
-            for (LevTerr lt : levterrs.values()) {
-                if (lt.leviathans.contains(killed.getPlayerName())) {
-                    lt.removeLeviathan(killed.getPlayerName());
+        if (killer.getFrequency() != killed.getFrequency()) {
+            // Check for slain LTs and award bonuses appropriately
+            if (killed.getShipType() == Tools.Ship.LEVIATHAN) {
+                for (LevTerr lt : levterrs.values()) {
+                    if (lt.leviathans.contains(killed.getPlayerName())) {
+                        lt.removeLeviathan(killed.getPlayerName());
 
-                    int money = 0;
-                    boolean isHunterFreq = (killer.getFrequency() == hunterFreq);
+                        int money = 0;
+                        boolean isHunterFreq = (killer.getFrequency() == hunterFreq);
 
-                    // Bonus to killer
-                    if (lt.isEmpty()) {
-                        lt.allowAlert(true);
-                        money = 500 + (event.getKilledPlayerBounty() * 5);
+                        // Bonus to killer
+                        if (lt.isEmpty()) {
+                            lt.allowAlert(true);
+                            money = 500 + (event.getKilledPlayerBounty() * 5);
 
-                        if (isHunterFreq) {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty, plus a $250 Hunter Freq bonus!  +$" + (money + 250));
-                            context.getPlayerManager().addMoney(killer.getPlayerName(), money + 250);
+                            if (isHunterFreq) {
+                                m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty, plus a $250 Hunter Freq bonus!  +$" + (money + 250));
+                                context.getPlayerManager().addMoney(killer.getPlayerName(), money + 250);
+                            } else {
+                                m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$" + money);
+                                context.getPlayerManager().addMoney(killer.getPlayerName(), money);
+                            }
                         } else {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$" + money);
-                            context.getPlayerManager().addMoney(killer.getPlayerName(), money);
-                        }
-                    } else {
-                        money = 250 + (event.getKilledPlayerBounty() * 3);
+                            money = 250 + (event.getKilledPlayerBounty() * 3);
 
+                            if (isHunterFreq) {
+                                m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty, plus a $150 Hunter Freq bonus!  +$" + (money + 150));
+                                context.getPlayerManager().addMoney(killer.getPlayerName(), money + 150);
+                            } else {
+                                m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$" + money);
+                                context.getPlayerManager().addMoney(killer.getPlayerName(), money);
+                            }
+                        }
+
+                        // Hunter freq LT assist: share between all teammates near the Levi
                         if (isHunterFreq) {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty, plus a $150 Hunter Freq bonus!  +$" + (money + 150));
-                            context.getPlayerManager().addMoney(killer.getPlayerName(), money + 150);
-                        } else {
-                            m_botAction.sendPrivateMessage(killer.getPlayerName(), "For killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$" + money);
-                            context.getPlayerManager().addMoney(killer.getPlayerName(), money);
-                        }
-                    }
+                            Iterator<Player> i = m_botAction.getFreqPlayerIterator(hunterFreq);
+                            Location locKilled = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
+                            Location locHunter;
 
-                    // Hunter freq LT assist: share between all teammates near the Levi
-                    if (isHunterFreq) {
-                        Iterator<Player> i = m_botAction.getFreqPlayerIterator(hunterFreq);
-                        Location locKilled = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
-                        Location locHunter;
+                            if (locKilled == null)
+                                break;
 
-                        if (locKilled == null)
-                            break;
+                            while (i.hasNext()) {
+                                Player p = i.next();
 
-                        while (i.hasNext()) {
-                            Player p = i.next();
+                                // Assist award for all those on the hunter freq that did not make the actual kill.
+                                // Assists must be in the same Location as the Levi to get the award, but kills do not.
+                                if( p.getPlayerID() != event.getKillerID() ) {
+                                    locHunter = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
 
-                            // Assist award for all those on the hunter freq that did not make the actual kill.
-                            // Assists must be in the same Location as the Levi to get the award, but kills do not.
-                            if( p.getPlayerID() != event.getKillerID() ) {
-                                locHunter = context.getPubUtil().getLocation(killed.getXTileLocation(), killed.getYTileLocation());
-
-                                if (locHunter != null && locHunter.equals(locKilled)) {
-                                    if (lt.isEmpty()) {
-                                        m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$" + money);
-                                        context.getPlayerManager().addMoney(p.getPlayerName(), money);
-                                    } else {
-                                        m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$" + money);
-                                        context.getPlayerManager().addMoney(p.getPlayerName(), money);
+                                    if (locHunter != null && locHunter.equals(locKilled)) {
+                                        if (lt.isEmpty()) {
+                                            m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", the last Leviathan of this LevTerr, you get $500 + 5x the Levi's bounty!  +$" + money);
+                                            context.getPlayerManager().addMoney(p.getPlayerName(), money);
+                                        } else {
+                                            m_botAction.sendPrivateMessage(p.getPlayerName(), "For assisting " + killer.getPlayerName() + " in killing " + killed.getPlayerName() + ", a Leviathan on this LevTerr, you get $250 + 3x the Levi's bounty!  +$" + money);
+                                            context.getPlayerManager().addMoney(p.getPlayerName(), money);
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    break;
+                        break;
+                    }
                 }
             }
-        }
 
-        // Killed by Levi on private freq? Occasionally suggest they join the LT Hunter freq.
-        if (killer.getShipType() == Tools.Ship.LEVIATHAN && killer.getFrequency() > 1) {
-            Random r = new Random();
+            // Killed by Levi on private freq? Occasionally suggest they join the LT Hunter freq.
+            if (killer.getShipType() == Tools.Ship.LEVIATHAN) {
+                if (context.getPubUtil().getRegion(killer.getXLocation(), killer.getYLocation()) == Region.ROOF) {
+                    Random r = new Random();
+                    if (r.nextInt(5) == 0) {
+                        if (killed.isShip(1) || killed.isShip(2) || killed.isShip(3) || killed.isShip(7)) {
+                            m_botAction.sendPrivateMessage(killed.getPlayerID(), "Killed by roof Levi. PM me with !deploy to warp to the roof and take revenge.");
+                        } else {
+                            m_botAction.sendPrivateMessage(killed.getPlayerID(), "Killed by roof Levi. Consider changing to Spider (ship 3), !buy antiwarp and then !deploy to the roof.");
+                        }
+                    }
+                } else if( killer.getFrequency() > 1) {
+                    Random r = new Random();
 
-            if (r.nextInt(10) == 0)
-                m_botAction.sendPrivateMessage(killed.getPlayerID(), "Killed by private-freq Levi. Want revenge? Get bonuses to LT kills on the Hunter freq. Type =99 to join.");
+                    if (r.nextInt(10) == 0)
+                        m_botAction.sendPrivateMessage(killed.getPlayerID(), "Killed by private-freq Levi. Want revenge? Get bonuses to LT kills on the Hunter freq. Type =99 to join. You can also !deploy to the roof, or become a Spider (ship 3) and !buy antiwarp.");
+                }
+            }
         }
 
         if (isRunning()) {
