@@ -3696,7 +3696,7 @@ public class PubMoneySystemModule extends AbstractModule {
         m_botAction.sendPrivateMessage(p.getPlayerName(), ">>>>>>>>>>>>>>>>>>>>>>" + sender.toUpperCase());
         // [SHOUTOUT]     \o/   Bob Dole gives a shoutout to Barbara Walters!   \o/
 
-        m_botAction.showObjectForPlayer(p.getPlayerID(), 2746);
+        m_botAction.showObject(2746);
     }
 
     /**
