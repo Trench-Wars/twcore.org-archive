@@ -1157,7 +1157,7 @@ public class GameFlagTimeModule extends AbstractModule {
         player.addDeploy();
         
         Random r = new Random();
-        int rand = r.nextInt(warpPtsLeft.length);
+        int rand = r.nextInt(warpPtsDeploy.length);
         m_botAction.warpTo(p.getPlayerID(), warpPtsDeploy[rand]);
     }
 
