@@ -4502,21 +4502,20 @@ public class PubMoneySystemModule extends AbstractModule {
                 if( event != null && event.hasBuyExpired() ) {
                     if( event.buyer != null || event.amount == 0 ) {
                         expired.add(event);
-                        continue;
+
+                        PubPlayer pp = playerManager.getPlayer(event.buyer);
+
+                        if( pp != null ) {
+                            // Player still in pub: refund directly
+                            pp.addMoney(event.amount);
+                        } else {
+                            // Player has left: refund via database
+                            String query = "UPDATE tblPlayerStats SET fnMoney = (fnMoney + " + event.amount + ") WHERE fcName = '" + Tools.addSlashesToString(event.buyer) + "'";
+                            m_botAction.SQLBackgroundQuery("pubstats", null, query);
+                        }
+
+                        m_botAction.sendSmartPrivateMessage(event.buyer, "Event buy expired. $" + event.amount + " refunded to your account." );
                     }
-
-                    PubPlayer pp = playerManager.getPlayer(event.buyer);
-
-                    if( pp != null ) {
-                        // Player still in pub: refund directly
-                        pp.addMoney(event.amount);
-                    } else {
-                        // Player has left: refund via database
-                        String query = "UPDATE tblPlayerStats SET fnMoney = (fnMoney + " + event.amount + ") WHERE fcName = '" + Tools.addSlashesToString(event.buyer) + "'";
-                        m_botAction.SQLBackgroundQuery("pubstats", null, query);
-                    }
-
-                    m_botAction.sendSmartPrivateMessage(event.buyer, "Event buy expired. $" + event.amount + " refunded to your account." );
                 }
             }
 
