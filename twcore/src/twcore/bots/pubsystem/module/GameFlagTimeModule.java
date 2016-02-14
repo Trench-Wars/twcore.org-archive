@@ -364,10 +364,20 @@ public class GameFlagTimeModule extends AbstractModule {
         PubPlayer pubPlayer = context.getPlayerManager().getPlayer(playerName);
 
         if (pubPlayer != null) {
-            pubPlayer.setLastFreqSwitch(event.getFrequency());
+            if (pubPlayer.getLastFreq() != event.getFrequency()) {
+                // Reset the time of a player for MVP purposes. This also accounts for players entering from spec to a freq mid-round.
+                if (isRunning()) {
+                    Player player = m_botAction.getPlayer(event.getPlayerID());
 
-            if (hunterFreqEnabled && pubPlayer.getLastFreq() != event.getFrequency() && event.getFrequency() == hunterFreq)
-                m_botAction.sendPrivateMessage(playerID, "[HUNTER]  All LT bounties shared; +$15 for all Levi kills; solo Terrs get regular bonus.");
+                    if(player != null)
+                        playerTimeJoined.put(player.getPlayerName(), System.currentTimeMillis());
+                }
+
+                pubPlayer.setLastFreqSwitch(event.getFrequency());
+
+                if (hunterFreqEnabled && event.getFrequency() == hunterFreq)
+                    m_botAction.sendPrivateMessage(playerID, "[HUNTER]  All LT bounties shared; +$15 for all Levi kills; solo Terrs get regular bonus.");
+            }
         }
 
         /*  Disabled until hunt re-enabled
