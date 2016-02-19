@@ -29,7 +29,7 @@ public class PubPlayer implements Comparable<PubPlayer> {
     private static final int DONATE_DELAY = Tools.TimeInMillis.MINUTE;
     private static final String db = "pubstats";
     
-    public int MAX_MID_SPAWN_TINY = 8;      // Max freq size where "tiny"-sized basing coords will be used
+    public int MAX_MID_SPAWN_TINY = 10;      // Max freq size where "tiny"-sized basing coords will be used
                                             // TODO: Push to CFG
     
     // Spawn points for very low populations in midspawn. Uses RADIUS_MIDSPAWN.
