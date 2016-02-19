@@ -28,7 +28,26 @@ public class PubPlayer implements Comparable<PubPlayer> {
     private static final int MAX_ITEM_USED_HISTORY = 30 * Tools.TimeInMillis.MINUTE;
     private static final int DONATE_DELAY = Tools.TimeInMillis.MINUTE;
     private static final String db = "pubstats";
+    
+    public int MAX_MID_SPAWN_TINY = 8;      // Max freq size where "tiny"-sized basing coords will be used
+                                            // TODO: Push to CFG
+    
+    // Spawn points for very low populations in midspawn. Uses RADIUS_MIDSPAWN.
+    private static final Point[] COORDS_MIDSPAWN_TINY = {
+            new Point(539, 323),    // Mid near bottom
+            new Point(485, 323),
+            new Point(474, 298),    // Mid behind the L blockades
+            new Point(550, 298),
 
+            // Experimental points (to decrease spawnkilling issues)
+            new Point(512, 330),    // Mid, top of tube
+            new Point(512, 350),    // Tube
+            new Point(460, 284),    // Mid, L ear
+            new Point(564, 284),    // Mid, R ear
+            new Point(467, 341),    // Top of lower, side tubes, L side
+            new Point(557, 341),    // Top of lower, side tubes, R side
+    };
+    
     // Spawn points for the low population mid spawn.
     private static final Point[] COORDS_MIDSPAWN = {
         new Point(539, 323),    // Mid near bottom
@@ -57,7 +76,6 @@ public class PubPlayer implements Comparable<PubPlayer> {
         new Point(450, 382),    // Near entrance to lowest ear, L side
         new Point(574, 382),    // Near entrance to lowest ear, R side
         new Point(512, 403),    // Entrance to lower
-
     };
 
     // Radius for the low population mid spawn. Amount must be equal to the amount of Points in COORDS_MIDSPAWN.
@@ -429,11 +447,16 @@ public class PubPlayer implements Comparable<PubPlayer> {
     public void doSpawnMid() {
         // Generate a number between 0 and the amount of warp points we have.
         // To prevent an out of boundaries error, pick the smallest of the two sizes of COORDS_MIDSPAWN and RADIUS_MIDSPAWN. (They should be equal)
-        int spawnPoint = (int) (Math.random() * Math.min(COORDS_MIDSPAWN.length, RADIUS_MIDSPAWN.length));
         Player p = m_botAction.getPlayer(name);
 
-        if(p != null) {
-            m_botAction.warpTo(p.getPlayerName(), COORDS_MIDSPAWN[spawnPoint], RADIUS_MIDSPAWN[spawnPoint]);
+        if (p != null) {
+            if (m_botAction.getNumPlaying() <= MAX_MID_SPAWN_TINY) {
+                int spawnPoint = (int) (Math.random() * COORDS_MIDSPAWN_TINY.length);
+                m_botAction.warpTo(p.getPlayerName(), COORDS_MIDSPAWN_TINY[spawnPoint], RADIUS_MIDSPAWN[spawnPoint]);
+            } else {
+                int spawnPoint = (int) (Math.random() * Math.min(COORDS_MIDSPAWN.length, RADIUS_MIDSPAWN.length));
+                m_botAction.warpTo(p.getPlayerName(), COORDS_MIDSPAWN[spawnPoint], RADIUS_MIDSPAWN[spawnPoint]);
+            }
         }
     }
 
