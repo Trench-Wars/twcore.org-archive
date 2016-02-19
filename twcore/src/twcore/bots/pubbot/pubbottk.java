@@ -6,6 +6,7 @@ import java.util.TreeSet;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 import java.util.Iterator;
+import java.util.Random;
 
 import twcore.bots.PubBotModule;
 import twcore.core.util.Tools;
@@ -616,9 +617,17 @@ public class pubbottk extends PubBotModule {
 
         if( ALLOW_PLAYER_NOTIFY ) {
             // Tell players who are TKd for the first time that they can notify staff
-            if( tked.remove( killed.getPlayerName() ) == null )
-                m_botAction.sendPrivateMessage( event.getKilleeID(), "You were TK'd by " + killer.getPlayerName() + ".  Type ::report to notify staff of any non-accidental TKs." );
-
+            if( tked.remove( killed.getPlayerName() ) == null ) {
+                m_botAction.sendPrivateMessage( event.getKilleeID(), "You were TK'd by " + killer.getPlayerName() + ".  Type ::report to notify staff of intentional or excessive teamkilling." );
+            } else {
+                // Also remind them occasionally on future TKs.
+                Random r = new Random();
+                int i = r.nextInt(3);
+                if (i == 0) {
+                    m_botAction.sendPrivateMessage( event.getKilleeID(), "You were TK'd by " + killer.getPlayerName() + ".  Type ::report to notify staff of intentional or excessive teamkilling." );
+                }
+            }
+            
             tked.put( killed.getPlayerName(), killer.getPlayerName() );
         }
     }
