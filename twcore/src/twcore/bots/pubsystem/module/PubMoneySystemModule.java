@@ -1658,7 +1658,7 @@ public class PubMoneySystemModule extends AbstractModule {
 
             // Money from the ship
             int moneyKiller = shipKillerPoints.get(shipKiller);
-            int moneyKilled = shipKillerPoints.get(shipKilled);
+            int moneyKilled = shipKilledPoints.get(shipKilled);
 
             boolean isHunterFreq = player.getLastFreq() == context.getGameFlagTime().getHunterFreq() && context.getGameFlagTime().isHunterFreqEnabled();
             boolean hunterKilledLevi = shipKilled == Tools.Ship.LEVIATHAN && isHunterFreq;
