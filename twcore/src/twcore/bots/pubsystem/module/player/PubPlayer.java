@@ -121,6 +121,7 @@ public class PubPlayer implements Comparable<PubPlayer> {
     private boolean minesCleared = false;
     // Used to track whether a player is in safe due to the FR clearing warp, or because he was already there.
     private boolean FRCleared = false;
+    public boolean notifiedOfTKTax = false;
 
     private long playerID;
     private boolean hasStatsDB = false;

@@ -3,7 +3,7 @@ package twcore.bots.pubsystem.module;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
+//import java.util.Collection;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Iterator;
@@ -56,7 +56,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     private TreeSet<String> freq0;                      // Players on freq 0
     private TreeSet<String> freq1;                      // Players on freq 1
 
-    private int tkTax = 0;                              // Amount to deduct for team kills
+    private int tkTax = 50;                             // Amount to deduct for team kills
 
     private int[] freqSizeInfo = {0, 0};                // Index 0: size difference; 1: # of smaller freq
 
@@ -424,7 +424,10 @@ public class PubPlayerManagerModule extends AbstractModule {
 
                 if (money >= tkTax) {
                     pubPlayerKiller.removeMoney(tkTax);
-                    m_botAction.sendPrivateMessage(pubPlayerKiller.getPlayerName(), "Your account has been deducted $" + tkTax + " for team-killing " + killed);
+                    if (pubPlayerKiller.notifiedOfTKTax == false) {
+                        m_botAction.sendPrivateMessage(pubPlayerKiller.getPlayerName(), "-$" + tkTax + "  You team-killed " + killed + ". Intentional or excessive TK may result in action from staff. Please watch your shots." );
+                        pubPlayerKiller.notifiedOfTKTax = true;
+                    }
                 }
             }
         }
