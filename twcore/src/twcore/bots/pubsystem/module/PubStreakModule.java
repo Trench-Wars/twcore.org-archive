@@ -127,11 +127,6 @@ public class PubStreakModule extends AbstractModule {
             return;
         }
 
-        // Same team? Reset streak!
-        if (killer.getFrequency() == killed.getFrequency()) {
-            winStreaks.put(killer.getPlayerName(), 0);
-        }
-
         // Not in the system yet?
         if (winStreaks.get(killer.getPlayerName()) == null) {
             winStreaks.put(killer.getPlayerName(), 0);
@@ -143,6 +138,11 @@ public class PubStreakModule extends AbstractModule {
             loseStreaks.put(killed.getPlayerName(), 0);
         }
 
+        // Same team? Reset streak!
+        if (killer.getFrequency() == killed.getFrequency()) {
+            winStreaks.put(killer.getPlayerName(), 0);
+            return;
+        }
 
         PubPlayer pubPlayerKiller = context.getPlayerManager().getPlayer(killer.getPlayerName());
         PubPlayer pubPlayerKilled = context.getPlayerManager().getPlayer(killed.getPlayerName());
