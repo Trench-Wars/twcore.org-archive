@@ -57,7 +57,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private HashMap<String, LevTerr> levterrs;              // Current lev terrs
     private TimerTask levInfo;                              // Msgs info about LTs as they form
-    private TimerTask levCoordReporter;                     // Freq-msgs LT Hunter freq with LT coords
+    private TimerTask levReporter;                     // Freq-msgs LT Hunter freq with LT coords
 
 
     // Kill weight per location
@@ -189,7 +189,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             if (t > 0) hunterFreq = t;
 
-            levCoordReporter = new TimerTask() {
+            levReporter = new TimerTask() {
                 String msg = "";
 
                 @Override
@@ -199,19 +199,31 @@ public class GameFlagTimeModule extends AbstractModule {
                             Player p = m_botAction.getPlayer(lt.terrierName);
 
                             if (p != null) {
-                                msg += p.getPlayerName() + " @ " + p.getTextCoords() + "     ";
+                                //msg += context.getPubUtil().getLocationName(p.getXTileLocation(), p.getYTileLocation()) + "     ";
+                                msg += p.getPlayerName() + ": ";
+                                for (Integer pid : p.getTurrets()) {
+                                    Player p2 = m_botAction.getPlayer(pid);
+                                    if (p2 != null) {
+                                        if (p2.getShipType() == Tools.Ship.LEVIATHAN)
+                                            msg += p.getPlayerName() + "(" + p.getBounty() + ")";
+                                        else
+                                            msg += p.getPlayerName() + " ";
+                                    }
+                                }
+                                msg += ")   ";
                             }
                         }
                     }
 
                     if (!msg.equals("")) {
                         // Don't check if anyone's even on the freq; if not, msg will just not send
-                        m_botAction.sendOpposingTeamMessageByFrequency(hunterFreq, "LTs:   " + msg);
+                        m_botAction.sendOpposingTeamMessageByFrequency(hunterFreq, "[LTS DETECTED]  " + msg);
+                        // [LTS DETECTED]  LevTerr: Lev(54) notaLev AnotherLev(23)
                         msg = "";
                     }
                 }
             };
-            //m_botAction.scheduleTaskAtFixedRate(levCoordReporter, 5000, 30000);
+            m_botAction.scheduleTaskAtFixedRate(levReporter, 5000, Tools.TimeInMillis.MINUTE);
             
         }
 
@@ -896,7 +908,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             if (terr.getShipType() == Tools.Ship.TERRIER)
                 m_botAction.sendPrivateMessage(sender, Tools.formatString(terr.getPlayerName(), 25)
-                                                    + context.getPubUtil().getPlayerLocation(terr.getXTileLocation(), terr.getYTileLocation()));
+                                                    + context.getPubUtil().getRegionName(terr.getXTileLocation(), terr.getYTileLocation()));
         }
     }
 
