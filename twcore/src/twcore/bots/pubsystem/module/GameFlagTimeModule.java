@@ -1611,12 +1611,19 @@ public class GameFlagTimeModule extends AbstractModule {
                                          + moneyBonus + ") Turnovers: " + turnovers);
         }
         
+        if (!hunterFreqWon) {
+            m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this " + (gameOver ? "game!! Nice work!" : "round! Can you do it again?") + "  End-round bonus" + (gameOver ? " (1.5x for game win)" : "") + ": [$" + moneyBonus +  "]  TK Tax Dividends: [$" + tkBonusDivided + "]");
+        } else {
+            m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "NOTE: The LT Hunter freq won this round, but you receive no bonus for winning.");
+        }
+
+        
         // Clear any round restricted buyable items/commands
         context.getMoneySystem().resetRoundRestrictions();
 
         
-        // ACHIEVEMENTS
-        // ---------------------------------------
+        // ************  ACHIEVEMENTS  *************
+        // -----------------------------------------
 
         for (String playerName : playerTimeJoined.keySet()) {
             int timePlayed = (int) ((System.currentTimeMillis() - playerTimeJoined.get(playerName)) / 1000);
@@ -2255,10 +2262,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
             // Money bonus for the winner team
             if (!hunterFreqWon) {
-                m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this " + (gameOver ? "game!! Nice work!" : "round! Can you do it again?") + "  End-round bonus" + (gameOver ? " (1.5x for game win)" : "") + ": [$" + moneyBonus +  "]  TK Tax Dividends: [$" + tkBonusDivided + "]");
                 context.getPlayerManager().addMoney(player.getPlayerName(), moneyBonus);
-            } else {
-                m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "NOTE: The LT Hunter freq won this round, but you receive no bonus for winning.");
             }
 
             // Prizes only for the winner team
