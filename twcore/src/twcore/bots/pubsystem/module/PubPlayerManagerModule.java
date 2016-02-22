@@ -456,9 +456,6 @@ public class PubPlayerManagerModule extends AbstractModule {
                 if (!context.getPubUtil().isPrivateFrequencyEnabled()) {
                     checkFreq(event.getPlayerID(), event.getFrequency(), true);
                 } else {
-                    if( m_botAction.getOperatorList().isModerator(name) )
-                        return;
-
                     checkCanSwitchToPrivate( event.getPlayerID(), event.getFrequency() );
                 }
 
@@ -473,7 +470,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 }
             } else {
                 if (pubPlayer != null) {
-                    if( m_botAction.getOperatorList().isModerator(name) )
+                    if( m_botAction.getOperatorList().isModerator(player.getPlayerName()) )
                         return;
 
                     int freq0 = m_botAction.getPlayingFrequencySize(0);
@@ -1076,6 +1073,9 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     public void checkCanSwitchToPrivate( int pid, int freq ) {
         if (MAX_EXTRA_ON_PRIVATES == 999)
+            return;
+        
+        if (m_botAction.getOperatorList().isModerator(m_botAction.getPlayerName(pid)))
             return;
 
         int freq0 = m_botAction.getPlayingFrequencySize(0);
