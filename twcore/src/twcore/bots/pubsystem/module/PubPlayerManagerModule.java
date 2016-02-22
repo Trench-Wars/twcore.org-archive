@@ -424,6 +424,7 @@ public class PubPlayerManagerModule extends AbstractModule {
 
                 if (money >= tkTax) {
                     pubPlayerKiller.removeMoney(tkTax);
+                    context.getGameFlagTime().addTKTaxBonus(tkTax);
                     if (pubPlayerKiller.notifiedOfTKTax == false) {
                         m_botAction.sendPrivateMessage(pubPlayerKiller.getPlayerName(), "-$" + tkTax + "  You team-killed " + killed + ". Intentional or excessive TK may result in action from staff. Please watch your shots." );
                         pubPlayerKiller.notifiedOfTKTax = true;

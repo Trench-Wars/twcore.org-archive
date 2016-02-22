@@ -80,6 +80,8 @@ public class GameFlagTimeModule extends AbstractModule {
 
     private int flagMinutesRequired;                    // Flag minutes required to win
     private int freq0Score, freq1Score;                 // # rounds won
+    private int tkBonusForWinners = 0;                  // Collected TK tax money that is given to winners at round end
+    
     //private int minShuffleRound = 3;                    // Minimum number of played rounds before shuffle vote can occur
     private boolean autoVote = false;                   // Automatically start shuffle vote if conditions are met
     //private boolean shuffleVote = false;              // True if player did !shufflevote (unused)
@@ -1568,14 +1570,17 @@ public class GameFlagTimeModule extends AbstractModule {
         int moneyBonus = ((flagTimer.freqsSecs.get(winnerFreq) + flagTimer.getTurnoverSecondBonus()) * 3);
         int turnovers = flagTimer.getTurnovers();
 
-        if (moneyBonus > 5000)
-            moneyBonus = 5000;
-
-        if (!hunterFreqWon)
-            m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this round. End-round bonus: $" + moneyBonus);
-        else
-            m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "NOTE: The LT Hunter freq won this round, but you receive no bonus for winning.");
-
+        int winnerFreqSize = m_botAction.getFrequencySize(winnerFreq);
+        int tkBonusDivided = 0;
+        if (winnerFreqSize > 0 && tkBonusForWinners > 0) {
+            tkBonusDivided = tkBonusForWinners / winnerFreqSize;
+            moneyBonus += tkBonusDivided;
+        }
+        tkBonusForWinners = 0;
+        
+        if (moneyBonus > 10000)
+            moneyBonus = 10000;
+        
         // A normal frequency (0 or 1) won the round?
         if (winnerFreq == 0 || winnerFreq == 1) {
             if (winnerFreq == 0)
@@ -1605,11 +1610,12 @@ public class GameFlagTimeModule extends AbstractModule {
             m_botAction.sendArenaMessage("[FLAG] END ROUND: A PRIVATE FREQ wins the round after " + getTimeString(flagTimer.getTotalSecs()) + "! (Bonus: +$"
                                          + moneyBonus + ") Turnovers: " + turnovers);
         }
-
+        
         // Clear any round restricted buyable items/commands
         context.getMoneySystem().resetRoundRestrictions();
 
-        // Achievement part
+        
+        // ACHIEVEMENTS
         // ---------------------------------------
 
         for (String playerName : playerTimeJoined.keySet()) {
@@ -2248,7 +2254,12 @@ public class GameFlagTimeModule extends AbstractModule {
                 continue;
 
             // Money bonus for the winner team
-            context.getPlayerManager().addMoney(player.getPlayerName(), moneyBonus);
+            if (!hunterFreqWon) {
+                m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "Your team won this " + (gameOver ? "game!! Nice work!" : "round! Can you do it again?") + "  End-round bonus" + (gameOver ? " (1.5x for game win)" : "") + ": [$" + moneyBonus +  "]  TK Tax Dividends: [$" + tkBonusDivided + "]");
+                context.getPlayerManager().addMoney(player.getPlayerName(), moneyBonus);
+            } else {
+                m_botAction.sendOpposingTeamMessageByFrequency(winnerFreq, "NOTE: The LT Hunter freq won this round, but you receive no bonus for winning.");
+            }
 
             // Prizes only for the winner team
             if (mins >= 60) { // New: 1 thor
@@ -3009,6 +3020,15 @@ public class GameFlagTimeModule extends AbstractModule {
             return flagTimer.getTotalSecs();
 
         return -1;
+    }
+    
+    /**
+     * Adds the money from a TK tax to the end round bonus for winners.
+     * @param bonus
+     */
+    public void addTKTaxBonus(int bonus) {
+        if (flagTimer != null && flagTimer.isRunning())
+            tkBonusForWinners += bonus;
     }
 
     /**
