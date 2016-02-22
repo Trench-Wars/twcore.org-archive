@@ -31,9 +31,8 @@ public class PubUtilModule extends AbstractModule {
 
     //private PreparedStatement psPlayTime;
 
-    // LOCATION
+    // Location represents classifications of regions. For example, the various FRs and Cram are all considered part of the FR location.
     public static enum Location {
-
         FLAGROOM,
         MID,
         LOWER,
@@ -139,10 +138,7 @@ public class PubUtilModule extends AbstractModule {
         @param x xTileLocation
         @param y yTileLocation
         @return The location that matches the specific coordinates. When nothing is found: Location.SPACE
-        @deprecated {@link Region} and {@link #getRegion(int, int)} are favoured above this and should be used instead.
     */
-    @Deprecated
-    //TODO: REMOVE LOCATION AND ONLY WORK BASED ON REGION. LOCATION IS UNNECESSARY AND RESULTS IN BLOAT
     public Location getLocation(int x, int y) {
         Region region = getRegion(x, y);
         Location location = null;
@@ -169,7 +165,7 @@ public class PubUtilModule extends AbstractModule {
             return Location.SPACE;
         }
     }
-
+    
     public boolean isInside(int x, int y, Location location) {
         if (getLocation(x, y).equals(location)) {
             return true;
@@ -193,9 +189,6 @@ public class PubUtilModule extends AbstractModule {
     
     public boolean isLevAttachEnabled() {
         return levAttachEnabled;
-    }
-
-    public void handleEvent(Message event) {
     }
 
     @Override
@@ -438,7 +431,7 @@ public class PubUtilModule extends AbstractModule {
             return;
         }
 
-        m_botAction.sendSmartPrivateMessage(sender, p2.getPlayerName() + " last seen: " + getPlayerLocation(p2.getXTileLocation(), p2.getYTileLocation()));
+        m_botAction.sendSmartPrivateMessage(sender, p2.getPlayerName() + " last seen: " + getRegionName(p2.getXTileLocation(), p2.getYTileLocation()));
     }
 
     /**
@@ -557,6 +550,17 @@ public class PubUtilModule extends AbstractModule {
 
         return "Unknown";
     }
+    
+    /**
+     * Returns String name of the Location object associated with this tile position.
+     * @param x X Tile
+     * @param y Y Tile
+     * @return Location name
+     * @see Don't confuse with #getRegionName(int, int) which will actually return the player's Region name, not the more general Location
+     */
+    public String getLocationName(int x, int y) {
+        return getLocationName(getLocation(x,y));
+    }
 
     public Region getRegion(int x, int y) {
         int r = regions.getRegion(x, y);
@@ -568,7 +572,7 @@ public class PubUtilModule extends AbstractModule {
         return region;
     }
 
-    public String getPlayerLocation(int x, int y) {
+    public String getRegionName(int x, int y) {
         Region location = getRegion(x, y);
 
         if (Region.UNKNOWN.equals(location)) {
