@@ -140,10 +140,9 @@ public class PubPlayer implements Comparable<PubPlayer> {
     // Used to track whether a player is in safe due to the FR clearing warp, or because he was already there.
     private boolean FRCleared = false;
     public boolean notifiedOfTKTax = false;
-
     private long playerID;
     private boolean hasStatsDB = false;
-
+    public int afkCode = -1;
     public static int EZ_PENALTY = 100;
 
     public PubPlayer(BotAction m_botAction, String name, Objset moneyObjs) {

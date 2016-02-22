@@ -1441,9 +1441,12 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
 
     /**
-        Send a staff member to spectator mode. SMod+
+        Send a staff member to spectator mode. Mod+
     */
     public void doSpecStaff(String name, String msg) {
+        if (!m_botAction.getOperatorList().isModerator(name))
+            return;
+        
         msg = msg.substring(msg.indexOf(" ") + 1);
 
         Player p = m_botAction.getPlayer( msg );
@@ -1460,19 +1463,82 @@ public class PubPlayerManagerModule extends AbstractModule {
         m_botAction.specWithoutLock( p.getPlayerID() );
         m_botAction.sendPrivateMessage(name, "'" + p.getPlayerName() + "' sent to spec.");
     }
+    
+    /**
+     * PMs a player a challenge code. If they don't respond with !here and the code, they are spec'd.
+     * @param name Staff member challenging
+     * @param msg Challenge code
+     */
+    public void doAFKCheck(String name, String msg) {
+        if (!m_botAction.getOperatorList().isER(name)) {
+            m_botAction.sendPrivateMessage(name, "ER+ command. Please ask another member of staff to run the check.");
+            return;
+        }
+        
+        msg = msg.substring(msg.indexOf(" ") + 1);
+
+        Player p = m_botAction.getPlayer( msg );
+
+        if (p == null) {
+            p = m_botAction.getFuzzyPlayer( msg );
+
+            if (p == null ) {
+                m_botAction.sendPrivateMessage(name, "Can't find a player corresponding to '" + msg + "'");
+                return;
+            }
+        }
+        
+        AFKCheckTask afker = new AFKCheckTask(msg);
+        m_botAction.scheduleTask(afker, Tools.TimeInMillis.SECOND * 30);
+        m_botAction.sendPrivateMessage(name, "Sending an AFK challenge code to '" + p.getPlayerName() + "'.");
+    }
+
+    /**
+     * Challenge verification
+     * @param name Player challenging AFK status
+     * @param msg Challenge code
+     */
+    public void doHere(String name, String msg) {
+        msg = msg.substring(msg.indexOf(" ") + 1);
+        int n = -1;
+
+        PubPlayer pp = players.get(name);
+        if (pp != null) {
+            if (pp.afkCode == -1) {
+                m_botAction.sendPrivateMessage(name, "Challenge code not issued or already completed. You will not be spec'd for being AFK.");
+                return;
+            }
+
+            try {
+                n = Integer.valueOf(msg);
+            } catch (NumberFormatException e) {
+                m_botAction.sendPrivateMessage(name, "Challenge failed. Please try again.");
+                return;
+            }
+            
+            if (n == pp.afkCode) {
+                m_botAction.sendPrivateMessage(name, "Thank you. Please enjoy the game!");
+                pp.afkCode = -1;
+            } else {
+                m_botAction.sendPrivateMessage(name, "Challenge failed. Please try again.");
+            }
+        }
+    }
 
 
     @Override
     public void handleCommand(String sender, String command) {
-
+        if(command.trim().startsWith("!here ")) {
+            doHere(sender, command);
+        }
     }
 
     @Override
     public void handleModCommand(String sender, String command) {
         if(command.trim().equals("!tax")) {
             doGetTeamKillTax(sender, command);
-        } else if(command.trim().startsWith("!tax ")) {
-            doSetTeamKillTax(sender, command);
+        } else if (command.startsWith("!specstaff ")) {
+            doSpecStaff(sender, command);
         }
     }
 
@@ -1484,15 +1550,18 @@ public class PubPlayerManagerModule extends AbstractModule {
             shuffle();
         } else if (command.startsWith("!trigger ")) {
             doSetShuffleSize(sender, command);
-        } else if (command.startsWith("!specstaff ")) {
-            doSpecStaff(sender, command);
         } else if(command.equals("!debug")) {
             for(PubPlayer p : players.values()) {
                 m_botAction.sendSmartPrivateMessage(sender, p.getPlayerName());
             }
         } else if (sender.equalsIgnoreCase("WingZero") && command.equals("!notify")) {
             setNotify();
+        } else if(command.trim().startsWith("!tax ")) {
+            doSetTeamKillTax(sender, command);
+        } else if(command.trim().startsWith("!afkcheck ")) {
+            doAFKCheck(sender, command);
         }
+
     }
 
     @Override
@@ -1501,7 +1570,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                    pubsystem.getHelpLine("!vote             -- Force a vote to shuffle teams."),
                    pubsystem.getHelpLine("!forceshuffle     -- Force shuffle teams."),
                    pubsystem.getHelpLine("!trigger          -- Set the freq size difference trigger for shuffle vote (-1 is off)."),
-                   pubsystem.getHelpLine("!specstaff <name> -- Spec SMod+ who is AFK"),
+                   pubsystem.getHelpLine("!tax <$>          -- Sets <$> as the amount deducted for teamkills"),
                };
     }
 
@@ -1513,8 +1582,9 @@ public class PubPlayerManagerModule extends AbstractModule {
     @Override
     public String[] getModHelpMessage(String sender) {
         return new String[] {
-                   "   !tax <$>          -- Sets <$> as the amount deducted for teamkills",
-                   "   !tax              -- Shows the current teamkill tax"
+                   pubsystem.getHelpLine("!specstaff <name> -- Spec SMod+ who is AFK (usable by Mod+)"),
+                   pubsystem.getHelpLine("!afkcheck <name>  -- Checks to see if a player is AFK, and specs them if so."),
+                   pubsystem.getHelpLine("!tax              -- Shows the current teamkill tax"),
                };
     }
 
@@ -1522,7 +1592,6 @@ public class PubPlayerManagerModule extends AbstractModule {
     public void start() {
 
     }
-
 
     @Override
     public void reloadConfig()
@@ -1558,6 +1627,30 @@ public class PubPlayerManagerModule extends AbstractModule {
         else
             m_botAction.sendSmartPrivateMessage("WingZero", "Notify DISABLED");
     }
+    
+    private class AFKCheckTask extends TimerTask {
+        String name;
+        
+        public AFKCheckTask(String name) {
+            this.name = name;
+            PubPlayer pp = players.get(name);
+            if (pp != null) {
+                Random r = new Random();
+                int i = r.nextInt(900) + 100;
+                m_botAction.sendPrivateMessage(name, "Are you AFK?  PM me back by typing   ::!here " + i + "   to verify you are still playing." );
+                pp.afkCode = i;
+            }
+        }
+        
+        public void run() {
+            PubPlayer pp = players.get(name);
+            if (pp != null) {
+                if (pp.afkCode != -1) {
+                    m_botAction.sendPrivateMessage(name, "You have been automatically placed in spectator mode." );
+                    m_botAction.specWithoutLock(name);
+                    pp.afkCode = -1;
+                }
+            }
+        }
+    }
 }
-
-
