@@ -106,7 +106,7 @@ public class PubPlayerManagerModule extends AbstractModule {
                 
                 if (!switchAllowed) {
                     m_botAction.sendPrivateMessage(id, "Team adjustment not needed.");
-                    switchAllowed = false;
+                    return;
                 }
                 
                 Player p = m_botAction.getPlayer(id);
@@ -1449,7 +1449,7 @@ public class PubPlayerManagerModule extends AbstractModule {
     /**
         Send a staff member to spectator mode.
     */
-    public void doSpecStaff(String name, String msg) {      
+    public void doSpecStaff(String name, String msg) {
         msg = msg.substring(msg.indexOf(" ") + 1);
 
         Player p = m_botAction.getPlayer( msg );
