@@ -101,8 +101,14 @@ public class PubPlayerManagerModule extends AbstractModule {
 
     public void handleEvent(Message event) {
         if (event.getMessageType() == Message.PRIVATE_MESSAGE || event.getMessageType() == Message.PUBLIC_MESSAGE) {
-            if (event.getMessage().equalsIgnoreCase("!switch") && switchAllowed) {
+            if (event.getMessage().equalsIgnoreCase("!switch")) {
                 int id = event.getPlayerID();
+                
+                if (!switchAllowed) {
+                    m_botAction.sendPrivateMessage(id, "Team adjustment not needed.");
+                    switchAllowed = false;
+                }
+                
                 Player p = m_botAction.getPlayer(id);
 
                 if ((p.getFrequency() != 0 && p.getFrequency() != 1) || p.getShipType() == 0)
@@ -1441,12 +1447,9 @@ public class PubPlayerManagerModule extends AbstractModule {
     }
 
     /**
-        Send a staff member to spectator mode. Mod+
+        Send a staff member to spectator mode.
     */
-    public void doSpecStaff(String name, String msg) {
-        if (!m_botAction.getOperatorList().isModerator(name))
-            return;
-        
+    public void doSpecStaff(String name, String msg) {      
         msg = msg.substring(msg.indexOf(" ") + 1);
 
         Player p = m_botAction.getPlayer( msg );
@@ -1522,13 +1525,15 @@ public class PubPlayerManagerModule extends AbstractModule {
             } else {
                 m_botAction.sendPrivateMessage(name, "Challenge failed. Please try again.");
             }
+        } else {
+            m_botAction.sendPrivateMessage(name, "Could not find your player record.");
         }
     }
 
 
     @Override
     public void handleCommand(String sender, String command) {
-        if(command.trim().startsWith("!here ")) {
+        if(command.startsWith("!here ")) {
             doHere(sender, command);
         }
     }
@@ -1539,6 +1544,8 @@ public class PubPlayerManagerModule extends AbstractModule {
             doGetTeamKillTax(sender, command);
         } else if (command.startsWith("!specstaff ")) {
             doSpecStaff(sender, command);
+        } else if(command.startsWith("!afkcheck ")) {
+            doAFKCheck(sender, command);
         }
     }
 
@@ -1556,12 +1563,9 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         } else if (sender.equalsIgnoreCase("WingZero") && command.equals("!notify")) {
             setNotify();
-        } else if(command.trim().startsWith("!tax ")) {
+        } else if(command.startsWith("!tax ")) {
             doSetTeamKillTax(sender, command);
-        } else if(command.trim().startsWith("!afkcheck ")) {
-            doAFKCheck(sender, command);
         }
-
     }
 
     @Override
