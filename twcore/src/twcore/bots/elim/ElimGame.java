@@ -550,12 +550,12 @@ public class ElimGame {
         ElimPlayer ep = getPlayer(name);
 
         if (ep == null || !ep.isLoaded()) {
-            ba.sendPrivateMessage(name, "Unable to load your stats. Please wait until next round to play.");            
+            ba.sendPrivateMessage(name, "Unable to load your stats. Please wait until next round to play.");
             return;
         }
         
         if (state != GameState.PLAYING) {
-            ba.sendPrivateMessage(name, "A game is not currently being played. Please wait until next round to play.");            
+            ba.sendPrivateMessage(name, "A game is not currently being played. Please wait until next round to play.");
             return;
         }
         
@@ -603,7 +603,8 @@ public class ElimGame {
         played.put(low(name), ep);
         playerCount++;
         ratingCount += ep.getRating();
-        
+
+        ba.sendArenaMessage(name + " enters in late at " + ep.specAt + " deaths.");
         ba.sendPrivateMessage(name, "You have been added as a late entry to the game. You will be specced at " + ep.specAt + " deaths.");
     }
 

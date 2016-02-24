@@ -521,7 +521,7 @@ public class elim extends SubspaceBot {
             } else {
                 if (game.getState() == GameState.PLAYING) {
                     ba.sendPrivateMessage(name, "Attempting to add you to the game...");
-                    game.addLatePlayer(name);
+                    game.do_late(name);
                 } else {
                     ba.sendPrivateMessage(name, "There is no game being played right now.");
                 }
