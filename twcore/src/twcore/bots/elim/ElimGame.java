@@ -603,6 +603,9 @@ public class ElimGame {
         played.put(low(name), ep);
         playerCount++;
         ratingCount += ep.getRating();
+        
+        ba.setShip(name, ship.getNum());
+        ba.setFreq(name, freq);
 
         ba.sendArenaMessage(name + " enters in late at " + ep.specAt + " deaths.");
         ba.sendPrivateMessage(name, "You have been added as a late entry to the game. You will be specced at " + ep.specAt + " deaths.");
