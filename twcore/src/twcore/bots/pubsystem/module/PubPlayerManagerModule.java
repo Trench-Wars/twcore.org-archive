@@ -1473,11 +1473,6 @@ public class PubPlayerManagerModule extends AbstractModule {
      * @param msg Challenge code
      */
     public void doAFKCheck(String name, String msg) {
-        if (!m_botAction.getOperatorList().isER(name)) {
-            m_botAction.sendPrivateMessage(name, "ER+ command. Please ask another member of staff to run the check.");
-            return;
-        }
-        
         msg = msg.substring(msg.indexOf(" ") + 1);
 
         Player p = m_botAction.getPlayer( msg );
@@ -1491,7 +1486,7 @@ public class PubPlayerManagerModule extends AbstractModule {
             }
         }
         
-        AFKCheckTask afker = new AFKCheckTask(msg);
+        AFKCheckTask afker = new AFKCheckTask(msg.toLowerCase());
         m_botAction.scheduleTask(afker, Tools.TimeInMillis.SECOND * 30);
         m_botAction.sendPrivateMessage(name, "Sending an AFK challenge code to '" + p.getPlayerName() + "'.");
     }
@@ -1505,7 +1500,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         msg = msg.substring(msg.indexOf(" ") + 1);
         int n = -1;
 
-        PubPlayer pp = players.get(name);
+        PubPlayer pp = players.get(name.toLowerCase());
         if (pp != null) {
             if (pp.afkCode == -1) {
                 m_botAction.sendPrivateMessage(name, "Challenge code not issued or already completed. You will not be spec'd for being AFK.");
@@ -1637,7 +1632,7 @@ public class PubPlayerManagerModule extends AbstractModule {
         
         public AFKCheckTask(String name) {
             this.name = name;
-            PubPlayer pp = players.get(name);
+            PubPlayer pp = players.get(name.toLowerCase());
             if (pp != null) {
                 Random r = new Random();
                 int i = r.nextInt(900) + 100;
