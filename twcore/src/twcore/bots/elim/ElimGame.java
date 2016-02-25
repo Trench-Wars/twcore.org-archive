@@ -499,6 +499,13 @@ public class ElimGame {
                 // Elim players really don't care. Let's keep it quiet. They'll hear at the end.
                 //if (playerCount > 9)
                 //    ba.sendArenaMessage("The winner of this game will receive pubbux.");
+                
+                String type = Tools.shipNameSlang(ship.getNum());
+                if (bot.gameType == elim.ELIM)
+                    type = type + "s to " + goal;
+                else
+                    type = type + " killrace to " + goal;
+                ba.sendTeamMessage(type + ". PM !late to enter.");
             }
         };
         ba.scheduleTask(starter, 10 * Tools.TimeInMillis.SECOND);
