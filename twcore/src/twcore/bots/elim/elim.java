@@ -838,7 +838,7 @@ public class elim extends SubspaceBot {
             if (game == null)
                 ba.sendSmartPrivateMessage(name, "We are between games/in an unknown state.");
             else
-                ba.sendSmartPrivateMessage(name, game.toString());
+                ba.sendSmartPrivateMessage(name, game.toString() + (game.canStartLate() ? " PM with !late to enter." : " Late entry finished."));
         }
     }
 
@@ -1502,7 +1502,7 @@ public class elim extends SubspaceBot {
 
         cmd_status(name);
 
-        if(m_showOnEntry && !m_noSplash.contains(name.toLowerCase())) {
+        if (m_showOnEntry && !m_noSplash.contains(name.toLowerCase())) {
             m_leaderBoard.showSplash(event.getPlayerID(), 0);
         }
     }

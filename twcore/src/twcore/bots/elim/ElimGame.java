@@ -51,6 +51,7 @@ public class ElimGame {
     static final int BOUNDARY_TIME = 20;                // max seconds outside base until dq
     static final int BOUND_START = 10;                  // seconds after game starts until player is warned for oob
     static final int SPAWN_TIME = 5;                    // seconds after death until respawn
+    static final long LATE_ENTRY_SECONDS = 60;          // How long the !late command can be used after a round starts
     public static final String db = "website";
 
     CompareAll comp;
@@ -511,7 +512,7 @@ public class ElimGame {
      *  @param name String
      */
     public void do_late(String name) {
-        if (roundStartTime + Tools.TimeInMillis.MINUTE < System.currentTimeMillis()) {
+        if (!canStartLate()) {
             ba.sendPrivateMessage(name, "60 seconds have passed since round start. You will need to wait until the next round to play.");
             return;
         }
@@ -1226,25 +1227,25 @@ public class ElimGame {
         String type;
 
         if (bot.gameType == elim.ELIM)
-            type = " elim to " + goal + " deaths";
+            type = " elim to " + goal;
         else
-            type = " killrace to " + goal + " kills";
+            type = " killrace to " + goal;
 
         String ret = "";
 
         if (state != GameState.PLAYING)
-            ret = "We are about to start " + ship.toString() + type;
+            ret = "We're about to start " + Tools.shipNameSlang(ship.getNum()) + type;
         else
-            ret = "We are playing " + ship.toString() + type;
+            ret = "We're playing " + Tools.shipNameSlang(ship.getNum()) + type;
 
         if (ship.hasShrap()) {
             if (shrap)
-                ret += " with shrap";
+                ret += " w/ shrap";
             else
-                ret += " without shrap";
+                ret += " w/o shrap";
         }
 
-        ret += ". " + winners.size() + " players remaining";
+        ret += ". " + winners.size() + " players left.";
         return ret;
     }
     
@@ -1254,5 +1255,9 @@ public class ElimGame {
             return type + "s to " + goal;
         else
             return type + " killrace to " + goal;
+    }
+    
+    public boolean canStartLate() {
+        return (roundStartTime + (Tools.TimeInMillis.SECOND * LATE_ENTRY_SECONDS)) < System.currentTimeMillis();
     }
 }
