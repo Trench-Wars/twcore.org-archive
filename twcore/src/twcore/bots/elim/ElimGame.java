@@ -500,12 +500,7 @@ public class ElimGame {
                 //if (playerCount > 9)
                 //    ba.sendArenaMessage("The winner of this game will receive pubbux.");
                 
-                String type = Tools.shipNameSlang(ship.getNum());
-                if (bot.gameType == elim.ELIM)
-                    type = type + "s to " + goal;
-                else
-                    type = type + " killrace to " + goal;
-                ba.sendTeamMessage(type + ". PM !late to enter.");
+                ba.sendTeamMessage(toStringShort() + ". PM !late to enter, or !alert for a PM when new games begin.");
             }
         };
         ba.scheduleTask(starter, 10 * Tools.TimeInMillis.SECOND);
@@ -517,7 +512,7 @@ public class ElimGame {
      */
     public void do_late(String name) {
         if (roundStartTime + Tools.TimeInMillis.MINUTE < System.currentTimeMillis()) {
-            ba.sendPrivateMessage(name, "Too much time has passed to enter in late. You will need to wait until the next round.");
+            ba.sendPrivateMessage(name, "60 seconds have passed since round start. You will need to wait until the next round to play.");
             return;
         }
         
@@ -1251,5 +1246,13 @@ public class ElimGame {
 
         ret += ". " + winners.size() + " players remaining";
         return ret;
+    }
+    
+    public String toStringShort() {
+        String type = Tools.shipNameSlang(ship.getNum());
+        if (bot.gameType == elim.ELIM)
+            return type + "s to " + goal;
+        else
+            return type + " killrace to " + goal;
     }
 }
