@@ -27,7 +27,8 @@ public class utildoors extends MultiUtil {
     public String[] getHelpMessages() {
         String[] message =
         {
-            "!DoorMode <Door Value>           -- Sets the doors to a certain value.",
+            "!DoorMode <#>                   -- Sets the doors to a value, such as 74 or 01001010",
+            "!DoorMode <XXXXXXXX>               Binary: 0=off, 1=on. Door order: 8 7 6 5 4 3 2 1",
             "!DoorOn Door# Door# ... Door#   -- Closes all doors specified (can use !DoorOn All)",
             "!DoorOff Door# Door# ... Door#  -- Opens all doors specified. (can use !DoorOff All)",
             "!AddDoor <On> <Off> Door# Door# -- Adds recurring door task",
@@ -60,11 +61,11 @@ public class utildoors extends MultiUtil {
     }
 
     public int closeDoor(int doorState, int doorNumber) {
-        return doorState | (int) ( 1 << (doorNumber - 1));
+        return doorState | 1 << (doorNumber - 1);
     }
 
     public int openDoor(int doorState, int doorNumber) {
-        return doorState & ~((int) ( 1 << (doorNumber - 1)));
+        return doorState & ~( 1 << (doorNumber - 1));
     }
 
     public void doDoorOnCmd(String sender, String argString) {
