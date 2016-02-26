@@ -75,7 +75,7 @@ public class elim extends SubspaceBot {
     ElimGame game;
     HashMap<String, Integer> votes;
 
-    HashSet<String> alerts;
+    HashMap<String,Integer> alerts;
     boolean DEBUG;
     String debugger;
 
@@ -155,14 +155,30 @@ public class elim extends SubspaceBot {
     }
 
     /** Handles the !alert command which enables or disables new game alert pms
-        @param name String
+        @param name Name of player requesting
+        @param cmd Sound code to use in alert (optional)
      * */
-    public void cmd_alert(String name) {
-        if (alerts.remove(name.toLowerCase()))
+    public void cmd_alert(String name, String cmd) {
+        int soundcode = 26;
+        
+        if (cmd.indexOf(" ") != -1 && cmd.indexOf(" ") + 1 != cmd.length()) {       
+            try {
+                soundcode = Integer.valueOf(cmd);
+            } catch (NumberFormatException e) {
+            }
+        }
+        
+        Integer old = alerts.remove(name.toLowerCase());
+                
+        if (old != null) {
             ba.sendSmartPrivateMessage(name, "New game alert messages DISABLED.");
-        else {
-            alerts.add(name.toLowerCase());
-            ba.sendSmartPrivateMessage(name, "New game alert messages ENABLED.");
+        } else {
+            alerts.put(name.toLowerCase(), soundcode);
+            if (soundcode == 26) {
+                ba.sendSmartPrivateMessage(name, "New game alert messages ENABLED with default PM sound. (Use !alert # for a custom sound.)");
+            } else {
+                ba.sendSmartPrivateMessage(name, "New game alert messages ENABLED with sound #" + soundcode + ".", soundcode);
+            }
         }
     }
 
@@ -336,9 +352,9 @@ public class elim extends SubspaceBot {
                                       "| !deaths           - Lists current game most/least player death information              |",
                                       "| !scorereset <#>   - Resets all scores and statistics for the ship <#> specified (!sr)   |",
                                       "| !lagout           - Return to game after lagging out                                    |",
-                                      "| !late             - Enter a game after round has already started                        |",
                                       "| !lag <name>       - Checks the lag of player <name>                                     |",
-                                      "| !alert            - Toggles new game private message alerts on or off                   |",
+                                      "| !late             - Enter a game after round has already started                        |",
+                                      "| !alert [#]        - Toggles new game alerts, w/ optional sound #, for this session      |",
                                       "| !splash           - Shows the top 10 of Warbirds and Javelins                           |",
                                       "| !disable          - Disables showing the splash screen on entry                         |",
                                     };
@@ -1144,6 +1160,7 @@ public class elim extends SubspaceBot {
                     arenaLock = true;
                     ba.toggleLocked();
                     game.checkStats();
+                    sendAlerts();
                 }
             }
         };
@@ -1226,7 +1243,6 @@ public class elim extends SubspaceBot {
     /** Waiting state stalls until there are enough players to continue */
     private void doWaiting() {
         if (ba.getNumPlaying() > 0) {
-            sendAlerts();
             state = State.VOTING;
             votes.clear();
             voteType = VoteType.NA;
@@ -1298,7 +1314,7 @@ public class elim extends SubspaceBot {
         debugger = "qan";
         voteStats = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
         votes = new HashMap<String, Integer>();
-        alerts = new HashSet<String>();
+        alerts = new HashMap<String,Integer>();
         debugStatPlayers = new HashSet<String>();
         state = State.IDLE;
         voteType = VoteType.NA;
@@ -1408,8 +1424,8 @@ public class elim extends SubspaceBot {
         }
 
         if (type == Message.PRIVATE_MESSAGE || type == Message.REMOTE_PRIVATE_MESSAGE) {
-            if (cmd.equals("!alert"))
-                cmd_alert(name);
+            if (cmd.startsWith("!alert"))
+                cmd_alert(name, msg);
             else if (cmd.equals("!who"))
                 cmd_who(name);
             else if (cmd.startsWith("!mvp"))
@@ -1763,8 +1779,11 @@ public class elim extends SubspaceBot {
         if ((now - lastAlert) < ALERT_DELAY * Tools.TimeInMillis.MINUTE)
             return;
 
-        for (String p : alerts)
-            ba.sendSmartPrivateMessage(p, "The next game of elim is about to begin in ?go " + arena + " (reply with !alert to disable this message)");
+        int soundcode;
+        for (String p : alerts.keySet()) {
+            soundcode = alerts.get(p);
+            ba.sendSmartPrivateMessage(p, game.toStringShort() + " starting. PM with !late to enter.", soundcode);            
+        }
 
         lastAlert = now;
     }
