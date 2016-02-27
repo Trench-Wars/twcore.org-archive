@@ -1542,6 +1542,8 @@ public class PubChallengeModule extends AbstractModule {
 
     @Override
     public void handleCommand(String sender, String command) {
+        if (!enabled)
+            return;
 
         if (command.startsWith("!challenge ") || command.startsWith("!ch ") || command.startsWith("!duel ")) {
             if (context.getMoneySystem().isEnabled()) {
@@ -1799,6 +1801,8 @@ public class PubChallengeModule extends AbstractModule {
 
     @Override
     public void handleModCommand(String sender, String command) {
+        if (!enabled)
+            return;
 
         try {
             if (command.equalsIgnoreCase("!betting"))
@@ -1819,6 +1823,9 @@ public class PubChallengeModule extends AbstractModule {
 
     @Override
     public void handleSmodCommand(String sender, String command) {
+        if (!enabled)
+            return;
+
         if (command.startsWith("!info "))
             doSuperInfo(sender, command);
     }
