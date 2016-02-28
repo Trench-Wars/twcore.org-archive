@@ -378,11 +378,10 @@ public class pubsystem extends SubspaceBot
         if (m_botAction.getOperatorList().isZH(sender) && (message.startsWith("!newplayer ") || message.startsWith("!next ") || message.startsWith("!end "))) {
             if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE))
                 handleModCommand(sender, message);
+            
         } else if ((message.startsWith("!servertime") && (messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)) ) {
-            Calendar cal = Calendar.getInstance();
-            SimpleDateFormat sdf = new SimpleDateFormat("hh:mma, MMM dd yyyy");
-            cal.add(Calendar.HOUR, 1);  // Server seems to be in a different timezone than botserv
-            m_botAction.sendSmartPrivateMessage(sender, "The current server time is: " + sdf.format(cal.getTime()) + " EDT/EST (-4GMT/-5GMT)");
+            doServerTimeCmd(sender);
+            
         } else if (m_botAction.getOperatorList().isModerator(sender) || sender.equals(m_botAction.getBotName()) || m_botAction.getOperatorList().isBotExact(sender)) {
             if ((messageType == Message.PRIVATE_MESSAGE || messageType == Message.REMOTE_PRIVATE_MESSAGE)) {
                 handleModCommand(sender, message);
@@ -611,7 +610,7 @@ public class pubsystem extends SubspaceBot
             else
                 lines.add("NOTE: Use >>  !helpall  << for explanation of commands, or !help modulename for specific module help.");
 
-            m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
+            m_botAction.smartPrivateMessageSpam(sender, lines.toArray(new String[lines.size()]));
 
         } else {
             boolean smod = m_botAction.getOperatorList().isSmod(sender);
@@ -665,7 +664,7 @@ public class pubsystem extends SubspaceBot
             if( !fullHelp )
                 lines.add("Send !helpmodall (!hma) for listing with command descriptions.");
 
-            m_botAction.smartPrivateMessageSpam(sender, (String[])lines.toArray(new String[lines.size()]));
+            m_botAction.smartPrivateMessageSpam(sender, lines.toArray(new String[lines.size()]));
         }
     }
 
@@ -711,7 +710,7 @@ public class pubsystem extends SubspaceBot
             if( m.isEmpty() )
                 m.add( "Module '" + moduleName[1] + "' not found. Usage: !help modulename  (or a short form of the name, such as !help chal)" );
 
-            m_botAction.smartPrivateMessageSpam(sender, (String[])m.toArray(new String[m.size()]));
+            m_botAction.smartPrivateMessageSpam(sender, m.toArray(new String[m.size()]));
         } else {
             m_botAction.sendSmartPrivateMessage(sender, "Usage: !help modulename. Use !help or !helpall for standard help listings.");
         }
@@ -764,6 +763,30 @@ public class pubsystem extends SubspaceBot
         m_botAction.remotePrivateMessageSpam(sender, (String[])list.toArray());
     }
 
+    public void doServerTimeCmd(String sender) {
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mma, MMM dd yyyy");
+        
+        m_botAction.sendSmartPrivateMessage(sender, "Current times around the world  (NOTE: Add 1 hour during the summer months to US/EU times)");
+        m_botAction.sendSmartPrivateMessage(sender, "------------------------------------------------------------------------------------------");
+        cal.add(Calendar.HOUR, -8);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " PST (US)     L.A., Seattle");
+        cal.add(Calendar.HOUR, 1);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " MST (US)     Denver, Phoenix");
+        cal.add(Calendar.HOUR, 1);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " CST (US)     Chicago, Houston");
+        cal.add(Calendar.HOUR, 1);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " EST (US)     [SERVER TIME] New York");
+        cal = Calendar.getInstance();
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " UTC/GMT      UK, Portugal");
+        cal.add(Calendar.HOUR, 1);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " CET          Most of Europe");
+        cal.add(Calendar.HOUR, 7);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " JST          Japan");
+        cal.add(Calendar.HOUR, 2);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " AEDT (AU)    Sydney, Melbourne");
+    }
+    
     public String getCommentGreeting(String name) {
         if(name != null) {
             if(commentGreeting.contains("%playername"))
