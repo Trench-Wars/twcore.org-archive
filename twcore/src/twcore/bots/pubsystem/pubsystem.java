@@ -781,6 +781,8 @@ public class pubsystem extends SubspaceBot
         m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " UTC/GMT      UK, Portugal");
         cal.add(Calendar.HOUR, 1);
         m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " CET          Most of Europe");
+        cal.add(Calendar.HOUR, 1);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " EET          Finland, Eastern Europe");
         cal.add(Calendar.HOUR, 7);
         m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " JST          Japan");
         cal.add(Calendar.HOUR, 2);
