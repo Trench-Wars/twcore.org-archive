@@ -549,7 +549,10 @@ public class gravbomber extends MultiModule {
     }
 
     public void endTurn(String endPlayerName, boolean visuals, boolean startNext) {
-        //if(!m_gameStarted) return;
+        if(!m_gameStarted) {
+            m_botAction.sendPrivateMessage(endPlayerName, "No game is currently running. Please !start the game to begin.");            
+            return;
+        }
 
         String playerName = m_currentPlayer.getPlayerName();
 
