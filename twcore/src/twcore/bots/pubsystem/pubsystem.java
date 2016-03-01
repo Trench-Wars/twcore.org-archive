@@ -765,28 +765,30 @@ public class pubsystem extends SubspaceBot
 
     public void doServerTimeCmd(String sender) {
         Calendar cal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("hh:mma, MMM dd yyyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mma  MMMdd");
         
         m_botAction.sendSmartPrivateMessage(sender, "Current times around the world  (NOTE: Add 1 hour during the summer months to US/EU times)");
         m_botAction.sendSmartPrivateMessage(sender, "------------------------------------------------------------------------------------------");
         cal.add(Calendar.HOUR, -8);
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " PST (US)     L.A., Seattle");
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "PST (US/CA)     L.A., Seattle, Vancouver");
         cal.add(Calendar.HOUR, 1);
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " MST (US)     Denver, Phoenix");
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "MST (US/CA)     Denver, Phoenix, Calgary");
         cal.add(Calendar.HOUR, 1);
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " CST (US)     Chicago, Houston");
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "CST (US/CA)     Chicago, Winnipeg, Mexico City");
         cal.add(Calendar.HOUR, 1);
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " EST (US)     [SERVER TIME] New York");
-        cal = Calendar.getInstance();
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " UTC/GMT      UK, Portugal");
-        cal.add(Calendar.HOUR, 1);
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " CET          Most of Europe");
-        cal.add(Calendar.HOUR, 1);
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " EET          Finland, Eastern Europe");
-        cal.add(Calendar.HOUR, 7);
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " JST          Japan");
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "EST (US/CA)     [SERVER TIME] New York, Toronto");
         cal.add(Calendar.HOUR, 2);
-        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 25) + " AEDT (AU)    Sydney, Melbourne");
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "BRT (S.Amer)    Brazil, most of South America");
+        cal = Calendar.getInstance();
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "UTC/GMT (EU)    UK, Portugal");
+        cal.add(Calendar.HOUR, 1);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "CET (EU)        Most of Europe");
+        cal.add(Calendar.HOUR, 1);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "EET (EU)        Finland, Eastern Europe, S.Africa");
+        cal.add(Calendar.HOUR, 7);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "JST             Japan");
+        cal.add(Calendar.HOUR, 2);
+        m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "AEDT (AU)       Sydney, Melbourne");
     }
     
     public String getCommentGreeting(String name) {
