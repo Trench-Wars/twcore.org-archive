@@ -10,6 +10,7 @@ import twcore.core.BotAction;
 import twcore.core.events.PlayerPosition;
 import twcore.core.lvz.Objset;
 import twcore.core.util.Tools;
+import twcore.core.util.Point;
 
 /**
     Data of a player in the current elim game.
@@ -20,7 +21,7 @@ public class ElimPlayer {
 
     BotAction ba;
 
-    enum Status { SPEC, SPAWN, IN, WARNED_OUT, WARNED_IN, OUT, LAGGED };
+    enum Status { SPEC, SPAWN, IN, WARNED_OUT, WARNED_IN, OUT, LAGGED, PRACTICING };
 
     public String[] streaks = {
         "On Fire!",
@@ -41,7 +42,13 @@ public class ElimPlayer {
         "Trench Wars Most Wanted!",
         "Unforeseeable paradoxes have ripped a hole in the fabric of the universe!"
     };
-
+    
+    public static final Point[] PRACTICE_SPAWN_OPEN = {
+    };
+    public static final Point[] PRACTICE_SPAWN_BASE = {
+    };
+    private PracticeSpawnTask practiceSpawn;
+    
     public static final int BOUNDARY = 183 * 16;
     public static final int BOUNDS_TIME = 20;
     public static final int SPAWN_TIME = 5;      // seconds until respawn after death
@@ -58,7 +65,8 @@ public class ElimPlayer {
     private Bounds bounds;
     private ElimStats stats;
     private ElimGame game;
-    private int ship, consecutiveKills, lagouts, freq, lastStreak;
+    int ship, consecutiveKills, lagouts, freq, lastStreak;
+    private ShipType shipType;
     int specAt;
     private long lastKill, lastDeath, lastShot;
     private int currentSeason;
@@ -87,6 +95,7 @@ public class ElimPlayer {
         specAt = deaths;
         freq = 9998;
         this.ship = ship;
+        shipType = ShipType.type(ship);
         status = Status.SPAWN;
         game = elimGame;
         stats = new ElimStats(ship);
@@ -117,11 +126,10 @@ public class ElimPlayer {
 
         if (game.bot.gameType == elim.ELIM && stats.getStat(StatType.DEATHS) >= specAt) {
             status = Status.OUT;
-            saveLoss();
             ba.spec(name);
             ba.spec(name);
             ba.sendArenaMessage(name + " is out. " + getScore(), Tools.Sound.VICTORY_BELL);
-            game.removePlayer(this);
+            removePlayerAsOut();
             killer.handleKO();
         } else {
             game.handleSpawn(this, false);
@@ -206,7 +214,7 @@ public class ElimPlayer {
                         ba.spec(name);
                         ba.spec(name);
                         ba.sendArenaMessage(name + " is out. " + getScore() + " (Out of bounds abuse)", Tools.Sound.VICTORY_BELL);
-                        remove();
+                        removePlayerAsOut();
                     }
                 } else
                     status = Status.SPAWN;
@@ -232,7 +240,7 @@ public class ElimPlayer {
             ba.spec(name);
             lagouts = 0; //Remaining lagouts set to 0 so player can not return.
             clearPersonalScoreLVZ();
-            game.removePlayer(this);
+            game.removePlayerAsLoser(this);
         } else {
             ba.sendArenaMessage(name + " lagged out! (+1 death)");
         }
@@ -247,6 +255,14 @@ public class ElimPlayer {
             saveLoss();
             return true;
         }
+    }
+    
+    /**
+     * Set player as out as a result of switching to practice mode.
+     */
+    public void handlePracticeModeOut() {
+        ba.sendArenaMessage(name + " is out. " + getScore() + " (switched to practice mode)", Tools.Sound.VICTORY_BELL);
+        removePlayerAsOut();
     }
 
     /** Reports a kill that broke the streak of another player or a "KillJoy" */
@@ -275,7 +291,7 @@ public class ElimPlayer {
             status = Status.OUT;
             ba.specWithoutLock(name);
             ba.sendArenaMessage(name + " is out. " + getScore() + " (warp abuse)", Tools.Sound.VICTORY_BELL);
-            remove();
+            removePlayerAsOut();
         } else {
             ba.sendPrivateMessage(name, "Warping is illegal! You gained a death as a result.");
             game.handleSpawn(this, true);
@@ -497,9 +513,12 @@ public class ElimPlayer {
         stats.loadStats(rs);
     }
 
-    private void remove() {
+    /**
+     * Best method to call when player is out. 
+     */
+    private void removePlayerAsOut() {
         saveLoss();
-        game.removePlayer(this);
+        game.removePlayerAsLoser(this);
     }
 
     private class Spawn extends TimerTask {
@@ -524,7 +543,7 @@ public class ElimPlayer {
                 ba.spec(name);
                 ba.spec(name);
                 ba.sendArenaMessage(name + " is out. " + getScore() + " (Too long outside base)", Tools.Sound.VICTORY_BELL);
-                remove();
+                removePlayerAsOut();
                 spawn = null;
             }
         }
@@ -548,7 +567,7 @@ public class ElimPlayer {
                 ba.spec(name);
                 ba.spec(name);
                 ba.sendArenaMessage(name + " is out. " + getScore() + " (Too long outside base)", Tools.Sound.VICTORY_BELL);
-                remove();
+                removePlayerAsOut();
             }
 
             bounds = null;
@@ -648,4 +667,34 @@ public class ElimPlayer {
 
         ba.setObjects(ba.getPlayer(name).getPlayerID());
     }
+    
+    
+    // Practice Spawning
+    
+    private class PracticeSpawnTask extends TimerTask {
+        public void run() {
+            respawnInPracticeArena();
+        }
+    }
+    
+    void respawnInPracticeArena() {
+        if (shipType.inBase()) {
+            int spawnPoint = (int) (Math.random() * PRACTICE_SPAWN_BASE.length);
+            ba.warpTo(name, PRACTICE_SPAWN_BASE[spawnPoint], 5);
+        } else {
+            int spawnPoint = (int) (Math.random() * PRACTICE_SPAWN_OPEN.length);
+            ba.warpTo(name, PRACTICE_SPAWN_OPEN[spawnPoint], 10);
+        }
+    }
+    
+    void setupPracticeSpawn() {
+        practiceSpawn = new PracticeSpawnTask();
+        ba.scheduleTask(this.practiceSpawn, Tools.TimeInMillis.SECOND * SPAWN_TIME);
+    }
+    
+    void setPracticing(int ship) {
+        this.status = Status.PRACTICING;
+        this.ship = ship;
+        this.shipType = ShipType.type(ship);
+    }    
 }

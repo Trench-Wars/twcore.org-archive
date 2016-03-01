@@ -91,7 +91,7 @@ public class ElimGame {
         Representation of a single elim event and all relevant player and game info.
 
         @param bot Reference to elim class
-        @param type ShipTyp for this game
+        @param type ShipType for this game
         @param deaths Death count for elimination
         @param shrap Shrap prized on spawn
     */
@@ -123,16 +123,25 @@ public class ElimGame {
             lagChecks = new Vector<String>();
             lagCheck = null;
             lagHandler = new LagHandler(ba, rules, this, "handleLagReport");
-            Iterator<Player> i = ba.getPlayingPlayerIterator();
             currentSeason = rules.getInt("CurrentSeason");
 
+            Iterator<Player> i = ba.getPlayingPlayerIterator();
             while (i.hasNext()) {
                 Player p = i.next();
                 String name = p.getPlayerName();
                 String low = name.toLowerCase();
-                winners.add(low);
-                lagChecks.add(low);
-                ElimPlayer ep = new ElimPlayer(ba, this, name, ship.getNum(), deaths);
+
+                ElimPlayer ep;
+                
+                if (bot.practicePlayers.containsKey(name)) {
+                    int shipnum = bot.practicePlayers.get(name);
+                    ep = new ElimPlayer(ba, this, name, shipnum, 999);
+                    ep.setPracticing(shipnum);
+                } else {
+                    ep = new ElimPlayer(ba, this, name, ship.getNum(), deaths);
+                    winners.add(low);
+                    lagChecks.add(low);
+                }
                 ep.setFreq(p.getFrequency());
                 players.put(low, ep);
             }
@@ -153,12 +162,19 @@ public class ElimGame {
 
         ElimPlayer win = getPlayer(killer);
         ElimPlayer loss = getPlayer(killee);
+                
         int kills = 1;
 
-        if (win != null && loss != null) {
-            kills = win.handleKill(loss);
-            loss.handleDeath(win);
+        if (win == null || loss == null)
+            return;
+        
+        if (loss.status == Status.PRACTICING) {
+            loss.setupPracticeSpawn();
+            return;
         }
+        
+        kills = win.handleKill(loss);
+        loss.handleDeath(win);
 
         if (bot.gameType == elim.KILLRACE && kills >= goal) {
             LinkedList<String> temp = new LinkedList<String>();
@@ -172,7 +188,7 @@ public class ElimGame {
 
                 if (ep != null) {
                     ep.saveLoss();
-                    removePlayer(ep);
+                    removePlayerAsLoser(ep);
                 }
             }
 
@@ -187,13 +203,17 @@ public class ElimGame {
         String name = ba.getPlayerName(event.getPlayerID());
 
         if (name == null) return;
+        
+        ElimPlayer ep = getPlayer(name);
+        if (ep != null && event.getShipType() == 0 && ep.status == Status.PRACTICING) {
+            bot.practicePlayers.remove(name);
+            return;
+        }
 
         if (state == GameState.NA) {
             if (event.getShipType() > 0) {
                 if (laggers.containsKey(low(name)))
                     ba.cancelTask(laggers.remove(low(name)));
-
-                ElimPlayer ep = getPlayer(name);
 
                 if (ep == null) {
                     ep = new ElimPlayer(ba, this, name, ship.getNum(), goal);
@@ -208,20 +228,14 @@ public class ElimGame {
                 else
                     ep.setStatus(Status.IN);
             } else {
-                winners.remove(name.toLowerCase());
-                lagChecks.remove(low(name));
-                played.remove(low(name));
-                ElimPlayer ep = getPlayer(name);
+                removeFromGameLists(name);
 
                 if (ep != null)
                     ep.setStatus(Status.SPEC);
             }
         } else if (event.getShipType() == 0) {
-            if (state == GameState.NA || state == GameState.STARTING) {
-                winners.remove(name.toLowerCase());
-                lagChecks.remove(low(name));
-                played.remove(low(name));
-                ElimPlayer ep = getPlayer(name);
+            if (state == GameState.NA || state == GameState.STATS || state == GameState.STARTING) {
+                removeFromGameLists(name);
 
                 if (ep != null)
                     ep.setStatus(Status.SPEC);
@@ -272,10 +286,8 @@ public class ElimGame {
 
         if (state == GameState.PLAYING)
             handleLagout(name);
-        else if (state == GameState.NA || state == GameState.STARTING) {
-            winners.remove(low(name));
-            lagChecks.remove(low(name));
-            played.remove(low(name));
+        else if (state == GameState.NA || state == GameState.STATS || state == GameState.STARTING) {
+            removeFromGameLists(name);
             ElimPlayer ep = getPlayer(name);
 
             if (ep != null)
@@ -379,7 +391,7 @@ public class ElimGame {
             if (!ep.handleLagout())
                 laggers.put(low(name), new Lagout(name));
             else
-                removePlayer(ep);
+                removePlayerAsLoser(ep);
         }
 
         if (state == GameState.PLAYING)
@@ -405,7 +417,7 @@ public class ElimGame {
             loaded.add(low(name));
 
         if (state == GameState.STATS)
-            checkStats();
+            checkStatsAndStart();
     }
 
     /** Receives the result of the *where command used for hider coordinates
@@ -417,7 +429,7 @@ public class ElimGame {
     }
 
     /** Ensures that each player playing in the current game has had stats successfully loaded */
-    public void checkStats() {
+    public void checkStatsAndStart() {
         if (state == GameState.NA)
             state = GameState.STATS;
 
@@ -448,6 +460,7 @@ public class ElimGame {
         ba.sendArenaMessage("Get ready. Game will start in 10 seconds!", 1);
         starter = new TimerTask() {
             public void run() {
+                separatePracticePlayers();
                 if (winners.size() < 2) {
                     bot.abort();
                     return;
@@ -507,6 +520,68 @@ public class ElimGame {
         ba.scheduleTask(starter, 10 * Tools.TimeInMillis.SECOND);
         setShipFreqs();
     }
+    
+    /**
+     * Separates out the practice mode players right before the game starts.
+     */
+    void separatePracticePlayers() {
+        Iterator<Player> i = ba.getPlayingPlayerIterator();
+        while (i.hasNext()) {
+            Player p = i.next();
+            if (p == null)
+                continue;
+            if (bot.practicePlayers.containsKey(p.getPlayerName())) {
+                ElimPlayer ep = players.get(p.getPlayerName().toLowerCase());
+                if (ep == null) {
+                    ep = new ElimPlayer(ba, this, p.getPlayerName(), p.getShipType(), 999);
+                    players.put(p.getPlayerName().toLowerCase(), ep);                    
+                }
+                ep.setFreq(ep.getFreq() + 500);     // Bit of a hack, but should work OK.
+                ba.setFreq(p.getPlayerID(), ep.getFreq());
+                ba.setShip(p.getPlayerID(), ep.ship);
+                removeFromGameLists(p.getPlayerName().toLowerCase());                
+                ep.respawnInPracticeArena();
+            }
+        }
+    }
+    
+    void addPracticePlayer(String name, int ship) {
+        ElimPlayer ep = getPlayer(name);
+        if (ep != null) {
+            // Go out if in current game
+            if ((ep.isPlaying() && state == GameState.PLAYING) || laggers.remove(ep.name.toLowerCase()) != null) {
+                ep.handlePracticeModeOut();
+            }
+        } else {
+            // Add to players if not already there.
+            ep = new ElimPlayer(ba, this, name, ship, 999);
+            players.put(name.toLowerCase(), ep);
+        }        
+
+        ba.setShip(name, ship);
+
+        // Freq assignment
+        // If NA or STATS, no freq needed (will be assigned in STARTING).
+        // If STARTING, then freq will have been assigned, and is fine (will be adjusted +500 when game starts) 
+        // If PLAYING, then needs to get next freq + 500, and increment by 2 (unless they were previously practicing)
+        if (state == GameState.PLAYING) {
+            if (ep.status == Status.PRACTICING) {
+                // If already practicing, should already have their freq set up
+                ba.setFreq(name, ep.getFreq());                
+            } else {
+                freq += 2;
+                while (ba.getFrequencySize(freq + 500) != 0)
+                    freq += 2;
+                ba.setFreq(name, freq + 500);
+                ep.setFreq(freq + 500);
+            }
+            ep.respawnInPracticeArena();
+        }
+        ep.setPracticing(ship);
+    }
+    
+    
+    // ******* COMMANDS *******
 
     /** Handles the !late entrance command
      *  @param name String
@@ -773,10 +848,8 @@ public class ElimGame {
         String temp = ba.getFuzzyPlayerName(player);
 
         if (temp != null && temp.equalsIgnoreCase(player)) {
-            winners.remove(low(player));
-            lagChecks.remove(low(player));
+            removeFromGameLists(name);
             losers.remove(low(player));
-            played.remove(low(player));
             ElimPlayer ep = players.remove(low(player));
 
             if (ep != null)
@@ -789,10 +862,8 @@ public class ElimGame {
             checkWinner();
         } else {
             ba.sendPrivateMessage(name, "Player '" + player + "' not found in the arena; attempting to remove manually, in cases of bugged players.");
-            winners.remove(low(player));
-            lagChecks.remove(low(player));
+            removeFromGameLists(name);
             losers.remove(low(player));
-            played.remove(low(player));
             ElimPlayer ep = players.remove(low(player));
 
             if (ep != null)
@@ -819,8 +890,11 @@ public class ElimGame {
         ep.scorereset(ship);
     }
 
+    // ******* END COMMANDS *******
+    
+    
     /** Record losses for anyone still lagged out */
-    public void storeLosses() {
+    public void storeLossesForLagoutPlayers() {
         for (Lagout lagger : laggers.values()) {
             ba.cancelTask(lagger);
             ElimPlayer ep = getPlayer(lagger.name);
@@ -878,7 +952,7 @@ public class ElimGame {
     /** Remove player from the game player list into the loser list and flush stats
         @param loser ElimPlayer
      * */
-    public void removePlayer(ElimPlayer loser) {
+    public void removePlayerAsLoser(ElimPlayer loser) {
         winners.remove(low(loser.name));
         lagChecks.remove(low(loser.name));
         losers.add(low(loser.name));
@@ -998,8 +1072,9 @@ public class ElimGame {
 
             winner = getPlayer(winners.first());
             winner.saveWin();
-            storeLosses();
+            storeLossesForLagoutPlayers();
             setMVP();
+            endPractice();
             bot.storeGame(winner, (ratingCount / playerCount), playerCount);
         } else if (winners.size() == 0) {
             ba.cancelTask(lagCheck);
@@ -1009,16 +1084,29 @@ public class ElimGame {
             if (hiderFinder != null)
                 hiderFinder.stop();
 
-            storeLosses();
+            storeLossesForLagoutPlayers();
+            endPractice();
             bot.deadGame();
         }
     }
-
+    
     /** Determines MVP using a 3-tier Comparator */
     private void setMVP() {
         List<ElimPlayer> list = getPlayed();
         Collections.sort(list, Collections.reverseOrder(comp));
         mvp = list.get(0).name;
+    }
+    
+    /**
+     * Ends practice mode when the round finishes.
+     */
+    private void endPractice() {
+        for (ElimPlayer ep : players.values()) {
+            if (ep.status == Status.PRACTICING) {
+                ba.sendPrivateMessage(ep.name, "Round finished. Removed from practice mode to play the next game.");
+            }
+        }
+        bot.practicePlayers.clear();
     }
 
     /** Warps a Weasel into the flag room */
@@ -1048,6 +1136,19 @@ public class ElimGame {
         return str.toLowerCase();
     }
 
+    /**
+     * Removes from the standard 3 game lists.
+     * 
+     * Why all these separate lists are used when there is a perfectly good ElimPlayer class available is
+     * utterly beyond my comprehension, and is perhaps the main source of frustration in modifying this bot.
+     * @param name
+     */
+    private void removeFromGameLists(String name) {
+        winners.remove(name.toLowerCase());
+        lagChecks.remove(name.toLowerCase());
+        played.remove(name.toLowerCase());
+    }
+
     /** TimerTask used for tracking a player after lagging out and potential return */
     private class Lagout extends TimerTask {
 
@@ -1070,7 +1171,7 @@ public class ElimGame {
             if (ep != null) {
                 laggers.remove(low(name));
                 ep.saveLoss();
-                removePlayer(ep);
+                removePlayerAsLoser(ep);
                 ba.sendPrivateMessage(name, "You have exceeded the maximum lagout time and are therefore eliminated.");
             }
         }

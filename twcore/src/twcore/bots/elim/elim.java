@@ -16,6 +16,7 @@ import twcore.core.BotAction;
 import twcore.core.BotSettings;
 import twcore.core.EventRequester;
 import twcore.core.OperatorList;
+import twcore.core.game.Player;
 import twcore.core.SubspaceBot;
 import twcore.core.events.ArenaJoined;
 import twcore.core.events.FrequencyShipChange;
@@ -38,18 +39,6 @@ import twcore.core.net.MobilePusher;
 */
 public class elim extends SubspaceBot {
 
-    /** TimerTask used to guarantee the MVP has had enough time to be determined */
-    public class MVP extends TimerTask {
-        public MVP() {
-            ba.scheduleTask(this, 4000);
-        }
-
-        @Override
-        public void run() {
-            ba.sendArenaMessage("MVP: " + game.mvp, Tools.Sound.INCONCEIVABLE);
-        }
-    }
-
     public enum State {
         OFF, IDLE, WAITING, VOTING, STARTING, PLAYING, ENDING, UPDATING
     }
@@ -58,36 +47,35 @@ public class elim extends SubspaceBot {
         NA, SHIP, DEATHS, SHRAP, GAME
     }
 
-    OperatorList oplist;
-
-    BotSettings rules;
     public static final int ELIM = 0;
-
     public static final int KILLRACE = 1;
+    static final int MIN_ZONER = 10;       // The minimum amount of minutes in between zoners
+    static final int ALERT_DELAY = 2;      // Minimum amount of time between alert messages
+    static final int INITIAL_RATING = 300;
+    int kdNeededToLadder = 150;            // Combined kills & deaths needed before being ranked
+    int lateEntrySeconds = 0;              // # seconds a player is allowed to late-enter; 0 if not allowed
+    
+    OperatorList oplist;
+    BotSettings rules;
     State state;
     VoteType voteType;
     ShipType shipType;
     int gameType;
 
-    boolean allowRace;
-
     Random random;
     ElimGame game;
-    HashMap<String, Integer> votes;
-
+    HashMap<String,Integer> votes;
     HashMap<String,Integer> alerts;
+    HashMap<String,Integer> practicePlayers;       // List of players in practice mode, and their practice ship
+    
+    // Debug
     boolean DEBUG;
     String debugger;
-
     HashSet<String> debugStatPlayers;
+
     private String connectionID = "elimplayerstats";
     static final String db = "website";
     static final String pub = "pubstats";
-    static final int INITIAL_RATING = 300;
-    int kdNeededToLadder = 150;            // Combined kills & deaths needed before being ranked
-    int lateEntrySeconds = 0;              // # seconds a player is allowed to late-enter; 0 if not allowed
-    static final int MIN_ZONER = 10;       // The minimum amount of minutes in between zoners
-    static final int ALERT_DELAY = 2;      // Minimum amount of time between alert messages
     TimerTask timer;
     String arena;
     ElimPlayer lastWinner;
@@ -102,6 +90,8 @@ public class elim extends SubspaceBot {
     String[] updateFields;
     boolean shrap;
     boolean arenaLock;
+    boolean allowRace;
+    String newGameConditionMsg = "A new game will begin when there are 2+ people playing (outside practice mode).";
 
     int currentSeason; //current season for elim
 
@@ -126,6 +116,8 @@ public class elim extends SubspaceBot {
     long lastGamePlayed;
     long timeBetweenPushes = Tools.TimeInMillis.HOUR * 1;       // Only push if last elim was >1hr ago (slow time that is now reviving elim)
 
+    
+    
     public elim(BotAction botAction) {
         super(botAction);
         ba = botAction;
@@ -141,9 +133,10 @@ public class elim extends SubspaceBot {
         state = State.WAITING;
         voteType = VoteType.NA;
         votes.clear();
+        practicePlayers.clear();
         arenaLock = false;
         ba.toggleLocked();
-        ba.sendArenaMessage("A new game will begin when there are at least two (2) people playing.");
+        ba.sendArenaMessage(newGameConditionMsg);
         handleState();
     }
 
@@ -525,9 +518,9 @@ public class elim extends SubspaceBot {
     }
 
     /**
-        Handles the !late command, which lets a player enter late
-        @param name String
-    */
+     *  Handles the !late command, which lets a player enter late
+     *   @param name String
+     */
     public void cmd_late(String name) {
         if (game != null) {
             ElimPlayer ep = game.getPlayer(name);
@@ -554,6 +547,51 @@ public class elim extends SubspaceBot {
             game.do_mvp(name);
         else
             ba.sendPrivateMessage(name, "There is no game being played at the moment.");
+    }
+
+    /** 
+     * Handles the !practice command, enabling or disabling practice mode.
+     * @param name String
+     * @param cmd String
+     */
+    public void cmd_practice(String name, String cmd) {
+        if (cmd.equals("off")) {
+            // Disable practice mode
+            if (practicePlayers.remove(name) == null) {
+                ba.sendPrivateMessage(name, "You aren't currently in practice mode. Use !practice <ship#> to enter into practice mode with a ship.");
+                return;
+            }
+            Player p = ba.getPlayer(name);
+            if (p == null)
+                return;
+            if (p.getShipType() == Tools.Ship.SPECTATOR) {
+                ba.specWithoutLock(p.getPlayerID());
+            }
+            ba.sendPrivateMessage(name, "No longer in practice mode. !practice again to start.");
+        } else {
+            // Enable practice mode
+            
+            Player p = ba.getPlayer(name);
+            if (p == null)
+                return;
+            
+            int shipToPracticeIn;
+            try {
+                shipToPracticeIn = Integer.valueOf(cmd.substring(cmd.indexOf(" ") + 1));
+
+                if (shipToPracticeIn < 1 || shipToPracticeIn > 8) {
+                    ba.sendPrivateMessage(name, "Invalid ship: " + shipToPracticeIn);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                ba.sendPrivateMessage(name, "Error processing specified ship number! Please use !practice <ship#>");
+                return;
+            }
+            
+            practicePlayers.put(p.getPlayerName(), shipToPracticeIn);
+            if (game != null)
+                game.addPracticePlayer(name, shipToPracticeIn);
+        }
     }
 
     /** Handles the !rank command which returns a players rank according to ship
@@ -831,7 +869,7 @@ public class elim extends SubspaceBot {
      * */
     public void cmd_status(String name) {
         if (state == State.WAITING)
-            ba.sendSmartPrivateMessage(name, "A new game will begin when there are at least two (2) people playing.");
+            ba.sendSmartPrivateMessage(name, newGameConditionMsg);
         else if (state == State.VOTING)
             ba.sendSmartPrivateMessage(name, "We are voting on the next game.");
         else if (state == State.STARTING || state == State.PLAYING || state == State.ENDING) {
@@ -1075,7 +1113,7 @@ public class elim extends SubspaceBot {
             @Override
             public void run() {
                 if (ba.getNumPlaying() < 2)
-                    ba.sendArenaMessage("A new game will begin when there are at least two (2) people playing.");
+                    ba.sendArenaMessage(newGameConditionMsg);
 
                 state = State.WAITING;
                 handleState();
@@ -1142,7 +1180,7 @@ public class elim extends SubspaceBot {
         timer = new TimerTask() {
             @Override
             public void run() {
-                if (ba.getNumPlaying() < 2) {
+                if (ba.getNumPlaying() < (2 + practicePlayers.size())) {
                     game.stop();
                     abort();
                 } else {
@@ -1159,7 +1197,7 @@ public class elim extends SubspaceBot {
                     ba.sendArenaMessage(erules);
                     arenaLock = true;
                     ba.toggleLocked();
-                    game.checkStats();
+                    game.checkStatsAndStart();
                     sendAlerts();
                 }
             }
@@ -1315,6 +1353,7 @@ public class elim extends SubspaceBot {
         voteStats = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
         votes = new HashMap<String, Integer>();
         alerts = new HashMap<String,Integer>();
+        practicePlayers = new HashMap<String,Integer>();
         debugStatPlayers = new HashSet<String>();
         state = State.IDLE;
         voteType = VoteType.NA;
@@ -1409,6 +1448,10 @@ public class elim extends SubspaceBot {
                 cmd_lagout(name);
             else if (cmd.equals("!late"))
                 cmd_late(name);
+            else if (cmd.startsWith("!practice "))
+                cmd_practice(name, msg);
+            else if (cmd.startsWith("!practice"))
+                cmd_practice(name, "off");
             else if (cmd.startsWith("!rank "))
                 cmd_rank(name, msg);
             else if (cmd.startsWith("!rec "))
@@ -1949,4 +1992,21 @@ public class elim extends SubspaceBot {
         for(String op : eOps)
             elimOps.add(op);
     }
+    
+    /**
+     * TimerTask used to guarantee the MVP has had enough time to be determined
+     * No longer used?
+     */
+    /*
+    private class MVP extends TimerTask {
+        public MVP() {
+            ba.scheduleTask(this, 4000);
+        }
+
+        @Override
+        public void run() {
+            ba.sendArenaMessage("MVP: " + game.mvp, Tools.Sound.INCONCEIVABLE);
+        }
+    }
+    */
 }
