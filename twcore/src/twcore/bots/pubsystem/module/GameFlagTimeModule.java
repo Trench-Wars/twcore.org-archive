@@ -1702,37 +1702,37 @@ public class GameFlagTimeModule extends AbstractModule {
         ArrayList<String> lines = new ArrayList<String>();
 
         if (basingKingName != null) {
-            lines.add("- Basing King/Queen       : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
+            lines.add("- Basing King/Queen       : " + Tools.formatString(basingKingName, 12) + Tools.rightString(" +$" + m10, 6) );
             //m_botAction.sendArenaMessage("- Basing King/Queen       : " + basingKingName + Tools.rightString(" (+$" + m10 + ")", 8) );
             context.getPlayerManager().addMoney(basingKingName, m10, true);
         }
 
         if (mostKillName != null) {
-            lines.add("- Most Veteran Like       : " + mostKillName + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Most Veteran Like       : " + Tools.formatString(mostKillName, 12) + Tools.rightString(" +$" + m5, 6) );
             //m_botAction.sendArenaMessage("- Most Veteran Like       : " + mostKillName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostKillName, m5, true);
         }
 
         if (mostFlagClaimed != null) {
-            lines.add("- Flag Savior             : " + mostFlagClaimed + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Flag Savior             : " + Tools.formatString(mostFlagClaimed, 12) + Tools.rightString(" +$" + m5, 6) );
             //m_botAction.sendArenaMessage("- Flag Savior             : " + mostFlagClaimed + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostFlagClaimed, m5, true);
         }
 
         if (bestTerrierName != null) {
-            lines.add("- Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Best Terrier            : " + Tools.formatString(bestTerrierName, 12) + Tools.rightString(" +$" + m5, 6) );
             //m_botAction.sendArenaMessage("- Best Terrier            : " + bestTerrierName + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(bestTerrierName, m5);
         }
 
         if (mostTek != null) {
-            lines.add("- Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Most Terrier Kills      : " + Tools.formatString(mostTek, 12) + Tools.rightString(" +$" + m5, 6) );
             //m_botAction.sendArenaMessage("- Most Terrier Kills      : " + mostTek + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostTek, m5);
         }
 
         if (mostLvk != null) {
-            lines.add("- Most Leviathan Kills    : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
+            lines.add("- Most Leviathan Kills    : " + Tools.formatString(mostLvk, 12) + Tools.rightString(" +$" + m5, 6) );
             //m_botAction.sendArenaMessage("- Most Leviathan Kills    : " + mostLvk + Tools.rightString(" (+$" + m5 + ")", 8) );
             context.getPlayerManager().addMoney(mostLvk, m5);
         }
@@ -2211,7 +2211,7 @@ public class GameFlagTimeModule extends AbstractModule {
                     }
 
                     int amt = r.nextInt(48) + 2;    // Extremely small, awkward amount to show it's only a joke
-                    lines.add( text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 8) );
+                    lines.add( text + Tools.formatString(p.getPlayerName(), 12) + Tools.rightString(" +$" + amt, 6) );
                     //m_botAction.sendArenaMessage(text + p.getPlayerName() + Tools.rightString(" (+$" + amt + ")", 8) );
                     context.getPlayerManager().addMoney(p.getPlayerName(), amt); // ...but yes, actually give it to them
                 }
@@ -2222,7 +2222,7 @@ public class GameFlagTimeModule extends AbstractModule {
 
         for ( String l : lines ) {
             if ( output.equals("") ) {
-                output += Tools.formatString(l, 56);
+                output += Tools.formatString(l, 49);
             } else {
                 output += l;
                 m_botAction.sendArenaMessage(output);
