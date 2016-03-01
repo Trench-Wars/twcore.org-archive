@@ -29,6 +29,7 @@ import twcore.core.events.WeaponFired;
 import twcore.core.game.Player;
 import twcore.core.lag.LagHandler;
 import twcore.core.lag.LagReport;
+import twcore.core.util.Point;
 import twcore.core.util.Tools;
 
 /**
@@ -52,6 +53,8 @@ public class ElimGame {
     static final int BOUND_START = 10;                  // seconds after game starts until player is warned for oob
     static final int SPAWN_TIME = 5;                    // seconds after death until respawn
     static final long LATE_ENTRY_SECONDS = 60;          // How long the !late command can be used after a round starts
+    public static final Point PRACTICE_OPEN_BOTTOM_LEFT = new Point(747,306);
+    public static final Point PRACTICE_BASE_BOTTOM_RIGHT = new Point(278,306);
     public static final String db = "website";
 
     CompareAll comp;
@@ -248,16 +251,29 @@ public class ElimGame {
         @param event PlayerPosition
      * */
     public void handleEvent(PlayerPosition event) {
-        if (!ship.inBase()) return;
-
         Player p = ba.getPlayer(event.getPlayerID());
 
         if (p == null) return;
 
         ElimPlayer ep = getPlayer(p.getPlayerName());
+        
+        if (ep == null)
+            return;
+        
+        if (ep.status == Status.PRACTICING) {
+            if (ship.inBase()) {
+                if (p.getXTileLocation() > PRACTICE_BASE_BOTTOM_RIGHT.x || p.getYTileLocation() > PRACTICE_BASE_BOTTOM_RIGHT.y)
+                    ep.respawnInPracticeArena();
+            } else {
+                if (p.getXTileLocation() < PRACTICE_OPEN_BOTTOM_LEFT.x || p.getYTileLocation() > PRACTICE_OPEN_BOTTOM_LEFT.y)
+                    ep.respawnInPracticeArena();
+            }
+        } else {
+            if (ship.inBase()) {
+                ep.handlePosition(event);
+            }
+        }
 
-        if (ep != null)
-            ep.handlePosition(event);
     }
 
     public void handleEvent(WeaponFired event) {
@@ -534,12 +550,12 @@ public class ElimGame {
                 ElimPlayer ep = players.get(p.getPlayerName().toLowerCase());
                 if (ep == null) {
                     ep = new ElimPlayer(ba, this, p.getPlayerName(), p.getShipType(), 999);
-                    players.put(p.getPlayerName().toLowerCase(), ep);                    
+                    players.put(p.getPlayerName().toLowerCase(), ep);
                 }
                 ep.setFreq(ep.getFreq() + 500);     // Bit of a hack, but should work OK.
                 ba.setFreq(p.getPlayerID(), ep.getFreq());
                 ba.setShip(p.getPlayerID(), ep.ship);
-                removeFromGameLists(p.getPlayerName().toLowerCase());                
+                removeFromGameLists(p.getPlayerName().toLowerCase());
                 ep.respawnInPracticeArena();
             }
         }
@@ -556,18 +572,18 @@ public class ElimGame {
             // Add to players if not already there.
             ep = new ElimPlayer(ba, this, name, ship, 999);
             players.put(name.toLowerCase(), ep);
-        }        
+        }
 
         ba.setShip(name, ship);
 
         // Freq assignment
         // If NA or STATS, no freq needed (will be assigned in STARTING).
-        // If STARTING, then freq will have been assigned, and is fine (will be adjusted +500 when game starts) 
+        // If STARTING, then freq will have been assigned, and is fine (will be adjusted +500 when game starts)
         // If PLAYING, then needs to get next freq + 500, and increment by 2 (unless they were previously practicing)
         if (state == GameState.PLAYING) {
             if (ep.status == Status.PRACTICING) {
                 // If already practicing, should already have their freq set up
-                ba.setFreq(name, ep.getFreq());                
+                ba.setFreq(name, ep.getFreq());
             } else {
                 freq += 2;
                 while (ba.getFrequencySize(freq + 500) != 0)

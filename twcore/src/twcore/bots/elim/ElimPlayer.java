@@ -44,8 +44,53 @@ public class ElimPlayer {
     };
     
     public static final Point[] PRACTICE_SPAWN_OPEN = {
+            new Point(834,178),
+            new Point(834,219)
     };
     public static final Point[] PRACTICE_SPAWN_BASE = {
+            new Point(112,104),
+            new Point(175,105),
+            new Point(208,105),
+            new Point(271,104),
+            new Point(126,125),
+            new Point(152,127),
+            new Point(192,128),
+            new Point(231,127),
+            new Point(257,125),
+            new Point(171,138),
+            new Point(212,138),
+            new Point(154,152),
+            new Point(192,150),
+            new Point(229,152),
+            new Point(114,163),
+            new Point(269,163),
+            new Point(192,170),
+            new Point(135,173),
+            new Point(248,173),
+            new Point(162,182),
+            new Point(221,182),
+            new Point(192,199),
+            new Point(162,215),
+            new Point(221,215),
+            new Point(135,224),
+            new Point(248,224),
+            new Point(192,227),
+            new Point(114,234),
+            new Point(269,234),
+            new Point(154,245),
+            new Point(229,245),
+            new Point(192,248),
+            new Point(171,259),
+            new Point(212,259),
+            new Point(126,272),
+            new Point(152,270),
+            new Point(192,269),
+            new Point(231,270),
+            new Point(257,272),
+            new Point(112,293),
+            new Point(175,292),
+            new Point(208,292),
+            new Point(271,293)
     };
     private PracticeSpawnTask practiceSpawn;
     
@@ -66,7 +111,7 @@ public class ElimPlayer {
     private ElimStats stats;
     private ElimGame game;
     int ship, consecutiveKills, lagouts, freq, lastStreak;
-    private ShipType shipType;
+    ShipType shipType;
     int specAt;
     private long lastKill, lastDeath, lastShot;
     private int currentSeason;
@@ -514,7 +559,7 @@ public class ElimPlayer {
     }
 
     /**
-     * Best method to call when player is out. 
+     * Best method to call when player is out.
      */
     private void removePlayerAsOut() {
         saveLoss();
@@ -680,10 +725,10 @@ public class ElimPlayer {
     void respawnInPracticeArena() {
         if (shipType.inBase()) {
             int spawnPoint = (int) (Math.random() * PRACTICE_SPAWN_BASE.length);
-            ba.warpTo(name, PRACTICE_SPAWN_BASE[spawnPoint], 5);
+            ba.warpTo(name, PRACTICE_SPAWN_BASE[spawnPoint], 4);
         } else {
             int spawnPoint = (int) (Math.random() * PRACTICE_SPAWN_OPEN.length);
-            ba.warpTo(name, PRACTICE_SPAWN_OPEN[spawnPoint], 10);
+            ba.warpTo(name, PRACTICE_SPAWN_OPEN[spawnPoint], 80);
         }
     }
     
@@ -696,5 +741,5 @@ public class ElimPlayer {
         this.status = Status.PRACTICING;
         this.ship = ship;
         this.shipType = ShipType.type(ship);
-    }    
+    }
 }
