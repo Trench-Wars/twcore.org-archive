@@ -1342,6 +1342,37 @@ public class matchbot extends SubspaceBot {
             Tools.printStackTrace(e);
         }
     }
+    
+    /**
+     * Helper function to remove any open challenges after squads accept a match to prevent double-booking.
+     * @param squad1
+     * @param squad2
+     */
+    public void removeAllChallenges(String squad1, String squad2) {
+        GameRequest t;
+        ListIterator<GameRequest> i = m_gameRequests.listIterator();
+
+        while (i.hasNext()) {
+            t = i.next();
+
+            if (t.getRequestAge() >= 300000)
+                i.remove();
+            else {
+                if (t.getChallenger().equalsIgnoreCase(squad1) || t.getChallenger().equalsIgnoreCase(squad2)) {
+                    i.remove();
+                }
+            }
+        }
+
+        if (m_gameRequests.isEmpty()) {
+            m_botAction.ipcTransmit(IPC, new IPCCommand(Command.EXPIRED, TWDHUB, m_botAction.getArenaName()));
+
+            if (ipcTimer) {
+                ipcTimer = false;
+                m_botAction.cancelTask(exp);
+            }
+        }
+    }
 
     public void command_accept(String name, String[] parameters) {
         try {
@@ -1403,6 +1434,7 @@ public class matchbot extends SubspaceBot {
                                                                      + " will start here in 30 seconds", 2);
                                         m_team1 = r.getChallenger();
                                         m_team2 = dp.getTeamName();
+                                        removeAllChallenges(m_team1, m_team2);
                                         startMessage = name + "(" + p.getSquadName() + ") accepted challenge from " + r.getRequester() + "("
                                                        + r.getChallenger() + ")";
                                         final int pNum = r.getPlayersNum();
