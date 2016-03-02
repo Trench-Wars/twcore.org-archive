@@ -767,8 +767,8 @@ public class pubsystem extends SubspaceBot
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mma  MMMdd");
         
-        m_botAction.sendSmartPrivateMessage(sender, "Current times around the world  (NOTE: Add 1 hour during the summer months to US/EU times)");
-        m_botAction.sendSmartPrivateMessage(sender, "------------------------------------------------------------------------------------------");
+        m_botAction.sendSmartPrivateMessage(sender, "World Time  (Add 1 hour if summer to US/EU times)");
+        m_botAction.sendSmartPrivateMessage(sender, "-------------------------------------------------");
         cal.add(Calendar.HOUR, -8);
         m_botAction.sendSmartPrivateMessage(sender, Tools.formatString(sdf.format(cal.getTime()), 20) + "PST (US/CA)     L.A., Seattle, Vancouver");
         cal.add(Calendar.HOUR, 1);
