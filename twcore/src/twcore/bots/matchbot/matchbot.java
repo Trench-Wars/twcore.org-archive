@@ -1224,6 +1224,8 @@ public class matchbot extends SubspaceBot {
 
                     String squadsChalled = "You have challenged: ";
                     int numSquads = 0;
+                    
+                    m_botAction.sendSmartPrivateMessage(name, "Issuing challenge to top squads...");
 
                     while (squads.next()) {
                         String nmySquad = squads.getString("fcTeamName");
