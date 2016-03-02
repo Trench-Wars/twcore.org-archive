@@ -240,7 +240,7 @@ public class PubKillSessionModule extends AbstractModule {
         if (!sessionStarted)
             return false;
 
-        if (getLeadersList().contains(playerName)) {
+        if (getLeadersList().contains(playerName) && !notplaying.contains(playerName)) {
             return true;
         } else {
             return false;
@@ -426,6 +426,7 @@ public class PubKillSessionModule extends AbstractModule {
             m_botAction.sendSmartPrivateMessage(sender, "You have been removed from the not playing list.");
         } else {
             notplaying.add(sender);
+            kills.put(sender, 0);
             m_botAction.sendSmartPrivateMessage(sender, "You have been added to the not playing list. Type !npkill again to play.");
         }
     }
@@ -508,7 +509,7 @@ public class PubKillSessionModule extends AbstractModule {
             for(String playerName : kills.keySet()) {
                 int count = kills.get(playerName);
 
-                if (count == highest)
+                if (count == highest && !notplaying.contains(playerName))
                     names.add(playerName);
             }
 
@@ -556,13 +557,16 @@ public class PubKillSessionModule extends AbstractModule {
 
         if (killer.getFrequency() == killed.getFrequency())
             return;
+        
+        if (notplaying.contains(killer.getPlayerName()))
+            return;
 
         Location location = context.getPubUtil().getLocation(killer.getXTileLocation(), killer.getYTileLocation());
 
         // If locations is not empty,
         // It means that the kill must be done inside of one of the location on this list to count
         if (locations.size() == 0 || locations.contains(location)) {
-
+            
             Integer count = kills.get(killer.getPlayerName());
 
             if (count == null) {
