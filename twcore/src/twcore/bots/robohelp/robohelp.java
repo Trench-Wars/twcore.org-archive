@@ -1480,6 +1480,64 @@ public class robohelp extends SubspaceBot {
         }
     }
 
+    /**
+     * Sets a newb call as having been missed (claimed but the player disconnected before the process completed).
+     * This allows the staff member to take the newb call when they log in again.
+     * 
+     * Also adjusts call stats accordingly.
+     * @param name
+     * @param msg
+     */
+    public void handleMissed(String name, String msg) {
+        String player = "";
+
+        if (msg.length() < 7) {
+            if (lastNewPlayerName.isEmpty()) {
+                m_botAction.sendSmartPrivateMessage(name, "No recent alerts found. You'll have to be specific.");
+                return;
+            }
+
+            player = lastNewPlayerName;
+        } else if (msg.contains(" ") && msg.length() > 7)
+            player = msg.substring(msg.indexOf(" ") + 1).trim();
+
+        if (player.length() > 1) {
+            if (newbHistory.containsKey(player.toLowerCase())) {
+                NewbCall newb = newbHistory.get(player.toLowerCase());
+
+                if (newb.claimType == NewbCall.FREE) {
+                    m_botAction.sendSmartPrivateMessage(name, "That newb call has not yet been claimed.");
+                    return;
+                }
+
+                String calltaker = null;
+                try {
+                    m_botAction.SQLBackgroundQuery(mySQLHost, null, "UPDATE tblCallNewb SET fnTaken = 0, fcTakerName = '(MISSED)' WHERE fcUserName = '"
+                            + Tools.addSlashesToString(player) + "'");
+
+                    ResultSet result = m_botAction.SQLQuery(mySQLHost, "SELECT fcTakerName FROM tblCallNewb WHERE fcUserName = '" + Tools.addSlashesToString(player) + "'");
+                    if (result.next())
+                        calltaker = result.getString("fcTakerName");
+                    if (calltaker != null) {
+                        String time = new SimpleDateFormat("yyyy-MM").format(Calendar.getInstance().getTime()) + "-01";
+                        ResultSet result2 = m_botAction.SQLQuery(mySQLHost, "SELECT * FROM tblCall WHERE fcUserName = '" + calltaker + "' AND fnType = 2 AND fdDate = '" + time + "'");
+                        if (result2.next())
+                            m_botAction.SQLBackgroundQuery(mySQLHost, null, "UPDATE tblCall SET fnCount = fnCount - 1 WHERE fcUserName = '" + calltaker + "' AND fnType = 2 AND fdDate = '" + time + "'");
+                        else
+                            calltaker = null;
+                    }
+                } catch (SQLException e) {                    
+                    m_botAction.sendSmartPrivateMessage(name, "Error resetting new player as missed.");
+                    return;
+                }
+                if (calltaker != null)
+                    m_botAction.sendSmartPrivateMessage(name, "New Player alert for '" + player + "' has been reset, and call count successfully corrected.");
+                else
+                    m_botAction.sendSmartPrivateMessage(name, "New Player alert for '" + player + "' has been reset, but call count could not be corrected. Please notify the bot dev staff.");
+            }
+        }
+    }
+    
     public void handleClean(String name, String message) {
         int id = -1;
 
@@ -2679,6 +2737,7 @@ public class robohelp extends SubspaceBot {
                                     "  !false <Player>                          - Falsifies all new player alerts for <Player> (doesn't have to be in !newbs)",
                                     "  !undo                                    - Un-falsifies the last new player alert so that it will affect stats",
                                     "  !undo <Player>                           - Un-falsifies all new player alerts for <Player> (doesn't have to be in !newbs)",
+                                    "  !missed [<Player>]                       - Sets newb call as missed (taken but player logged off). Name is optional.",
                                     "  !newbs                                   - Lists recent new player alerts and claimer information",
                                     "  !newbs <num>                             - Lists the last <nuM> new player alerts and claimer information",
                                     "  ihave                                    - Claims most recent newplayer call but does not affect stats",
@@ -2763,6 +2822,8 @@ public class robohelp extends SubspaceBot {
                 handleFalseNewb(name, message);
             else if (message.startsWith("!undo"))
                 handleUndoFalse(name, message);
+            else if (message.startsWith("!missed"))
+                handleMissed(name, message);
             else if (!message.contains("that") && !message.contains("it") && (message.startsWith("on") || message.startsWith("got") || message.startsWith("claim") || message.startsWith("have")))
                 handleClaims(name, message);
             else if (!message.contains("that") && message.contains("#") && (message.startsWith("on") || message.startsWith("got") || message.startsWith("claim") || message.startsWith("have")))
