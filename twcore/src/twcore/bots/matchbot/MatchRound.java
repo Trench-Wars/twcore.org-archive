@@ -913,7 +913,11 @@ public class MatchRound {
             }
 
             if (m_team1 != null) {
-                help.add("-- Prepend your command with !t1- for '" + m_team1.getTeamName() + "', !t2- for '" + m_team2.getTeamName() + "' --");
+                if (m_botAction.getArenaName().toLowerCase().startsWith("twdt")) {
+                    help.add("!t1-setcaptain <name>                    - Sets <name> to captain of team 1 (!t2- for team 2)");                    
+                } else {
+                    help.add("-- Start your command with !t1- for '" + m_team1.getTeamName() + "', !t2- for '" + m_team2.getTeamName() + "' --  Example: !t1-setcaptain");
+                }
                 help.addAll(m_team1.getHelpMessages(name, isStaff));
             }
 
