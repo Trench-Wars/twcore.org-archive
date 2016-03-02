@@ -963,9 +963,22 @@ public class elim extends SubspaceBot {
             if (wins.size() > 1) {
                 voteStats[6]++;
 
-                if (high > 0) {
-                    int num = random.nextInt(wins.size());
-                    ship = wins.toArray(new Integer[wins.size()])[num];
+                if (high > 0) {                    
+                    // Allow winner's vote to be the tie-breaker, to allow them to try to keep their streak
+                    boolean winnerVoted = false;
+                    if (lastWinner != null) {
+                        Integer winnerVote = votes.get(lastWinner.name.toLowerCase());
+                        if (winnerVote != null) {
+                            if (wins.contains(winnerVote)) {
+                                ship = winnerVote;
+                                winnerVoted = true;
+                            }
+                        }
+                    }
+                    if (!winnerVoted) {
+                        int num = random.nextInt(wins.size());
+                        ship = wins.toArray(new Integer[wins.size()])[num];
+                    }
                 } else {
                     //defaulting to alternating game types
                     if (shipType == ShipType.JAVELIN)
