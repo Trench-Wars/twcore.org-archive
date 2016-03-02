@@ -1439,6 +1439,7 @@ public class PubChallengeModule extends AbstractModule {
         }
 
         givePrize(name);
+        givePrize(challenge.getOppositeDueler(name).name);
     }
 
     private int getFreq() {
