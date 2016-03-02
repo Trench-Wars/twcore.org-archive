@@ -25,7 +25,7 @@ import twcore.core.game.Player;
 */
 public class tugawar extends MultiModule {
 
-    boolean     event = false, tugAWar = false, boomBall = false;
+    boolean     eventStarted = false, tugAWar = false, boomBall = false;
     TimerTask   startEvent;
     /* Used for respawn timers */
     // A HashMap set up to do the task that a List can handle ... yikes, 2d :P  -dugwyler
@@ -72,7 +72,13 @@ public class tugawar extends MultiModule {
     }
 
     public void startTugAWar( String name, String message ) {
-        if( !event ) {
+        if( !eventStarted ) {
+            
+            if (m_botAction.getNumPlaying() < 2) {
+                m_botAction.sendPrivateMessage( name, "At least 2 players must be in game to start." );
+                return;
+            }
+            
             try {
                 m_botAction.sendUnfilteredPublicMessage( "?set kill:enterdelay:0" );
                 startEvent = new TimerTask() {
@@ -112,7 +118,7 @@ public class tugawar extends MultiModule {
                         m_botAction.sendUnfilteredPublicMessage( "?set kill:enterdelay:900" );
                     }
                 };
-                event = true;
+                eventStarted = true;
                 m_botAction.sendArenaMessage( "Rules of TugAWar: DO NOT TEAM KILL! Also warping is illegal (use antiwarp.)" );
                 m_botAction.sendArenaMessage( "Kill the enemy cap " + deathLimit + " time(s) to win! Should a cap be eliminated, his team loses." );
                 m_botAction.sendArenaMessage( "TugAWar beings in 10 seconds!", 2 );
@@ -126,7 +132,7 @@ public class tugawar extends MultiModule {
             deathLimit = 1;
             capZeroD = 0;
             capOneD = 0;
-            event = false;
+            eventStarted = false;
             tugAWar = false;
             players.clear();
             m_botAction.sendArenaMessage( "Game Over." );
@@ -136,7 +142,12 @@ public class tugawar extends MultiModule {
     }
 
     public void startBoomBall( String name, String message ) {
-        if( !event ) {
+        if( !eventStarted ) {
+            if (m_botAction.getNumPlaying() < 2) {
+                m_botAction.sendPrivateMessage( name, "At least 2 players must be in game to start." );
+                return;
+            }
+            
             MiscTask thisCheck = new MiscTask( "Check__Players", -1 );
             m_botAction.scheduleTaskAtFixedRate( thisCheck, 0, 1000 );
             Iterator<Player> i = m_botAction.getPlayingPlayerIterator();
@@ -152,7 +163,7 @@ public class tugawar extends MultiModule {
 
             m_botAction.sendArenaMessage( "Boomball begins shortly! Get to your positions, when the ball appears the game beings!", 5 );
             m_botAction.sendUnfilteredPublicMessage( "*restart" );
-            event = true;
+            eventStarted = true;
             boomBall = true;
         } else  m_botAction.sendPrivateMessage( name, "Event already in progress." );
     }
@@ -161,7 +172,7 @@ public class tugawar extends MultiModule {
         if( boomBall ) {
             m_botAction.cancelTasks();
             players.clear();
-            event = false;
+            eventStarted = false;
             boomBall = false;
             m_botAction.sendPrivateMessage( name, "Boomball handling has been stopped." );
         } else m_botAction.sendPrivateMessage( name, "Boomball is not in progress." );
