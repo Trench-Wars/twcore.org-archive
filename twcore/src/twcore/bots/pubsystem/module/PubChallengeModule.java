@@ -462,8 +462,13 @@ public class PubChallengeModule extends AbstractModule {
                     return;
                 }
 
-                if (li < amount) {
-                    m_botAction.sendSmartPrivateMessage(challenger, "You can't leverage a duel in your own favor. Get them to challenge you instead.");
+                if (li * 3 < amount) {
+                    m_botAction.sendSmartPrivateMessage(challenger, "You can't leverage a duel for more than 3:1 in your own favor. Get them to challenge you instead.");
+                    return;
+                }
+                
+                if (li > amount && amount >= 20000) {
+                    m_botAction.sendSmartPrivateMessage(challenger, "You can't leverage a duel in your favor if asking the other player to put up $20000 or more. Get them to challenge you instead.");
                     return;
                 }
 
@@ -483,7 +488,7 @@ public class PubChallengeModule extends AbstractModule {
         // Check MID for TWChat # (catch in Message event)
         m_botAction.sendUnfilteredPrivateMessage( challenger, "*info" );
         m_botAction.sendUnfilteredPrivateMessage( challenged, "*info" );
-        String amountStr = ( li == null ? "$" + amount : "player1: $" + li + " vs. player2: $" + amount);
+        String amountStr = ( li == null ? "$" + amount : "them: $" + li + " vs. you: $" + amount);
 
         if (openChal) {
             m_botAction.sendSmartPrivateMessage(challenger, "Open challenge sent for any player to accept; it will now show in !openduels (!od) for the next " + (TIME_OPEN_CHALS_ACTIVE / Tools.TimeInMillis.MINUTE) + " minutes.");
