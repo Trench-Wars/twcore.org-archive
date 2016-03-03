@@ -530,7 +530,7 @@ public class ElimGame {
                 //if (playerCount > 9)
                 //    ba.sendArenaMessage("The winner of this game will receive pubbux.");
                 
-                ba.sendTeamMessage(toStringShort() + ". PM !late to enter. !alert for alert PM at next game, !practice # to practice.");
+                ba.sendTeamMessage(toStringShort() + ". PM !late to enter. !practice # to practice.");
             }
         };
         ba.scheduleTask(starter, 10 * Tools.TimeInMillis.SECOND);
@@ -608,11 +608,18 @@ public class ElimGame {
             return;
         }
         
+        HashSet<Integer> playingFreqs = new HashSet<Integer>();
+        for (Player pp : ba.getPlayingPlayers()) {
+            if (pp != null) {
+                playingFreqs.add(new Integer(pp.getFrequency()));
+            }
+        }
+        
         String low = name.toLowerCase();
         ElimPlayer ep = new ElimPlayer(ba, this, name, ship.getNum(), goal);
         freq += 2;
 
-        while (ba.getFrequencySize(freq) != 0)
+        while (ba.getFrequencySize(freq) != 0 || playingFreqs.contains(freq))
             freq += 2;
 
         ep.setFreq(freq);
