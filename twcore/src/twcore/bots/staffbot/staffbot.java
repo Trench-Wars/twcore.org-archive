@@ -237,6 +237,7 @@ public class staffbot extends SubspaceBot {
     private void cmd_energy(String name) {
         m_botAction.sendUnfilteredPrivateMessage(name, "*energy");
         m_botAction.sendPrivateMessage(name, "Done. Do not abuse this.");
+        m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans:[ENERGY] " + name + " has toggled energy tracking.");
 
         // Disabling for now, too unstable to properly test.
         //energyCheck(name);
@@ -282,7 +283,7 @@ public class staffbot extends SubspaceBot {
 
         if(!energyTracker.containsKey(lcName)) {
             energyTracker.put(lcName, System.currentTimeMillis());
-            m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + name + " has enabled energy tracking.");
+            //m_botAction.sendSmartPrivateMessage("MessageBot", "!announce deans: [ENERGY] " + name + " has enabled energy tracking.");
             debug("[ENERGY] " + name + " has enabled energy tracking.");
         } else {
             energyChecks.add(new EnergyCheck(name, System.currentTimeMillis(), false));
