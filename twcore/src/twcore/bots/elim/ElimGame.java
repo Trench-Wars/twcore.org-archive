@@ -1375,6 +1375,6 @@ public class ElimGame {
     }
     
     public boolean canStartLate() {
-        return (roundStartTime + (Tools.TimeInMillis.SECOND * LATE_ENTRY_SECONDS)) < System.currentTimeMillis();
+        return (roundStartTime + (Tools.TimeInMillis.SECOND * LATE_ENTRY_SECONDS)) > System.currentTimeMillis();
     }
 }
