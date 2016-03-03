@@ -154,7 +154,7 @@ public class elim extends SubspaceBot {
     public void cmd_alert(String name, String cmd) {
         int soundcode = 26;
         
-        if (cmd.indexOf(" ") != -1 && cmd.indexOf(" ") + 1 != cmd.length()) {       
+        if (cmd.indexOf(" ") != -1 && cmd.indexOf(" ") + 1 != cmd.length()) {
             try {
                 soundcode = Integer.valueOf(cmd);
             } catch (NumberFormatException e) {
@@ -347,6 +347,7 @@ public class elim extends SubspaceBot {
                                       "| !lagout           - Return to game after lagging out                                    |",
                                       "| !lag <name>       - Checks the lag of player <name>                                     |",
                                       "| !late             - Enter a game after round has already started                        |",
+                                      "| !practice [#]     - Begin practice mode in ship#. (With no #, end practice mode.)       |",
                                       "| !alert [#]        - Toggles new game alerts, w/ optional sound #, for this session      |",
                                       "| !splash           - Shows the top 10 of Warbirds and Javelins                           |",
                                       "| !disable          - Disables showing the splash screen on entry                         |",
@@ -549,7 +550,7 @@ public class elim extends SubspaceBot {
             ba.sendPrivateMessage(name, "There is no game being played at the moment.");
     }
 
-    /** 
+    /**
      * Handles the !practice command, enabling or disabling practice mode.
      * @param name String
      * @param cmd String
@@ -963,7 +964,7 @@ public class elim extends SubspaceBot {
             if (wins.size() > 1) {
                 voteStats[6]++;
 
-                if (high > 0) {                    
+                if (high > 0) {
                     // Allow winner's vote to be the tie-breaker, to allow them to try to keep their streak
                     boolean winnerVoted = false;
                     if (lastWinner != null) {
@@ -1225,7 +1226,7 @@ public class elim extends SubspaceBot {
 
         if (voteType == VoteType.NA) {
             voteType = VoteType.SHIP;
-            ba.sendArenaMessage("VOTE: 1-Warbird, 2-Javelin, 3-Spider, 5-Terrier, 7-Lancaster, 8-Shark", Tools.Sound.BEEP3);
+            ba.sendArenaMessage("VOTE: 1-Warbird, 2-Javelin, 3-Spider, 4-Leviathan, 5-Terrier, 7-Lancaster, 8-Shark", Tools.Sound.BEEP3);
         } else if (voteType == VoteType.SHIP) {
             voteType = VoteType.DEATHS;
 
@@ -1721,7 +1722,7 @@ public class elim extends SubspaceBot {
         }
 
         if (voteType == VoteType.SHIP) {
-            if (vote > 0 && vote < 9 && vote != 6 && vote != 4) {
+            if (vote > 0 && vote < 9 && vote != 6) {
                 votes.put(name, vote);
                 ba.sendPrivateMessage(name, "Vote counted for: " + ShipType.type(vote).toString());
             }
@@ -1838,7 +1839,7 @@ public class elim extends SubspaceBot {
         int soundcode;
         for (String p : alerts.keySet()) {
             soundcode = alerts.get(p);
-            ba.sendSmartPrivateMessage(p, game.toStringShort() + " starting. PM with !late to enter.", soundcode);            
+            ba.sendSmartPrivateMessage(p, game.toStringShort() + " starting. PM with !late to enter.", soundcode);
         }
 
         lastAlert = now;
