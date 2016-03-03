@@ -261,7 +261,7 @@ public class ElimGame {
             return;
         
         if (ep.status == Status.PRACTICING) {
-            if (ship.inBase()) {
+            if (ep.shipType.inBase()) {
                 if (p.getXTileLocation() > PRACTICE_BASE_BOTTOM_RIGHT.x || p.getYTileLocation() > PRACTICE_BASE_BOTTOM_RIGHT.y)
                     ep.respawnInPracticeArena();
             } else {
