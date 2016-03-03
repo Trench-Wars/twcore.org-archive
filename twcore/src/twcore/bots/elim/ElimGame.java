@@ -530,7 +530,7 @@ public class ElimGame {
                 //if (playerCount > 9)
                 //    ba.sendArenaMessage("The winner of this game will receive pubbux.");
                 
-                ba.sendTeamMessage(toStringShort() + ". PM !late to enter, or !alert for a PM when new games begin.");
+                ba.sendTeamMessage(toStringShort() + ". PM !late to enter. !alert for alert PM at next game, !practice # to practice.");
             }
         };
         ba.scheduleTask(starter, 10 * Tools.TimeInMillis.SECOND);

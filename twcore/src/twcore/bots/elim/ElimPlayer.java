@@ -174,7 +174,7 @@ public class ElimPlayer {
             ba.spec(name);
             ba.spec(name);
             ba.sendArenaMessage(name + " is out. " + getScore(), Tools.Sound.VICTORY_BELL);
-            removePlayerAsOut();
+            removePlayerAsOut(true);
             killer.handleKO();
         } else {
             game.handleSpawn(this, false);
@@ -259,7 +259,7 @@ public class ElimPlayer {
                         ba.spec(name);
                         ba.spec(name);
                         ba.sendArenaMessage(name + " is out. " + getScore() + " (Out of bounds abuse)", Tools.Sound.VICTORY_BELL);
-                        removePlayerAsOut();
+                        removePlayerAsOut(true);
                     }
                 } else
                     status = Status.SPAWN;
@@ -307,7 +307,7 @@ public class ElimPlayer {
      */
     public void handlePracticeModeOut() {
         ba.sendArenaMessage(name + " is out. " + getScore() + " (switched to practice mode)", Tools.Sound.VICTORY_BELL);
-        removePlayerAsOut();
+        removePlayerAsOut(false);
     }
 
     /** Reports a kill that broke the streak of another player or a "KillJoy" */
@@ -336,7 +336,7 @@ public class ElimPlayer {
             status = Status.OUT;
             ba.specWithoutLock(name);
             ba.sendArenaMessage(name + " is out. " + getScore() + " (warp abuse)", Tools.Sound.VICTORY_BELL);
-            removePlayerAsOut();
+            removePlayerAsOut(true);
         } else {
             ba.sendPrivateMessage(name, "Warping is illegal! You gained a death as a result.");
             game.handleSpawn(this, true);
@@ -560,10 +560,13 @@ public class ElimPlayer {
 
     /**
      * Best method to call when player is out.
+     * @param
      */
-    private void removePlayerAsOut() {
+    private void removePlayerAsOut(boolean showPracticeMessage) {
         saveLoss();
         game.removePlayerAsLoser(this);
+        if (showPracticeMessage)
+            ba.sendPrivateMessage(name, "You have been eliminated. !practice <ship#> to practice until the next round begins.");
     }
 
     private class Spawn extends TimerTask {
@@ -588,7 +591,7 @@ public class ElimPlayer {
                 ba.spec(name);
                 ba.spec(name);
                 ba.sendArenaMessage(name + " is out. " + getScore() + " (Too long outside base)", Tools.Sound.VICTORY_BELL);
-                removePlayerAsOut();
+                removePlayerAsOut(true);
                 spawn = null;
             }
         }
@@ -612,7 +615,7 @@ public class ElimPlayer {
                 ba.spec(name);
                 ba.spec(name);
                 ba.sendArenaMessage(name + " is out. " + getScore() + " (Too long outside base)", Tools.Sound.VICTORY_BELL);
-                removePlayerAsOut();
+                removePlayerAsOut(true);
             }
 
             bounds = null;
