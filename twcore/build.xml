@@ -85,7 +85,9 @@ DEBUG: To compile the project with jdb debugging enabled use -Ddebug=true
 			<classpath refid="classpath" />
 		</manifestclasspath>
 		<jar destfile="bin/twcore.jar">
-			<fileset dir="bin"></fileset>
+			<fileset dir="bin">
+				<include name="**/**.class"/>
+			</fileset>
 			<manifest>
 				<attribute name="Main-Class" value="twcore.core.Start"/>
 				<attribute name="Class-Path" value="${jar.classpath}"/>
