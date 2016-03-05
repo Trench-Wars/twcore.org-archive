@@ -3637,8 +3637,8 @@ public class PubMoneySystemModule extends AbstractModule {
             return;
         }
 
-        if (amount < 5000) {
-            m_botAction.sendPrivateMessage(sender, "$5000 is the minimum you can offer to pay for an event hosting.  Example: !buy event:rabbit:5000");
+        if (amount < 25000) {
+            m_botAction.sendPrivateMessage(sender, "$30000 is the minimum you can offer to pay for an event hosting.  Example: !buy event:rabbit:20000");
             return;
         }
 
