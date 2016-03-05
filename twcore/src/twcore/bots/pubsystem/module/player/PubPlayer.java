@@ -30,60 +30,66 @@ public class PubPlayer implements Comparable<PubPlayer> {
     private static final String db = "pubstats";
     
     public int MAX_MID_SPAWN_TINY = 10;      // Max freq size where "tiny"-sized basing coords will be used
-                                            // TODO: Push to CFG
+                                             // TODO: Push to CFG
     
     // Spawn points for very low populations in midspawn. Uses RADIUS_MIDSPAWN.
     private static final Point[] COORDS_MIDSPAWN_TINY = {
-            new Point(539, 323),    // Mid near bottom
-            new Point(485, 323),
-            new Point(474, 298),    // Mid behind the L blockades
+            new Point(485, 323),    // Mid near bottom, L
+            new Point(539, 323),
+            new Point(474, 298),    // Mid behind the L blockades, L
             new Point(550, 298),
+            
+            new Point(471, 317),    // Mid L
+            new Point(553, 317),    // Mid R
+            new Point(467, 340),    // Top of lower, side tubes, L
+            new Point(557, 340),    // Top of lower, side tubes, R
 
-            // Experimental points (to decrease spawnkilling issues)
             new Point(512, 330),    // Mid, top of tube
             new Point(512, 350),    // Tube
-            new Point(460, 284),    // Mid, L ear
-            new Point(564, 284),    // Mid, R ear
-            new Point(467, 341),    // Top of lower, side tubes, L side
-            new Point(557, 341),    // Top of lower, side tubes, R side
+            //new Point(460, 284),    // Mid ear, L
+            //new Point(564, 284),    // Mid ear, R
     };
     
     // Spawn points for the low population mid spawn.
     private static final Point[] COORDS_MIDSPAWN = {
-        new Point(539, 323),    // Mid near bottom
-        new Point(485, 323),
-        new Point(474, 298),    // Mid behind the L blockades
-        new Point(550, 298),
+            new Point(485, 323),    // Mid near bottom, L
+            new Point(539, 323),
+            new Point(474, 298),    // Mid behind the L blockades, L
+            new Point(550, 298),
+            
+            new Point(471, 317),    // Mid L
+            new Point(553, 317),    // Mid R
+            new Point(467, 340),    // Top of lower, side tubes, L
+            new Point(557, 340),    // Top of lower, side tubes, R
 
-        // Experimental points (to decrease spawnkilling issues)
-        new Point(512, 330),    // Mid, top of tube
-        new Point(512, 350),    // Tube
-        new Point(460, 284),    // Mid, L ear
-        new Point(564, 284),    // Mid, R ear
-        new Point(467, 341),    // Top of lower, side tubes, L side
-        new Point(557, 341),    // Top of lower, side tubes, R side
+            new Point(512, 330),    // Mid, top of tube
+            new Point(512, 350),    // Tube
+            //new Point(460, 284),    // Mid ear, L
+            //new Point(564, 284),    // Mid ear, R
 
-        // Experimental lower spawn points (further decrease spawnkilling)
-        new Point(435, 333),    // Top lower ear, L side
-        new Point(589, 333),    // Top lower ear, R side
-        new Point(467, 359),    // Lower drop-circle, L side
-        new Point(557, 359),    // Lower drop-circle, R side
+            // Experimental lower spawn points (further decrease spawnkilling)
+            new Point(435, 333),    // Top lower ear, L side
+            new Point(589, 333),    // Top lower ear, R side
+            new Point(467, 359),    // Lower drop-circle, L side
+            new Point(557, 359),    // Lower drop-circle, R side
 
-        // Very low spawn points
-        new Point(512, 377),    // Bottom of tube
-        new Point(484, 353),    // Between tube and drop-circle, L side
-        new Point(540, 353),    // Between tube and drop-circle, R side
-        new Point(450, 382),    // Near entrance to lowest ear, L side
-        new Point(574, 382),    // Near entrance to lowest ear, R side
-        new Point(512, 403),    // Entrance to lower
+            // Very low spawn points
+            new Point(512, 377),    // Bottom of tube
+            new Point(484, 353),    // Between tube and drop-circle, L side
+            new Point(540, 353),    // Between tube and drop-circle, R side
+            new Point(450, 382),    // Near entrance to lowest ear, L side
+            new Point(574, 382),    // Near entrance to lowest ear, R side
+            new Point(512, 403),    // Entrance to lower
     };
 
     // Radius for the low population mid spawn. Amount must be equal to the amount of Points in COORDS_MIDSPAWN.
     private static final int[] RADIUS_MIDSPAWN = {
-        9, 9, 8, 8,
-        5, 3, 7, 7, 3, 3,
-        6, 6, 2, 2,
-        6, 4, 4, 4, 4, 7
+            9, 9, 8, 8,
+            5, 5, 3, 3,
+            5, 3,
+            //7, 7,
+            6, 6, 2, 2,
+            6, 4, 4, 4, 4, 7
     };
 
     private BotAction m_botAction;
