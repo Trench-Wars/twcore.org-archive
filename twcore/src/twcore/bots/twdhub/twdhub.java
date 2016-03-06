@@ -100,7 +100,7 @@ public class twdhub extends SubspaceBot {
         updateTWDOps();
         String pushAuth = ba.getGeneralSettings().getString("PushAuth");
         pbClient = new PushbulletClient(pushAuth);
-        StartPushbulletListener();
+        //StartPushbulletListener();
     }
 
     private void StartPushbulletListener() {
@@ -439,7 +439,7 @@ public class twdhub extends SubspaceBot {
                     String gameType = ipc.getArena().substring(0, 4).toUpperCase();
                     message = "" + ipc.getName() + " challenged " + ipc.getSquad2() + " to " + ipc.getPlayers() + "s in " + ipc.getArena();
                     debug(message);
-                    message = "" + ipc.getName() + " is challenging you to a " + ipc.getPlayers() + "vs" + ipc.getPlayers() + " " 
+                    message = "" + ipc.getName() + " is challenging you to a " + ipc.getPlayers() + "vs" + ipc.getPlayers() + " "
                                 + gameType + " vs " + ipc.getSquad1() + " in " + ipc.getArena() + ".";
                     PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
                     try {
@@ -459,7 +459,7 @@ public class twdhub extends SubspaceBot {
                 } else if (ipc.getType() == EventType.ALLCHALLENGE) {
                     // multi squad challenge
                     message = "" + ipc.getName() + " challenged all to " + ipc.getPlayers() + "s in " + ipc.getArena();
-                    debug(message);    
+                    debug(message);
                     
                 } else if (ipc.getType() == EventType.TOPCHALLENGE) {
                     // multi squad challenge
@@ -486,7 +486,7 @@ public class twdhub extends SubspaceBot {
                                 + "LIMIT 10");
                         while (squads.next()) {
                             String toSquad = squads.getString("fcTeamName");
-                            message = "" + ipc.getName() + " is challenging you to a " + ipc.getPlayers() + "vs" + ipc.getPlayers() + " " 
+                            message = "" + ipc.getName() + " is challenging you to a " + ipc.getPlayers() + "vs" + ipc.getPlayers() + " "
                                         + gameType + " vs " + ipc.getSquad1() + " in " + ipc.getArena() + ".";
                             PreparedStatement ps_squadMembers = ba.createPreparedStatement(DATABASE, connectionID, this.getPreparedStatement("getenabledsquadmembers"));
                             ps_squadMembers.clearParameters();
@@ -503,7 +503,7 @@ public class twdhub extends SubspaceBot {
                         Tools.printStackTrace(e);
                     } finally {
                     }
-                }            
+                }
                 return;
             }
             
@@ -1113,7 +1113,7 @@ public class twdhub extends SubspaceBot {
                     //This is a setting command
                     try {
                     	debug(playerName + " : " + rs_InterpretCommand.getString("fcCommand").toLowerCase());
-                    	switch (rs_InterpretCommand.getString("fcCommand").toLowerCase()) {                    	
+                    	switch (rs_InterpretCommand.getString("fcCommand").toLowerCase()) {
                     	case "enable":
                             switchAlertsPB(playerName, 0);
                             settingChange = true;
