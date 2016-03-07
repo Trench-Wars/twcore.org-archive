@@ -1466,6 +1466,8 @@ public class elim extends SubspaceBot {
                 cmd_practice(name, msg);
             else if (cmd.startsWith("!practice"))
                 cmd_practice(name, "off");
+            else if (cmd.startsWith("!p "))
+                cmd_practice(name, msg);
             else if (cmd.startsWith("!rank "))
                 cmd_rank(name, msg);
             else if (cmd.startsWith("!rec "))
