@@ -596,6 +596,32 @@ public class ElimGame {
         ep.setPracticing(ship);
     }
     
+    /**
+     * Adds player to practice mode after they're eliminated.
+     * @param ep
+     */
+    void addPracticePlayerAfterOut(ElimPlayer ep) {
+        if (ep == null)
+            return;
+        
+        //ba.setShip(ep.name, ep.ship);
+        
+        if (ba.getFrequencySize(ep.freq + 500) == 0) {
+            ba.setFreq(ep.name, freq + 500);
+            ep.setFreq(freq + 500);            
+        } else {
+            freq += 2;
+            while (ba.getFrequencySize(freq + 500) != 0)
+                freq += 2;
+            ba.setFreq(ep.name, freq + 500);
+            ep.setFreq(freq + 500);            
+        }
+        
+        bot.practicePlayers.put(ep.name, ep.ship);
+        ep.setPracticing(ep.ship);
+        ep.respawnInPracticeArena();
+    }
+    
     
     // ******* COMMANDS *******
 
@@ -942,8 +968,23 @@ public class ElimGame {
     /** Returns the number of players currently in-game
         @return int
      * */
-    public int getPlaying() {
+    public int getNumPlaying() {
         return winners.size();
+    }
+    
+    /**
+     * Returns a string (for elim purposes) about the number of players remaining.
+     * @return
+     */
+    String getNumPlayingString() {
+        switch(winners.size()) {
+        case 0:
+            return "";
+        case 1:
+            return " FINAL";
+        default:
+            return " " + winners.size() + " remain.";
+        }
     }
 
     /** Get ElimPlayer for the given player name
@@ -1025,7 +1066,7 @@ public class ElimGame {
         if (ship == ShipType.WEASEL)
             //ba.setDoors(127);
             ba.setDoors(255);
-        else if (winners.size() > 15)
+        else if (winners.size() >= 15)
             //ba.setDoors(228);
             ba.setDoors(0);
         else
@@ -1345,7 +1386,7 @@ public class ElimGame {
             return p1.name.compareToIgnoreCase(p2.name);
         }
     }
-
+    
     /** Returns a string describing the current elimination game */
     public String toString() {
         String type;

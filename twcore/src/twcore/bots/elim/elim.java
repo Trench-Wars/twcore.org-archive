@@ -1139,7 +1139,7 @@ public class elim extends SubspaceBot {
     /** Playing state runs after winner is set and ends game accordingly */
     private void doPlaying() {
         if (winner != null && game != null && game.mvp != null) {
-            ba.sendArenaMessage("Game over. Winner: " + winner.name + "! ", Tools.Sound.HALLELUJAH);
+            ba.sendArenaMessage("GAME OVER. Winner: " + winner.name + "! ", Tools.Sound.HALLELUJAH);
             final String mvp = game.mvp;
 
             if (gameType == ELIM)
