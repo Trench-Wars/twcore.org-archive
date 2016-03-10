@@ -559,7 +559,6 @@ public class ElimPlayer {
      */
     private void removePlayerAsOut(boolean moveToPracticeMode, boolean specPlayer) {
         saveLoss();
-        game.removePlayerAsLoser(this);
         if (moveToPracticeMode) {
             ba.sendPrivateMessage(name, "You have been eliminated, and are now in practice mode until the next round starts.");
             game.addPracticePlayerAfterOut(this);
@@ -567,6 +566,7 @@ public class ElimPlayer {
         if (specPlayer) {
             ba.specWithoutLock(name);
         }
+        game.removePlayerAsLoser(this);
     }
 
     private class Spawn extends TimerTask {

@@ -607,14 +607,14 @@ public class ElimGame {
         //ba.setShip(ep.name, ep.ship);
         
         if (ba.getFrequencySize(ep.freq + 500) == 0) {
-            ba.setFreq(ep.name, freq + 500);
-            ep.setFreq(freq + 500);            
+            ba.setFreq(ep.name, ep.freq + 500);
+            ep.setFreq(ep.freq + 500);
         } else {
             freq += 2;
             while (ba.getFrequencySize(freq + 500) != 0)
                 freq += 2;
             ba.setFreq(ep.name, freq + 500);
-            ep.setFreq(freq + 500);            
+            ep.setFreq(freq + 500);
         }
         
         bot.practicePlayers.put(ep.name, ep.ship);
