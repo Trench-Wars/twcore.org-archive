@@ -931,7 +931,7 @@ public class distensionbot extends SubspaceBot {
 
                 // Assist advert
                 if( runs % ASSIST_ADVERT_CHECK_FREQUENCY == 0 ) {
-                    if( m_refitMode )
+                    if( m_refitMode || stopFlagTime )
                         return;
 
                     DistensionArmy army0 = m_armies.get(0);
@@ -2438,7 +2438,7 @@ public class distensionbot extends SubspaceBot {
         else
             return;
 
-        if( m_refitMode )
+        if( m_refitMode || stopFlagTime )
             return;
 
         if( killer == null ) {
@@ -3378,7 +3378,7 @@ public class distensionbot extends SubspaceBot {
 
         // Check if Tactical Ops position is available
         if( shipNum == 9 ) {
-            if( !m_refitMode ) {    // Let people change around Ops in refit mode
+            if( !m_refitMode && !stopFlagTime) {    // Let people change around Ops in refit mode
                 if( m_singleFlagMode ) {
                     m_botAction.sendPrivateMessage(p.getArenaPlayerID(), "Sorry, the Tactical Ops console is not active while only a single base is in contention." );
                     return;
@@ -3397,7 +3397,7 @@ public class distensionbot extends SubspaceBot {
         }
 
         // Check for shark and terr balance -- do not overbalance with one or the other.
-        if( !m_refitMode && ( shipNum == Tools.Ship.SHARK || shipNum == Tools.Ship.TERRIER ) ) {
+        if( !m_refitMode && !stopFlagTime && ( shipNum == Tools.Ship.SHARK || shipNum == Tools.Ship.TERRIER ) ) {
             boolean tooMany = checkForTooManyShips(p, p.getArmyID(), shipNum);
 
             if( tooMany ) {
@@ -4380,7 +4380,7 @@ public class distensionbot extends SubspaceBot {
         // Gun/bomb/multi is a free scrap, as sometimes you can't fire after upgrading it
         if( upgrade.getPrizeNum() == Tools.Prize.GUNS || upgrade.getPrizeNum() == Tools.Prize.BOMBS || upgrade.getPrizeNum() == Tools.Prize.MULTIFIRE ) {
             m_botAction.sendPrivateMessage( name, "No rank progress lost (gun/bomb/multifire scraps are free)." );
-        } else {
+        } else if (!AS_EVENT){  // Scrap also free in event mode
             int pointsSince = p.getPointsSinceLastRank();
             int percentOfRank = p.getRankPointsForPercentage( 50.0f );
 
@@ -4798,9 +4798,9 @@ public class distensionbot extends SubspaceBot {
 
         boolean autoReturn = msg.equals(":auto:");
 
-        if( m_refitMode )
+        if( m_refitMode || stopFlagTime)
             if( !autoReturn )
-                throw new TWCoreException( "I assure you that assisting is not necessary during refit mode.  However, your 'kindness' and 'generosity' have been duly noted.  In a log file.  So that you may be 'rewarded' later on..." );
+                throw new TWCoreException( "I assure you that assisting is not necessary during refit mode or when the round is not running.  However, your 'kindness' and 'generosity' have been duly noted.  In a log file.  So that you may be 'rewarded' later on..." );
 
         if( p.isRespawning() )
             throw new TWCoreException( "Please wait until your current ship is rearmed before attempting to assist." );
@@ -7110,7 +7110,7 @@ public class distensionbot extends SubspaceBot {
         // If we're sure we want to bypass saving, override.
         if( msg.equals("now") )
             m_lastSave = System.currentTimeMillis();
-        else if( m_refitMode )
+        else if( m_refitMode || stopFlagTime )
             cmdSaveData(m_botAction.getBotName(), "");
 
         m_readyForPlay = false; // To prevent spec-docking / unnecessary DB accesses
@@ -11033,7 +11033,7 @@ public class distensionbot extends SubspaceBot {
             @param profits RP earned in the last minute by teammates.
         */
         public void shareProfits( int profits ) {
-            if( m_refitMode )
+            if( m_refitMode || stopFlagTime )
                 return;
 
             if( isHigherOrderSupportShip() && idleTicksPiloting < 12 ) {
