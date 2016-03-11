@@ -50,7 +50,7 @@ public class elim extends SubspaceBot {
     public static final int ELIM = 0;
     public static final int KILLRACE = 1;
     static final int MIN_ZONER = 10;       // The minimum amount of minutes in between zoners
-    static final int ALERT_DELAY = 2;      // Minimum amount of time between alert messages
+    static final int ALERT_DELAY = 2;      // Minimum amount of time, in minutes, between alert messages
     static final int INITIAL_RATING = 300;
     int kdNeededToLadder = 150;            // Combined kills & deaths needed before being ranked
     int lateEntrySeconds = 0;              // # seconds a player is allowed to late-enter; 0 if not allowed
@@ -65,7 +65,7 @@ public class elim extends SubspaceBot {
     Random random;
     ElimGame game;
     HashMap<String,Integer> votes;
-    HashMap<String,Integer> alerts;
+    HashMap<String,ElimAlertInfo> alerts;
     HashMap<String,Integer> practicePlayers;       // List of players in practice mode, and their practice ship
     
     // Debug
@@ -153,24 +153,48 @@ public class elim extends SubspaceBot {
      * */
     public void cmd_alert(String name, String cmd) {
         int soundcode = 26;
+        int ship = -1;
         
         if (cmd.indexOf(" ") != -1 && cmd.indexOf(" ") + 1 != cmd.length()) {
-            try {
-                soundcode = Integer.valueOf(cmd);
+            try {                
+                if (!cmd.contains(":")) {
+                    ship = Integer.valueOf(cmd.substring(cmd.indexOf(" ") + 1));
+                } else {
+                    String[] args = cmd.substring(cmd.indexOf(" ") + 1).split(":");
+                    if( args.length != 2) {
+                        throw new NumberFormatException();
+                    }
+                    if (Tools.isAllDigits(args[0]))
+                        ship = Integer.valueOf(args[0]);
+                    if (ship < -1 || ship > 8)
+                        throw new NumberFormatException();
+                    soundcode = Integer.valueOf(args[1]);
+                }
             } catch (NumberFormatException e) {
+                ba.sendSmartPrivateMessage(name, "Usage: !alert <shipnum>:<soundcode>  Example: !alert 2:12");
+                return;
             }
         }
         
-        Integer old = alerts.remove(name.toLowerCase());
+        ElimAlertInfo old = alerts.remove(name.toLowerCase());
                 
         if (old != null) {
             ba.sendSmartPrivateMessage(name, "New game alert messages DISABLED.");
         } else {
-            alerts.put(name.toLowerCase(), soundcode);
-            if (soundcode == 26) {
-                ba.sendSmartPrivateMessage(name, "New game alert messages ENABLED with default PM sound. (Use !alert # for a custom sound.)");
+            old = new ElimAlertInfo(ship, soundcode); 
+            
+            alerts.put(name.toLowerCase(), old);
+            String msg;
+            if (ship == -1) {
+                msg = "New game alert messages ENABLED for all ships ";
             } else {
-                ba.sendSmartPrivateMessage(name, "New game alert messages ENABLED with sound #" + soundcode + ".", soundcode);
+                msg = "New game alert messages ENABLED for " + Tools.shipNameSlang(ship);
+            }
+            
+            if (soundcode == 26) {
+                ba.sendSmartPrivateMessage(name, msg + "with default PM sound. (Use !alert <shipnum>:<soundcode> for a custom sound.)");
+            } else {
+                ba.sendSmartPrivateMessage(name, msg + "with sound #" + soundcode + ".", soundcode);
             }
         }
     }
@@ -326,31 +350,31 @@ public class elim extends SubspaceBot {
      * */
     public void cmd_help(String name) {
         String[] msg = new String[] { "+-- Robo Ref Commands --------------------------------------------------------------------.",
-                                      "| !ladder <ship>    - (!lad) Prints the top 5 ranking players for <ship>                  |",
-                                      "| !lad <ship>:<#>   - Prints the 3 players surrounding rank <#> in <ship>                 |",
-                                      "| !votes            - Warbird and Javelin vote analysis                                   |",
-                                      "| !status           - Displays current game status                                        |",
-                                      "| !rank <#>         - Shows your current rank in ship <#>                                 |",
-                                      "| !rank <name>:<#>  - Shows the rank of <name> in ship <#>                                |",
-                                      "| !rec <#>          - Gets your own record in ship <#>                                    |",
-                                      "| !rec <name>:<#>   - Gets the record of <name> in ship <#>                               |",
-                                      "|                      NOTE: Use -1 as <#> for all ships                                  |",
-                                      "| !who              - Lists the remaining players and their records                       |",
-                                      "| !stats <#>        - Spams all of your ship <#> statistics if available                  |",
-                                      "| !stats <name>:<#> - Spams all statistic information for <name> in ship <#> if available |",
-                                      "|                      NOTE: Use -1 as <#> for all ships                                  |",
-                                      "| !streak           - Displays your current streak information                            |",
-                                      "| !streak <name>    - Displays streak information for <name>                              |",
-                                      "| !mvp              - Lists current game best/worst player record information             |",
-                                      "| !deaths           - Lists current game most/least player death information              |",
-                                      "| !scorereset <#>   - Resets all scores and statistics for the ship <#> specified (!sr)   |",
-                                      "| !lagout           - Return to game after lagging out                                    |",
-                                      "| !lag <name>       - Checks the lag of player <name>                                     |",
-                                      "| !late             - Enter a game after round has already started                        |",
-                                      "| !practice [#]     - Begin practice mode in ship#. (With no #, end practice mode.)       |",
-                                      "| !alert [#]        - Toggles new game alerts, w/ optional sound #, for this session      |",
-                                      "| !splash           - Shows the top 10 of Warbirds and Javelins                           |",
-                                      "| !disable          - Disables showing the splash screen on entry                         |",
+                                      "| !ladder <ship>     - (!lad) Prints the top 5 ranking players for <ship>                  |",
+                                      "| !lad <ship>:<#>    - Prints the 3 players surrounding rank <#> in <ship>                 |",
+                                      "| !votes             - Warbird and Javelin vote analysis                                   |",
+                                      "| !status            - Displays current game status                                        |",
+                                      "| !rank <#>          - Shows your current rank in ship <#>                                 |",
+                                      "| !rank <name>:<#>   - Shows the rank of <name> in ship <#>                                |",
+                                      "| !rec <#>           - Gets your own record in ship <#>                                    |",
+                                      "| !rec <name>:<#>    - Gets the record of <name> in ship <#>, or -1 for all ships          |",
+                                      "| !who               - Lists the remaining players and their records                       |",
+                                      "| !stats <#>         - Spams all of your ship <#> statistics if available                  |",
+                                      "| !stats <name>:<#>  - Spams statistic info for <name> in ship <#>; -1 for all ships       |",
+                                      "| !streak            - Displays your current streak information                            |",
+                                      "| !streak <name>     - Displays streak information for <name>                              |",
+                                      "| !mvp               - Lists current game best/worst player record information             |",
+                                      "| !deaths            - Lists current game most/least player death information              |",
+                                      "| !scorereset <#>    - Resets all scores and statistics for the ship <#> specified (!sr)   |",
+                                      "| !lagout            - Return to game after lagging out                                    |",
+                                      "| !lag <name>        - Checks the lag of player <name>                                     |",
+                                      "| !late              - Enter a game after round has already started                        |",
+                                      "| !practice [#]      - Begin practice mode in ship#. (With no #, end practice mode.)       |",
+                                      "| 1    or     2      - Practice in practice arena 1 or 2. Just PM the number, no ! needed. |",
+                                      "| !alert <ship>:<snd>- Send alerts when <ship> elim starts (use * for any ship)            |",
+                                      "|                      <snd> is a custom sound #, 1-25. !alert by itself for defaults.     |",
+                                      "| !splash            - Shows the top 10 of Warbirds and Javelins                           |",
+                                      "| !disable           - Disables showing the splash screen on entry                         |",
                                     };
         ba.privateMessageSpam(name, msg);
 
@@ -1366,7 +1390,7 @@ public class elim extends SubspaceBot {
         debugger = "qan";
         voteStats = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
         votes = new HashMap<String, Integer>();
-        alerts = new HashMap<String,Integer>();
+        alerts = new HashMap<String,ElimAlertInfo>();
         practicePlayers = new HashMap<String,Integer>();
         debugStatPlayers = new HashSet<String>();
         state = State.IDLE;
@@ -1468,6 +1492,10 @@ public class elim extends SubspaceBot {
                 cmd_practice(name, "off");
             else if (cmd.startsWith("!p "))
                 cmd_practice(name, msg);
+            else if (cmd.equals("1"))
+                cmd_practice(name, "!p 1");
+            else if (cmd.equals("2"))
+                cmd_practice(name, "!p 2");
             else if (cmd.startsWith("!rank "))
                 cmd_rank(name, msg);
             else if (cmd.startsWith("!rec "))
@@ -1838,10 +1866,11 @@ public class elim extends SubspaceBot {
         if ((now - lastAlert) < ALERT_DELAY * Tools.TimeInMillis.MINUTE)
             return;
 
-        int soundcode;
+        ElimAlertInfo eai;
         for (String p : alerts.keySet()) {
-            soundcode = alerts.get(p);
-            ba.sendSmartPrivateMessage(p, game.toStringShort() + " starting. PM with !late to enter.", soundcode);
+            eai = alerts.get(p);
+            if (eai != null && shipType.getNum() == eai.ship)
+                ba.sendSmartPrivateMessage(p, game.toStringShort() + " starting. PM with !late to enter.", eai.soundCode);
         }
 
         lastAlert = now;
@@ -2025,4 +2054,21 @@ public class elim extends SubspaceBot {
         }
     }
     */
+    
+    /**
+     * Class to store alert information. 
+     */
+    class ElimAlertInfo {
+        int ship;
+        int soundCode;
+        
+        public ElimAlertInfo(int ship, int soundCode) {
+            this.ship = ship;
+            this.soundCode = soundCode;
+        }
+        
+        boolean forAnyShip() {
+            return ship == -1;
+        }
+    }
 }
