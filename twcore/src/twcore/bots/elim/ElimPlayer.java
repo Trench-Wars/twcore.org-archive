@@ -560,7 +560,9 @@ public class ElimPlayer {
     private void removePlayerAsOut(boolean moveToPracticeMode, boolean specPlayer) {
         saveLoss();
         if (moveToPracticeMode) {
-            ba.sendPrivateMessage(name, "You have been eliminated, and are now in practice mode until the next round starts.");
+            if (game.winners.size() != 2) {
+                ba.sendPrivateMessage(name, "You were eliminated. You can practice until the next round starts.");
+            }
             game.addPracticePlayerAfterOut(this);
         }
         if (specPlayer) {
