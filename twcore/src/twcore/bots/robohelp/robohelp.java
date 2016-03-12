@@ -158,7 +158,7 @@ public class robohelp extends SubspaceBot {
         // ZH+ commands
         //m_commandInterpreter.registerCommand("!hosted", acceptedMessages, this, "handleDisplayHosted", OperatorList.ZH_LEVEL);
         m_commandInterpreter.registerCommand("!alert", acceptedMessages, this, "toggleAlert", OperatorList.ZH_LEVEL);
-        m_commandInterpreter.registerCommand("!time", acceptedMessages, this, "changeTimeFormatP", OperatorList.ZH_LEVEL);
+        m_commandInterpreter.registerCommand("!time", acceptedMessages, this, "changeTimeFormatP", OperatorList.HIGHMOD_LEVEL);
 
         // Mod
         m_commandInterpreter.registerCommand("!trigger", acceptedMessages, this, "handleTrigger", OperatorList.MODERATOR_LEVEL);
@@ -190,7 +190,7 @@ public class robohelp extends SubspaceBot {
         m_commandInterpreter.registerCommand("!dictionary", acceptedMessages, this, "handleDictionary", OperatorList.ZH_LEVEL);
         m_commandInterpreter.registerCommand("!thesaurus", acceptedMessages, this, "handleThesaurus", OperatorList.ZH_LEVEL);
         m_commandInterpreter.registerCommand("!javadocs", acceptedMessages, this, "handleJavadocs", OperatorList.ZH_LEVEL);
-        m_commandInterpreter.registerCommand("!time", acceptedMessages, this, "changeTimeFormatC", OperatorList.ZH_LEVEL);
+        m_commandInterpreter.registerCommand("!time", acceptedMessages, this, "changeTimeFormatC", OperatorList.HIGHMOD_LEVEL);
         // ER+
         m_commandInterpreter.registerCommand("!google", acceptedMessages, this, "handleGoogle", OperatorList.ER_LEVEL);
         m_commandInterpreter.registerCommand("!tell", acceptedMessages, this, "handleTell", OperatorList.ER_LEVEL);
@@ -1526,7 +1526,7 @@ public class robohelp extends SubspaceBot {
                         else
                             calltaker = null;
                     }
-                } catch (SQLException e) {                    
+                } catch (SQLException e) {
                     m_botAction.sendSmartPrivateMessage(name, "Error resetting new player as missed.");
                     return;
                 }
