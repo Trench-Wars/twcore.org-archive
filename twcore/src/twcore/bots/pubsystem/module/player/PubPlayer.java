@@ -68,8 +68,8 @@ public class PubPlayer implements Comparable<PubPlayer> {
             //new Point(564, 284),    // Mid ear, R
 
             // Experimental lower spawn points (further decrease spawnkilling)
-            new Point(435, 333),    // Top lower ear, L side
-            new Point(589, 333),    // Top lower ear, R side
+            //new Point(435, 333),    // Top lower ear, L side
+            //new Point(589, 333),    // Top lower ear, R side
             new Point(467, 359),    // Lower drop-circle, L side
             new Point(557, 359),    // Lower drop-circle, R side
 
