@@ -627,7 +627,6 @@ public class distensionbot extends SubspaceBot {
         }
 
         flagTimeStarted = false;
-        stopFlagTime = false;
         m_singleFlagMode = true;
         m_canScoreGoals = false;
         m_beginDelayedShutdown = false;
@@ -639,10 +638,13 @@ public class distensionbot extends SubspaceBot {
         else
             DEBUG = false;
 
-        if( m_botSettings.getInt("LoadAsEvent") == 1 )
+        if( m_botSettings.getInt("LoadAsEvent") == 1 ) {
             AS_EVENT = true;
-        else
+            stopFlagTime = true;
+        } else {
             AS_EVENT = false;
+            stopFlagTime = false;
+        }
         
         m_lastSave = System.currentTimeMillis();
         m_RPBonus = 0.0f;
