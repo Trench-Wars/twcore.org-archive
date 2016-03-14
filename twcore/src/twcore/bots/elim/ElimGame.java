@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -154,6 +155,9 @@ public class ElimGame {
         }
     }
 
+
+    // ******* EVENT HANDLING *******
+    
     /** Digest and diffuse player death event and related info
         @param event PlayerDeath
      * */
@@ -315,7 +319,9 @@ public class ElimGame {
         if (event.getMessageType() == Message.ARENA_MESSAGE)
             lagHandler.handleLagMessage(event.getMessage());
     }
-
+    
+    // ******* COMMANDS *******
+    
     public void cmd_getRating(String name, String cmd) {
         String p = cmd.substring(cmd.indexOf(" ") + 1);
 
@@ -338,6 +344,332 @@ public class ElimGame {
         }
     }
 
+    /** Handles the !late entrance command
+     *  @param name String
+     */
+    public void do_late(String name) {
+        if (!canStartLate()) {
+            ba.sendPrivateMessage(name, "60 seconds have passed since round start. You will need to wait until the next round to play.");
+            return;
+        }
+        
+        HashSet<Integer> playingFreqs = new HashSet<Integer>();
+        for (Player pp : ba.getPlayingPlayers()) {
+            if (pp != null) {
+                playingFreqs.add(new Integer(pp.getFrequency()));
+            }
+        }
+        
+        String low = name.toLowerCase();
+        ElimPlayer ep = new ElimPlayer(ba, this, name, ship.getNum(), goal);
+        freq += 2;
+
+        while (ba.getFrequencySize(freq) != 0 || playingFreqs.contains(freq))
+            freq += 2;
+
+        ep.setFreq(freq);
+        players.put(low, ep);
+        
+        TimerTask latetask = new LateTask(low);
+        ba.scheduleTask(latetask, 1000);
+    }
+
+    /**
+     * Late entrance task to account for time to load stats.
+     */
+    private class LateTask extends TimerTask {
+        final String name;
+
+        public LateTask(String name) {
+            this.name = name;
+        }
+        
+        public void run() {
+            addLatePlayer(name);
+        }
+    }
+
+    /** Handles late entrance after stats are loaded
+     * @param name String
+     */
+    public void addLatePlayer(String name) {
+        ElimPlayer ep = getPlayer(name);
+
+        if (ep == null || !ep.isLoaded()) {
+            ba.sendPrivateMessage(name, "Unable to load your stats. Please wait until next round to play.");
+            return;
+        }
+        
+        if (state != GameState.PLAYING) {
+            ba.sendPrivateMessage(name, "A game is not currently being played. Please wait until next round to play.");
+            return;
+        }
+        
+        if (bot.gameType == elim.ELIM) {
+            // Check all other players' deaths and set specAt to highest deaths so far
+            int highestDeaths = 0;
+            for (ElimPlayer player : players.values()) {
+                if (player.getDeaths() > highestDeaths)
+                    highestDeaths = player.getDeaths();
+            }
+            ep.specAt = goal - highestDeaths;
+        } else {
+            // Killrace: at present, no free kills, as it would taint the record in a positive way and could be abused.
+        }
+
+        // Do standard startround resetting
+        winners.add(low(name));
+        lagChecks.add(low(name));
+        
+        ba.setShip(name, ship.getNum());
+        ba.setFreq(name, ep.getFreq());
+
+        if (shrap)
+            ba.specificPrize(name, Tools.Prize.SHRAPNEL);
+        else {
+            ba.specificPrize(name, -Tools.Prize.SHRAPNEL);
+            ba.specificPrize(name, -Tools.Prize.SHRAPNEL);
+        }
+
+        ba.specificPrize(name, Tools.Prize.MULTIFIRE);
+
+        ba.scoreReset(name);
+        ep.resetPersonalScoreLVZ();
+        ep.resetStreak();
+
+        if (ship.inBase() && ship != ShipType.WEASEL)
+            ep.handleStart();
+        else if (ship == ShipType.WEASEL)
+            sendWarp(name);
+
+        lagChecks.add(low(name));
+
+        if (ship.inBase())
+            ep.setStatus(Status.SPAWN);
+        else
+            ep.setStatus(Status.IN);
+
+        played.put(low(name), ep);
+        playerCount++;
+        ratingCount += ep.getRating();
+        
+        if (ba.getFrequencySize(ep.getFreq()) > 1) {
+            do {
+                freq += 2;
+            } while (ba.getFrequencySize(freq) > 1);
+            ep.setFreq(freq);
+            ba.setFreq(name, ep.getFreq());
+        }
+
+
+        ba.sendArenaMessage(name + " enters in late at " + ep.specAt + " deaths.");
+        ba.sendPrivateMessage(name, "You have been added as a late entry to the game. You will be specced at " + ep.specAt + " deaths.");
+    }
+
+    /** Handles the !lagout player return command
+        @param name String
+     * */
+    public void do_lagout(String name) {
+        if (laggers.containsKey(low(name))) {
+            laggers.get(low(name)).lagin();
+        } else
+            ba.sendPrivateMessage(name, "You are not lagged out.");
+    }
+
+    public void do_lag(String req, String name) {
+        lagHandler.requestLag(name, req);
+    }
+
+    /** Handles the grunt work for the !deaths command
+        @param name String
+     * */
+    public void do_deaths(String name) {
+        List<ElimPlayer> list = getPlayed();
+
+        if (list.size() > 0) {
+            ElimPlayer[] best = new ElimPlayer[3];
+            ElimPlayer[] worst = new ElimPlayer[3];
+            Collections.sort(list, Collections.reverseOrder(compDeath));
+
+            for (int i = 0; i < 3 && i < list.size(); i++)
+                best[i] = list.get(i);
+
+            Collections.sort(list, compDeath);
+
+            for (int i = 0; i < 3 && i < list.size(); i++)
+                worst[i] = list.get(i);
+
+            ArrayList<String> msg = new ArrayList<String>();
+            msg.add(",---- Most Deaths ---- Max: " + goal + " -----.---- Least Deaths ----------------."); //34
+            msg.add("|" + padString(" 1) " + best[0].name + " (" + best[0].getKills() + "-" + best[0].getDeaths() + ")", 34) +
+                    "|" + padString(" 1) " + worst[0].name + " (" + worst[0].getKills() + "-" + worst[0].getDeaths() + ")", 34) + "|");
+
+            if (list.size() > 1) {
+                msg.add("|" + padString(" 2) " + best[1].name + " (" + best[1].getKills() + "-" + best[1].getDeaths() + ")", 34) +
+                        "|" + padString(" 2) " + worst[1].name + " (" + worst[1].getKills() + "-" + worst[1].getDeaths() + ")", 34) + "|");
+            }
+
+            if (list.size() > 2) {
+                msg.add("|" + padString(" 3) " + best[2].name + " (" + best[2].getKills() + "-" + best[2].getDeaths() + ")", 34) +
+                        "|" + padString(" 3) " + worst[2].name + " (" + worst[2].getKills() + "-" + worst[2].getDeaths() + ")", 34) + "|");
+            }
+
+            msg.add("`----------------------------------|----------------------------------+");
+            ba.smartPrivateMessageSpam(name, msg.toArray(new String[msg.size()]));
+        } else
+            ba.sendSmartPrivateMessage(name, "No death stats available.");
+    }
+
+    /** Handles the grunt work called for by the !mvp command
+        @param name String
+     * */
+    public void do_mvp(String name) {
+        List<ElimPlayer> list = getPlayed();
+        ElimPlayer[] best = new ElimPlayer[3];
+        ElimPlayer[] worst = new ElimPlayer[3];
+
+        if (list.size() > 0) {
+            Collections.sort(list, Collections.reverseOrder(comp));
+
+            for (int i = 0; i < 3 && i < list.size(); i++)
+                best[i] = list.get(i);
+
+            Collections.sort(list, comp);
+
+            for (int i = 0; i < 3 && i < list.size(); i++)
+                worst[i] = list.get(i);
+
+            ArrayList<String> msg = new ArrayList<String>();
+            msg.add(" ,-- Best Records -------------------.-- Worst Records ------------------.");
+            msg.add(" |" + padString(" 1) " + best[0].name + " (" + best[0].getKills() + "-" + best[0].getDeaths() + ")", 35) +
+                    "|" + padString(" 1) " + worst[0].name + " (" + worst[0].getKills() + "-" + worst[0].getDeaths() + ")", 35) + "|");
+
+            if (list.size() > 1)
+                msg.add(" |" + padString(" 2) " + best[1].name + " (" + best[1].getKills() + "-" + best[1].getDeaths() + ")", 35) +
+                        "|" + padString(" 2) " + worst[1].name + " (" + worst[1].getKills() + "-" + worst[1].getDeaths() + ")", 35) + "|");
+
+            if (list.size() > 2)
+                msg.add(" |" + padString(" 3) " + best[2].name + " (" + best[2].getKills() + "-" + best[2].getDeaths() + ")", 35) +
+                        "|" + padString(" 3) " + worst[2].name + " (" + worst[2].getKills() + "-" + worst[2].getDeaths() + ")", 35) + "|");
+
+            msg.add(" `-----------------------------------|-----------------------------------+");
+            ba.smartPrivateMessageSpam(name, msg.toArray(new String[msg.size()]));
+        } else
+            ba.sendSmartPrivateMessage(name, "No MVP stats available.");
+    }
+
+    /** Handles the grunt work called for by the !who command
+        @param name String
+     * */
+    public void do_who(String name) {
+        String msg = "" + winners.size() + " players remaining (* prefix == lagged out):";
+        ba.sendPrivateMessage(name, msg);
+        msg = "";
+
+        for (String p : winners) {
+            ElimPlayer ep = getPlayer(p);
+
+            if (p != null)
+                msg += ep.name + "(" + ep.getKills() + "-" + ep.getDeaths() + "), ";
+        }
+
+        for (String p : laggers.keySet()) {
+            ElimPlayer ep = getPlayer(p);
+
+            if (p != null)
+                msg += "*" + ep.name + "(" + ep.getKills() + "-" + ep.getDeaths() + "), ";
+        }
+
+        if (msg.length() > 0 && msg.contains(","))
+            msg = msg.substring(0, msg.lastIndexOf(","));
+
+        ba.sendSmartPrivateMessage(name, msg);
+    }
+
+    /** Handles grunt work for the !streak command which shows current streak stats
+        @param name String
+        @param cmd String
+     * */
+    public void do_streak(String name, String cmd) {
+        String p = name;
+
+        if (cmd.contains(" ") && cmd.length() > 9)
+            p = cmd.substring(cmd.indexOf(" ") + 1);
+
+        ElimPlayer ep = getPlayer(p);
+
+        if (ep != null)
+            ba.sendPrivateMessage(name, ep.getStreakStats());
+        else
+            ba.sendPrivateMessage(name, "Error, player not found.");
+    }
+
+    /** Does the grunt work of the !hider command which toggles the HiderFinder task
+        @param name String
+     * */
+    public void do_hiderFinder(String name) {
+        if (hiderFinder != null) {
+            hiderFinder.stop();
+            ba.sendSmartPrivateMessage(name, "HiderFinder DISABLED");
+        } else {
+            hiderFinder = new HiderFinder();
+            ba.sendSmartPrivateMessage(name, "HiderFinder ENABLED");
+        }
+    }
+
+    /** Handles the grunt work for the !remove player command
+        @param name String
+        @param player String
+     * */
+    public void do_remove(String name, String player) {
+        String temp = ba.getFuzzyPlayerName(player);
+
+        if (temp != null && temp.equalsIgnoreCase(player)) {
+            removeFromGameLists(name);
+            losers.remove(low(player));
+            ElimPlayer ep = players.remove(low(player));
+
+            if (ep != null)
+                ep.cancelTasks();
+
+            ba.spec(player);
+            ba.spec(player);
+            ba.sendPrivateMessage(player, "You have been forcibly removed from the game.");
+            ba.sendPrivateMessage(name, player + " has been removed from the game.");
+            checkWinner();
+        } else {
+            ba.sendPrivateMessage(name, "Player '" + player + "' not found in the arena; attempting to remove manually, in cases of bugged players.");
+            removeFromGameLists(name);
+            losers.remove(low(player));
+            ElimPlayer ep = players.remove(low(player));
+
+            if (ep != null)
+                ep.cancelTasks();
+
+            ba.sendPrivateMessage(player, "You have been forcibly removed from the game.");
+            ba.sendPrivateMessage(name, player + " has been removed from the game (if playing).");
+            checkWinner();
+        }
+    }
+
+    public void do_scorereset(ElimPlayer ep, int ship) {
+        ep.cancelTasks();
+
+        if (laggers.containsKey(low(ep.name)))
+            ba.cancelTask(laggers.remove(low(ep.name)));
+
+        lagChecks.remove(low(ep.name));
+        winners.remove(low(ep.name));
+        losers.remove(low(ep.name));
+        played.remove(low(ep.name));
+        loaded.remove(low(ep.name));
+        players.remove(low(ep.name));
+        ep.scorereset(ship);
+    }
+    
+    
+    // ******* MISC METHODS *******
+    
     /** Handles a lag report received from the lag handler
         @param report LagReport
      * */
@@ -552,7 +884,19 @@ public class ElimGame {
                     ep = new ElimPlayer(ba, this, p.getPlayerName(), p.getShipType(), 999);
                     players.put(p.getPlayerName().toLowerCase(), ep);
                 }
-                ep.setFreq(ep.getFreq() + 500);     // Bit of a hack, but should work OK.
+                
+                if (ba.getFrequencySize(p.getFrequency() + 500) == 0) {
+                    ep.setFreq(p.getFrequency() + 500);     // Bit of a hack, but should work OK.
+                } else {
+                    Random r = new Random();
+                    int randomFreq;
+                    do {
+                        randomFreq = 500 + r.nextInt(500);
+                    } while (ba.getFrequencySize(randomFreq) > 0);
+                    
+                    ep.setFreq(randomFreq);
+                }
+
                 ba.setFreq(p.getPlayerID(), ep.getFreq());
                 ba.setShip(p.getPlayerID(), ep.ship);
                 removeFromGameLists(p.getPlayerName().toLowerCase());
@@ -621,327 +965,7 @@ public class ElimGame {
         ep.setPracticing(ep.ship);
         ep.respawnInPracticeArena();
     }
-    
-    
-    // ******* COMMANDS *******
 
-    /** Handles the !late entrance command
-     *  @param name String
-     */
-    public void do_late(String name) {
-        if (!canStartLate()) {
-            ba.sendPrivateMessage(name, "60 seconds have passed since round start. You will need to wait until the next round to play.");
-            return;
-        }
-        
-        HashSet<Integer> playingFreqs = new HashSet<Integer>();
-        for (Player pp : ba.getPlayingPlayers()) {
-            if (pp != null) {
-                playingFreqs.add(new Integer(pp.getFrequency()));
-            }
-        }
-        
-        String low = name.toLowerCase();
-        ElimPlayer ep = new ElimPlayer(ba, this, name, ship.getNum(), goal);
-        freq += 2;
-
-        while (ba.getFrequencySize(freq) != 0 || playingFreqs.contains(freq))
-            freq += 2;
-
-        ep.setFreq(freq);
-        players.put(low, ep);
-        
-        TimerTask latetask = new LateTask(low);
-        ba.scheduleTask(latetask, 1000);
-    }
-
-    /**
-     * Late entrance task to account for time to load stats.
-     */
-    private class LateTask extends TimerTask {
-        final String name;
-
-        public LateTask(String name) {
-            this.name = name;
-        }
-        
-        public void run() {
-            addLatePlayer(name);
-        }
-    }
-
-    /** Handles late entrance after stats are loaded
-     * @param name String
-     */
-    public void addLatePlayer(String name) {
-        ElimPlayer ep = getPlayer(name);
-
-        if (ep == null || !ep.isLoaded()) {
-            ba.sendPrivateMessage(name, "Unable to load your stats. Please wait until next round to play.");
-            return;
-        }
-        
-        if (state != GameState.PLAYING) {
-            ba.sendPrivateMessage(name, "A game is not currently being played. Please wait until next round to play.");
-            return;
-        }
-        
-        if (bot.gameType == elim.ELIM) {
-            // Check all other players' deaths and set specAt to highest deaths so far
-            int highestDeaths = 0;
-            for (ElimPlayer player : players.values()) {
-                if (player.getDeaths() > highestDeaths)
-                    highestDeaths = player.getDeaths();
-            }
-            ep.specAt = goal - highestDeaths;
-        } else {
-            // Killrace: at present, no free kills, as it would taint the record in a positive way and could be abused.
-        }
-
-        // Do standard startround resetting
-        winners.add(low(name));
-        lagChecks.add(low(name));
-
-        if (shrap)
-            ba.specificPrize(name, Tools.Prize.SHRAPNEL);
-        else {
-            ba.specificPrize(name, -Tools.Prize.SHRAPNEL);
-            ba.specificPrize(name, -Tools.Prize.SHRAPNEL);
-        }
-
-        ba.specificPrize(name, Tools.Prize.MULTIFIRE);
-
-        ba.scoreReset(name);
-        ep.resetPersonalScoreLVZ();
-        ep.resetStreak();
-
-        if (ship.inBase() && ship != ShipType.WEASEL)
-            ep.handleStart();
-        else if (ship == ShipType.WEASEL)
-            sendWarp(name);
-
-        lagChecks.add(low(name));
-
-        if (ship.inBase())
-            ep.setStatus(Status.SPAWN);
-        else
-            ep.setStatus(Status.IN);
-
-        played.put(low(name), ep);
-        playerCount++;
-        ratingCount += ep.getRating();
-        
-        ba.setShip(name, ship.getNum());
-        ba.setFreq(name, freq);
-
-        ba.sendArenaMessage(name + " enters in late at " + ep.specAt + " deaths.");
-        ba.sendPrivateMessage(name, "You have been added as a late entry to the game. You will be specced at " + ep.specAt + " deaths.");
-    }
-
-    /** Handles the !lagout player return command
-        @param name String
-     * */
-    public void do_lagout(String name) {
-        if (laggers.containsKey(low(name))) {
-            laggers.get(low(name)).lagin();
-        } else
-            ba.sendPrivateMessage(name, "You are not lagged out.");
-    }
-
-    public void do_lag(String req, String name) {
-        lagHandler.requestLag(name, req);
-    }
-
-    /** Handles the grunt work for the !deaths command
-        @param name String
-     * */
-    public void do_deaths(String name) {
-        List<ElimPlayer> list = getPlayed();
-
-        if (list.size() > 0) {
-            ElimPlayer[] best = new ElimPlayer[3];
-            ElimPlayer[] worst = new ElimPlayer[3];
-            Collections.sort(list, Collections.reverseOrder(compDeath));
-
-            for (int i = 0; i < 3 && i < list.size(); i++)
-                best[i] = list.get(i);
-
-            Collections.sort(list, compDeath);
-
-            for (int i = 0; i < 3 && i < list.size(); i++)
-                worst[i] = list.get(i);
-
-            ArrayList<String> msg = new ArrayList<String>();
-            msg.add(",---- Most Deaths ---- Max: " + goal + " -----.---- Least Deaths ----------------."); //34
-            msg.add("|" + padString(" 1) " + best[0].name + " (" + best[0].getKills() + "-" + best[0].getDeaths() + ")", 34) +
-                    "|" + padString(" 1) " + worst[0].name + " (" + worst[0].getKills() + "-" + worst[0].getDeaths() + ")", 34) + "|");
-
-            if (list.size() > 1) {
-                msg.add("|" + padString(" 2) " + best[1].name + " (" + best[1].getKills() + "-" + best[1].getDeaths() + ")", 34) +
-                        "|" + padString(" 2) " + worst[1].name + " (" + worst[1].getKills() + "-" + worst[1].getDeaths() + ")", 34) + "|");
-            }
-
-            if (list.size() > 2) {
-                msg.add("|" + padString(" 3) " + best[2].name + " (" + best[2].getKills() + "-" + best[2].getDeaths() + ")", 34) +
-                        "|" + padString(" 3) " + worst[2].name + " (" + worst[2].getKills() + "-" + worst[2].getDeaths() + ")", 34) + "|");
-            }
-
-            msg.add("`----------------------------------|----------------------------------+");
-            ba.smartPrivateMessageSpam(name, msg.toArray(new String[msg.size()]));
-        } else
-            ba.sendSmartPrivateMessage(name, "No death stats available.");
-    }
-
-    /** Handles the grunt work called for by the !mvp command
-        @param name String
-     * */
-    public void do_mvp(String name) {
-        List<ElimPlayer> list = getPlayed();
-        ElimPlayer[] best = new ElimPlayer[3];
-        ElimPlayer[] worst = new ElimPlayer[3];
-
-        if (list.size() > 0) {
-            Collections.sort(list, Collections.reverseOrder(comp));
-
-            for (int i = 0; i < 3 && i < list.size(); i++)
-                best[i] = list.get(i);
-
-            Collections.sort(list, comp);
-
-            for (int i = 0; i < 3 && i < list.size(); i++)
-                worst[i] = list.get(i);
-
-            ArrayList<String> msg = new ArrayList<String>();
-            msg.add(" ,-- Best Records -------------------.-- Worst Records ------------------.");
-            msg.add(" |" + padString(" 1) " + best[0].name + " (" + best[0].getKills() + "-" + best[0].getDeaths() + ")", 35) +
-                    "|" + padString(" 1) " + worst[0].name + " (" + worst[0].getKills() + "-" + worst[0].getDeaths() + ")", 35) + "|");
-
-            if (list.size() > 1)
-                msg.add(" |" + padString(" 2) " + best[1].name + " (" + best[1].getKills() + "-" + best[1].getDeaths() + ")", 35) +
-                        "|" + padString(" 2) " + worst[1].name + " (" + worst[1].getKills() + "-" + worst[1].getDeaths() + ")", 35) + "|");
-
-            if (list.size() > 2)
-                msg.add(" |" + padString(" 3) " + best[2].name + " (" + best[2].getKills() + "-" + best[2].getDeaths() + ")", 35) +
-                        "|" + padString(" 3) " + worst[2].name + " (" + worst[2].getKills() + "-" + worst[2].getDeaths() + ")", 35) + "|");
-
-            msg.add(" `-----------------------------------|-----------------------------------+");
-            ba.smartPrivateMessageSpam(name, msg.toArray(new String[msg.size()]));
-        } else
-            ba.sendSmartPrivateMessage(name, "No MVP stats available.");
-    }
-
-    /** Handles the grunt work called for by the !who command
-        @param name String
-     * */
-    public void do_who(String name) {
-        String msg = "" + winners.size() + " players remaining (* prefix == lagged out):";
-        ba.sendPrivateMessage(name, msg);
-        msg = "";
-
-        for (String p : winners) {
-            ElimPlayer ep = getPlayer(p);
-
-            if (p != null)
-                msg += ep.name + "(" + ep.getKills() + "-" + ep.getDeaths() + "), ";
-        }
-
-        for (String p : laggers.keySet()) {
-            ElimPlayer ep = getPlayer(p);
-
-            if (p != null)
-                msg += "*" + ep.name + "(" + ep.getKills() + "-" + ep.getDeaths() + "), ";
-        }
-
-        if (msg.length() > 0 && msg.contains(","))
-            msg = msg.substring(0, msg.lastIndexOf(","));
-
-        ba.sendSmartPrivateMessage(name, msg);
-    }
-
-    /** Handles grunt work for the !streak command which shows current streak stats
-        @param name String
-        @param cmd String
-     * */
-    public void do_streak(String name, String cmd) {
-        String p = name;
-
-        if (cmd.contains(" ") && cmd.length() > 9)
-            p = cmd.substring(cmd.indexOf(" ") + 1);
-
-        ElimPlayer ep = getPlayer(p);
-
-        if (ep != null)
-            ba.sendPrivateMessage(name, ep.getStreakStats());
-        else
-            ba.sendPrivateMessage(name, "Error, player not found.");
-    }
-
-    /** Does the grunt work of the !hider command which toggles the HiderFinder task
-        @param name String
-     * */
-    public void do_hiderFinder(String name) {
-        if (hiderFinder != null) {
-            hiderFinder.stop();
-            ba.sendSmartPrivateMessage(name, "HiderFinder DISABLED");
-        } else {
-            hiderFinder = new HiderFinder();
-            ba.sendSmartPrivateMessage(name, "HiderFinder ENABLED");
-        }
-    }
-
-    /** Handles the grunt work for the !remove player command
-        @param name String
-        @param player String
-     * */
-    public void do_remove(String name, String player) {
-        String temp = ba.getFuzzyPlayerName(player);
-
-        if (temp != null && temp.equalsIgnoreCase(player)) {
-            removeFromGameLists(name);
-            losers.remove(low(player));
-            ElimPlayer ep = players.remove(low(player));
-
-            if (ep != null)
-                ep.cancelTasks();
-
-            ba.spec(player);
-            ba.spec(player);
-            ba.sendPrivateMessage(player, "You have been forcibly removed from the game.");
-            ba.sendPrivateMessage(name, player + " has been removed from the game.");
-            checkWinner();
-        } else {
-            ba.sendPrivateMessage(name, "Player '" + player + "' not found in the arena; attempting to remove manually, in cases of bugged players.");
-            removeFromGameLists(name);
-            losers.remove(low(player));
-            ElimPlayer ep = players.remove(low(player));
-
-            if (ep != null)
-                ep.cancelTasks();
-
-            ba.sendPrivateMessage(player, "You have been forcibly removed from the game.");
-            ba.sendPrivateMessage(name, player + " has been removed from the game (if playing).");
-            checkWinner();
-        }
-    }
-
-    public void do_scorereset(ElimPlayer ep, int ship) {
-        ep.cancelTasks();
-
-        if (laggers.containsKey(low(ep.name)))
-            ba.cancelTask(laggers.remove(low(ep.name)));
-
-        lagChecks.remove(low(ep.name));
-        winners.remove(low(ep.name));
-        losers.remove(low(ep.name));
-        played.remove(low(ep.name));
-        loaded.remove(low(ep.name));
-        players.remove(low(ep.name));
-        ep.scorereset(ship);
-    }
-
-    // ******* END COMMANDS *******
-    
-    
     /** Record losses for anyone still lagged out */
     public void storeLossesForLagoutPlayers() {
         for (Lagout lagger : laggers.values()) {
