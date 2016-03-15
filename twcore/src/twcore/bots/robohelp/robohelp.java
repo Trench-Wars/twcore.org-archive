@@ -1534,6 +1534,8 @@ public class robohelp extends SubspaceBot {
                     m_botAction.sendSmartPrivateMessage(name, "New Player alert for '" + player + "' has been reset, and call count successfully corrected.");
                 else
                     m_botAction.sendSmartPrivateMessage(name, "New Player alert for '" + player + "' has been reset, but call count could not be corrected. Please notify the bot dev staff.");
+            } else {
+                m_botAction.sendSmartPrivateMessage(name, "No recent new player by name of '" + player + "'. Check !calls to verify.");
             }
         }
     }
@@ -1885,7 +1887,7 @@ public class robohelp extends SubspaceBot {
         }
 
         m_botAction.SQLBackgroundQuery(mySQLHost, null, "UPDATE tblCallNewb SET fnTaken = 3 WHERE fcUserName = '" + Tools.addSlashesToString(player) + "' ORDER BY fnAlertID DESC");
-        m_botAction.sendSmartPrivateMessage(name, "All database entries for '" + player + "' have been falsified.");
+        m_botAction.sendSmartPrivateMessage(name, "All database entries for '" + player + "' have been falsified, if that player exists in the database.");
         m_botAction.ipcSendMessage(ZONE_CHANNEL, "false: " + player, WBOT, m_botAction.getBotName());
     }
 
