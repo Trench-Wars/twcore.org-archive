@@ -1,0 +1,88 @@
+
+# /src/
+/src/setup.cfg
+
+# /src/corecfg/
+/src/corecfg/autoload.cfg
+/src/corecfg/develop.cfg
+/src/corecfg/highmod.cfg
+/src/corecfg/outsider.cfg
+/src/corecfg/owners.cfg
+/src/corecfg/sql.cfg
+/src/corecfg/racism.cfg
+/src/corecfg/operators.cfg
+
+# /src/twcore/bots/
+/src/twcore/bots/*.jcp
+/src/twcore/bots/*.txt
+
+# /src/twcore/bots/bannerboy/
+/src/twcore/bots/bannerboy/bannerboy.cfg
+
+# /src/twcore/bots/bwjsbot/
+/src/twcore/bots/bwjsbot/bwjsbot.cfg
+
+# /src/twcore/bots/distensionbot/
+/src/twcore/bots/distensionbot/distensionbot.cfg
+
+# /src/twcore/bots/duelbot/
+/src/twcore/bots/duelbot/duelbot.cfg
+
+# /src/twcore/bots/elim/
+/src/twcore/bots/elim/elim.cfg
+
+# /src/twcore/bots/eventbot/
+/src/twcore/bots/eventbot/eventbot.cfg
+
+# /src/twcore/bots/forumbot/
+/src/twcore/bots/forumbot/forumbot.cfg
+
+# /src/twcore/bots/javelim/
+/src/twcore/bots/javelim/javelim.cfg
+
+# /src/twcore/bots/matchbot/
+/src/twcore/bots/matchbot/matchbot.cfg
+
+# /src/twcore/bots/messagebot/
+/src/twcore/bots/messagebot/messagebot.cfg
+
+# /src/twcore/bots/mrarrogant/
+/src/twcore/bots/mrarrogant/mrarrogant.cfg
+
+# /src/twcore/bots/multibot/
+/src/twcore/bots/multibot/multibot.cfg
+
+# /src/twcore/bots/pubbot/
+/src/twcore/bots/pubbot/pubbot.cfg
+
+# /src/twcore/bots/pubhub/
+/src/twcore/bots/pubhub/pubhub.cfg
+
+# /src/twcore/bots/pubsystem/
+
+# /src/twcore/bots/purepubbot/
+/src/twcore/bots/purepubbot/purepubbot.cfg
+
+# /src/twcore/bots/racebot/
+/src/twcore/bots/racebot/racebot.cfg
+
+# /src/twcore/bots/robohelp/
+/src/twcore/bots/robohelp/robohelp.cfg
+
+# /src/twcore/bots/staffbot/
+/src/twcore/bots/staffbot/staffbot.cfg
+
+# /src/twcore/bots/twdbot/
+/src/twcore/bots/twdbot/twdbot.cfg
+
+# /src/twcore/bots/twdopstats/
+/src/twcore/bots/twdopstats/twdopstats.cfg
+
+# /src/twcore/bots/twl/
+/src/twcore/bots/twl/twl.cfg
+
+# /src/twcore/bots/twrcbot/
+/src/twcore/bots/twrcbot/twrcbot.cfg
+
+# /src/twcore/bots/zonerbot/
+/src/twcore/bots/zonerbot/zonerbot.cfg
